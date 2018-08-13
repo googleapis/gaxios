@@ -1,0 +1,4 @@
+node_modules/
+docs/
+build/
+.nyc_output

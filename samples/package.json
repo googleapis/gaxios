@@ -1,0 +1,19 @@
+{
+  "description": "Samples for the google-cloud-kvstore npm module.",
+  "license": "MIT",
+  "author": "Google LLC",
+  "engines": {
+    "node": ">=8"
+  },
+  "repository": "GoogleCloudPlatform/google-cloud-kvstore",
+  "private": true,
+  "scripts": {
+    "test": "mocha system-test"
+  },
+  "dependencies": {
+    "google-cloud-kvstore": "*"
+  },
+  "devDependencies": {
+    "mocha": "^5.2.0"
+  }
+}
