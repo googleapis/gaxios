@@ -54,6 +54,7 @@
     "typescript": "~3.0.0"
   },
   "dependencies": {
+    "https-proxy-agent": "^2.2.1",
     "node-fetch": "^2.2.0",
     "qs": "^6.5.2"
   },
