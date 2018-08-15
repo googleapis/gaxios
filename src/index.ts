@@ -72,12 +72,15 @@ export async function getch<T = any>(opts: GetchOptions): GetchPromise<T> {
     }
     return translateResponse(opts, res, data);
   } catch (e) {
+    const err = e as GetchError;
+    err.config = opts;
     const {shouldRetry, config} = await getRetryConfig(e);
     if (shouldRetry && config) {
-      return getch<T>(config);
+      err.config.retryConfig!.currentRetryAttempt =
+          config.retryConfig!.currentRetryAttempt;
+      return getch<T>(err.config);
     }
-    (e as GetchError).config = config!;
-    throw e;
+    throw err;
   }
 }
 

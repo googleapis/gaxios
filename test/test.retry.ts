@@ -186,7 +186,7 @@ describe('retry', () => {
 
   it('should allow configuring noResponseRetries', async () => {
     const scope = nock(url).get('/').replyWithError({code: 'ETIMEDOUT'});
-    const config = {url, raxConfig: {noResponseRetries: 0}};
+    const config = {url, retryConfig: {noResponseRetries: 0}};
     await assertRejects(getch(config), (e: Error) => {
       const cfg = getConfig(e);
       return cfg!.currentRetryAttempt === 0;
