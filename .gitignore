@@ -3,3 +3,5 @@ docs/
 build/
 .nyc_output
 package-lock.json
+yarn.lock
+.vscode

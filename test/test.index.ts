@@ -29,12 +29,11 @@ it('should throw an error if a url is not provided', () => {
   assertRejects(getch({}), /URL is required/);
 });
 
-it.skip('should throw on non-2xx responses by default', async () => {
+it('should throw on non-2xx responses by default', async () => {
   const scope = nock(url).get('/').reply(500);
   await assertRejects(getch({url}), (err: GetchError) => {
     scope.done();
-    assert(err);
-    assert.strictEqual(err.code, '500');
+    return err.code === '500';
   });
 });
 

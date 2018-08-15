@@ -30,6 +30,7 @@
   "author": "Google, LLC",
   "license": "Apache-2.0",
   "devDependencies": {
+    "@types/extend": "^3.0.0",
     "@types/mocha": "^5.2.5",
     "@types/nock": "^9.3.0",
     "@types/node": "^10.5.6",
@@ -54,6 +55,7 @@
     "typescript": "~3.0.0"
   },
   "dependencies": {
+    "extend": "^3.0.2",
     "https-proxy-agent": "^2.2.1",
     "node-fetch": "^2.2.0",
     "qs": "^6.5.2"

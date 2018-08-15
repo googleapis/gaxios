@@ -15,79 +15,70 @@
 
 import fetch, {Response} from 'node-fetch';
 import * as qs from 'qs';
+import * as extend from 'extend';
 import {URL} from 'url';
 import {Agent} from 'https';
+import {GetchOptions, GetchPromise, GetchError, GetchResponse, Headers, RetryConfig} from './common';
+import {getRetryConfig} from './retry';
 // tslint:disable-next-line variable-name
 const HttpsProxyAgent = require('https-proxy-agent');
 
-export type Headers = {
-  [index: string]: any
+export {
+  GetchOptions,
+  GetchPromise,
+  GetchError,
+  GetchResponse,
+  Headers,
+  RetryConfig
 };
-export type GetchPromise<T = any> = Promise<GetchResponse<T>>;
 
-export interface GetchResponse<T = any> {
-  config: GetchOptions;
-  data: T;
-  status: number;
-  headers: Headers;
-}
-
-export class GetchError<T = any> extends Error {
-  code?: string;
-  response?: GetchResponse<T>;
-  constructor(message: string, response: GetchResponse<T>) {
-    super(message);
-    this.response = response;
-    this.code = response.status.toString();
-  }
-}
-
-export interface GetchOptions {
-  url?: string;
-  method?: 'GET'|'HEAD'|'POST'|'DELETE'|'PUT';
-  headers?: {[index: string]: string};
-  data?: any;
-  body?: any;
-  params?: any;
-  timeout?: number;
-  responseType?: 'json'|'text'|'stream';
-  agent?: Agent;
-  validateStatus?: (status: number) => boolean;
-}
+export let defaults: GetchOptions = {
+  method: 'GET',
+  responseType: 'json'
+};
 
 export async function getch<T = any>(opts: GetchOptions): GetchPromise<T> {
-  validateOpts(opts);
-  const res = await fetch(opts.url!, opts);
-  let data: any;
-  if (res.ok) {
-    switch (opts.responseType) {
-      case 'json':
-        data = await res.json();
-        break;
-      case 'text':
-        data = await res.text();
-        break;
-      case 'stream':
-        data = res.body;
-        break;
-      default:
-        throw new Error('Invalid responseType.');
-    }
-  } else {
-    try {
-      if (res.headers.get('content-type') === 'application/json') {
-        data = await res.json();
-      } else {
-        data = await res.text();
+  opts = validateOpts(opts);
+  try {
+    const res = await fetch(opts.url!, opts);
+    let data: any;
+    if (res.ok) {
+      switch (opts.responseType) {
+        case 'json':
+          data = await res.json();
+          break;
+        case 'text':
+          data = await res.text();
+          break;
+        case 'stream':
+          data = res.body;
+          break;
+        default:
+          throw new Error('Invalid responseType.');
       }
-    } catch {
+    } else {
+      try {
+        if (res.headers.get('content-type') === 'application/json') {
+          data = await res.json();
+        } else {
+          data = await res.text();
+        }
+      } catch {
+      }
     }
+    const translatedResponse = translateResponse(opts, res, data);
+    if (!opts.validateStatus!(res.status)) {
+      throw new GetchError<T>(data, opts, translatedResponse);
+    }
+    return translateResponse(opts, res, data);
+  } catch (e) {
+    const {shouldRetry, config} = await getRetryConfig(e);
+    if (shouldRetry && config) {
+      return getch<T>(config);
+    }
+    (e as GetchError).config = config!;
+    throw e;
   }
-  const translatedResponse = translateResponse(opts, res, data);
-  if (!opts.validateStatus!(res.status)) {
-    throw new GetchError(data, translatedResponse);
-  }
-  return translateResponse(opts, res, data);
 }
 
 const agentCache = new Map<string, Agent>();
@@ -97,7 +88,8 @@ const agentCache = new Map<string, Agent>();
  * fetch format.
  * @param opts The original options passed from the client.
  */
-function validateOpts(opts: GetchOptions): void {
+function validateOpts(opts: GetchOptions): GetchOptions {
+  opts = extend({}, defaults, opts);
   if (!opts.url) {
     throw new Error('URL is required.');
   }
@@ -120,6 +112,7 @@ function validateOpts(opts: GetchOptions): void {
       agentCache.set(proxy, opts.agent!);
     }
   }
+  return opts;
 }
 
 /**
@@ -138,10 +131,5 @@ function translateResponse<T>(
     headers[key] = value;
   });
 
-  return {
-    config: opts,
-    data: data as T,
-    headers,
-    status: res.status,
-  };
+  return {config: opts, data: data as T, headers, status: res.status};
 }
