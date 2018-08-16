@@ -43,7 +43,7 @@ export interface GetchResponse<T = any> {
 
 export interface GetchOptions {
   url?: string;
-  method?: 'GET'|'HEAD'|'POST'|'DELETE'|'PUT';
+  method?: 'GET'|'HEAD'|'POST'|'DELETE'|'PUT'|'CONNECT'|'OPTIONS'|'TRACE'|'PATCH';
   headers?: {[index: string]: string};
   data?: any;
   body?: any;
