@@ -44,6 +44,12 @@ export class Getch {
           case 'stream':
             data = res.body;
             break;
+          case 'arraybuffer':
+            data = await res.arrayBuffer();
+            break;
+          case 'blob':
+            data = await res.blob();
+            break;
           default:
             throw new Error('Invalid responseType.');
         }

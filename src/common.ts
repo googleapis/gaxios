@@ -49,7 +49,7 @@ export interface GetchOptions {
   body?: any;
   params?: any;
   timeout?: number;
-  responseType?: 'json'|'text'|'stream';
+  responseType?: 'arraybuffer'|'blob'|'json'|'text'|'stream';
   agent?: Agent;
   validateStatus?: (status: number) => boolean;
   retryConfig?: RetryConfig;

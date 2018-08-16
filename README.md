@@ -7,12 +7,10 @@
 $ npm install @google/getch
 ```
 
-
 ## Example
 
 ```js
 const {getch} = require('@google/getch');
-
 const res = await getch({
   url: 'https://www.googleapis.com/discovery/v1/apis/'
 });
@@ -45,8 +43,9 @@ const res = await getch({
   // The timeout for the HTTP request. Defaults to 0.
   timeout: 1000,
 
-  // The expected return type of the request.  Options are `json`, `stream`,
-  // and `text`.  Defaults to JSON.
+  // The expected return type of the request.  Options are:
+  // json | stream | blob | arraybuffer | text
+  // Defaults to `json`.
   responseType: 'json',
 
   // The node.js http agent to use for the request.
@@ -56,7 +55,7 @@ const res = await getch({
   // status code.  Defaults to (>= 200 && < 300)
   validateStatus: (status: number) => true,
 
-  // Custom configuration for retrying of requests.
+  // Configuration for retrying of requests.
   retryConfig: {
     // The number of times to retry the request.  Defaults to 3.
     retry?: number;
@@ -85,9 +84,10 @@ const res = await getch({
     noResponseRetries?: number;
   },
 
-  // Just enable retries with the default config.
-  retry: true
+  // Enables default configuration for retries.
+  retry: boolean;
 }
+```
 
 ## License
 [Apache-2.0](LICENSE)
