@@ -44,6 +44,14 @@ describe('🚙 error handling', () => {
 });
 
 describe('🥁 configuration options', () => {
+  it('should use options passed into the constructor', async () => {
+    const scope = nock(url).head('/').reply(200);
+    const inst = new Getch({method: 'HEAD'});
+    const res = await inst.getch({url});
+    scope.done();
+    assert.strictEqual(res.config.method, 'HEAD');
+  });
+
   it('should allow overriding valid status', async () => {
     const scope = nock(url).get('/').reply(304);
     const res = await getch({

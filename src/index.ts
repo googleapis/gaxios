@@ -19,10 +19,16 @@ import {GetchOptions} from './common';
 export {Getch, GetchOptions};
 export {GetchError, GetchPromise, GetchResponse, Headers, RetryConfig} from './common';
 
-let instance: Getch;
+/**
+ * The default instance used when the `getch` method is directly
+ * invoked.
+ */
+export const instance = new Getch();
+
+/**
+ * Make an HTTP request using the given options.
+ * @param opts Options for the request
+ */
 export async function getch<T>(opts: GetchOptions) {
-  if (!instance) {
-    instance = new Getch();
-  }
   return instance.getch<T>(opts);
 }

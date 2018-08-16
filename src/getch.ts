@@ -26,43 +26,28 @@ const HttpsProxyAgent = require('https-proxy-agent');
 export class Getch {
   private agentCache = new Map<string, Agent>();
 
-  defaults: GetchOptions = {method: 'GET', responseType: 'json'};
+  /**
+   * Default HTTP options that will be used for every HTTP request.
+   */
+  defaults: GetchOptions;
 
+  /**
+   * The Getch class is responsible for making HTTP requests.
+   * @param defaults The default set of options to be used for this instance.
+   */
+  constructor(defaults?: GetchOptions) {
+    this.defaults = defaults || {};
+  }
+
+  /**
+   * Perform an HTTP request with the given options.
+   * @param opts Set of HTTP options that will be used for this HTTP request.
+   */
   async getch<T = any>(opts: GetchOptions): GetchPromise<T> {
     opts = this.validateOpts(opts);
     try {
       const res = await fetch(opts.url!, opts);
-      let data: any;
-      if (res.ok) {
-        switch (opts.responseType) {
-          case 'json':
-            data = await res.json();
-            break;
-          case 'text':
-            data = await res.text();
-            break;
-          case 'stream':
-            data = res.body;
-            break;
-          case 'arraybuffer':
-            data = await res.arrayBuffer();
-            break;
-          case 'blob':
-            data = await res.blob();
-            break;
-          default:
-            throw new Error('Invalid responseType.');
-        }
-      } else {
-        try {
-          if (res.headers.get('content-type') === 'application/json') {
-            data = await res.json();
-          } else {
-            data = await res.text();
-          }
-        } catch {
-        }
-      }
+      const data = await this.getResponseData(opts, res);
       const translatedResponse = this.translateResponse(opts, res, data);
       if (!opts.validateStatus!(res.status)) {
         throw new GetchError<T>(data, opts, translatedResponse);
@@ -81,6 +66,36 @@ export class Getch {
     }
   }
 
+  protected async getResponseData(opts: GetchOptions, res: Response) {
+    if (res.ok) {
+      if (opts.responseType === 'stream') {
+        return res.body;
+      }
+      if (res.size > 0) {
+        switch (opts.responseType) {
+          case 'json':
+            return res.json();
+          case 'text':
+            return res.text();
+          case 'arraybuffer':
+            return res.arrayBuffer();
+          case 'blob':
+            return res.blob();
+          default:
+            throw new Error('Invalid responseType.');
+        }
+      }
+    }
+    try {
+      if (res.headers.get('content-type') === 'application/json') {
+        return res.json();
+      } else {
+        return res.text();
+      }
+    } catch {
+    }
+  }
+
   /**
    * Validate the options, and massage them to match the
    * fetch format.
@@ -94,6 +109,7 @@ export class Getch {
     opts.body = opts.data;
     opts.validateStatus = opts.validateStatus || this.validateStatus;
     opts.responseType = opts.responseType || 'json';
+    opts.method = opts.method || 'GET';
 
     if (opts.params) {
       const parts = new URL(opts.url);
