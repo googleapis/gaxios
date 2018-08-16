@@ -30,11 +30,11 @@ function getConfig(err: Error) {
   return;
 }
 
-describe('retry', () => {
-  afterEach(() => {
-    nock.cleanAll();
-  });
+afterEach(() => {
+  nock.cleanAll();
+});
 
+describe('🛸 retry & exponential backoff', () => {
   it('should provide an expected set of defaults', async () => {
     const scope = nock(url).get('/').times(4).reply(500);
     await assertRejects(getch({url, retry: true}), (e: Error) => {
