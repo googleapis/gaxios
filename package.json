@@ -1,6 +1,6 @@
 {
   "name": "gaxios",
-  "version": "0.1.0",
+  "version": "0.0.0-development",
   "description": "A simple common HTTP client specifically for Google APIs and services.",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
@@ -16,7 +16,9 @@
     "fix": "gts fix && semistandard --fix",
     "prepare": "npm run compile",
     "pretest": "npm run compile",
-    "coverage": "nyc report --reporter=json && codecov -f coverage/*.json"
+    "coverage": "nyc report --reporter=json && codecov -f coverage/*.json",
+    "travis-deploy-once": "travis-deploy-once",
+    "semantic-release": "semantic-release"
   },
   "repository": "JustinBeckwith/gaxios",
   "keywords": [
@@ -39,7 +41,9 @@
     "nyc": "^12.0.2",
     "semistandard": "^13.0.1",
     "source-map-support": "^0.5.6",
-    "typescript": "~3.1.5"
+    "typescript": "~3.1.5",
+    "travis-deploy-once": "^5.0.9",
+    "semantic-release": "^15.10.8"
   },
   "dependencies": {
     "extend": "^3.0.2",
