@@ -16,7 +16,7 @@
     "fix": "gts fix && semistandard --fix",
     "prepare": "npm run compile",
     "pretest": "npm run compile",
-    "coverage": "nyc report --reporter=text-lcov && codecov"
+    "coverage": "nyc report --reporter=json && codecov -f coverage/*.json"
   },
   "repository": "JustinBeckwith/gaxios",
   "keywords": [
