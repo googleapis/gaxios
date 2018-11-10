@@ -11,24 +11,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-'use strict';
+import {GaxiosOptions} from './common';
+import {Gaxios} from './gaxios';
 
-import {Getch} from './getch';
-import {GetchOptions} from './common';
-
-export {Getch, GetchOptions};
-export {GetchError, GetchPromise, GetchResponse, Headers, RetryConfig} from './common';
+export {GaxiosError, GaxiosPromise, GaxiosResponse, Headers, RetryConfig} from './common';
+export {Gaxios, GaxiosOptions};
 
 /**
- * The default instance used when the `getch` method is directly
+ * The default instance used when the `request` method is directly
  * invoked.
  */
-export const instance = new Getch();
+export const instance = new Gaxios();
 
 /**
  * Make an HTTP request using the given options.
  * @param opts Options for the request
  */
-export async function getch<T>(opts: GetchOptions) {
-  return instance.getch<T>(opts);
+export async function request<T>(opts: GaxiosOptions) {
+  return instance.request<T>(opts);
 }

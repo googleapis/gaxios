@@ -11,11 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-'use strict';
+import {GaxiosError} from './common';
 
-import {GetchError} from './common';
-
-export async function getRetryConfig(err: GetchError) {
+export async function getRetryConfig(err: GaxiosError) {
   let config = getConfig(err);
   if ((!err || !err.config) || (!config && !err.config.retry)) {
     return {shouldRetry: false};
@@ -72,16 +70,16 @@ export async function getRetryConfig(err: GetchError) {
     config.onRetryAttempt(err);
   }
 
-  // Return the promise in which recalls Getch to retry the request
+  // Return the promise in which recalls Gaxios to retry the request
   await backoff;
   return {shouldRetry: true, config: err.config};
 }
 
 /**
  * Determine based on config if we should retry the request.
- * @param err The GetchError passed to the interceptor.
+ * @param err The GaxiosError passed to the interceptor.
  */
-function shouldRetryRequest(err: GetchError) {
+function shouldRetryRequest(err: GaxiosError) {
   const config = getConfig(err);
 
   // If there's no config, or retries are disabled, return.
@@ -127,10 +125,10 @@ function shouldRetryRequest(err: GetchError) {
 }
 
 /**
- * Acquire the raxConfig object from an GetchError if available.
- * @param err The Getch error with a config object.
+ * Acquire the raxConfig object from an GaxiosError if available.
+ * @param err The Gaxios error with a config object.
  */
-function getConfig(err: GetchError) {
+function getConfig(err: GaxiosError) {
   if (err && err.config && err.config.retryConfig) {
     return err.config.retryConfig;
   }

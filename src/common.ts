@@ -11,16 +11,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-'use strict';
-
 import {Agent} from 'https';
 
-export class GetchError<T = any> extends Error {
+export class GaxiosError<T = any> extends Error {
   code?: string;
-  response?: GetchResponse<T>;
-  config: GetchOptions;
+  response?: GaxiosResponse<T>;
+  config: GaxiosOptions;
   constructor(
-      message: string, options: GetchOptions, response: GetchResponse<T>) {
+      message: string, options: GaxiosOptions, response: GaxiosResponse<T>) {
     super(message);
     this.response = response;
     this.config = options;
@@ -32,10 +30,10 @@ export class GetchError<T = any> extends Error {
 export type Headers = {
   [index: string]: any
 };
-export type GetchPromise<T = any> = Promise<GetchResponse<T>>;
+export type GaxiosPromise<T = any> = Promise<GaxiosResponse<T>>;
 
-export interface GetchResponse<T = any> {
-  config: GetchOptions;
+export interface GaxiosResponse<T = any> {
+  config: GaxiosOptions;
   data: T;
   status: number;
   headers: Headers;
@@ -44,7 +42,7 @@ export interface GetchResponse<T = any> {
 /**
  * Request options that are used to form the request.
  */
-export interface GetchOptions {
+export interface GaxiosOptions {
   url?: string;
   method?: 'GET'|'HEAD'|'POST'|'DELETE'|'PUT'|'CONNECT'|'OPTIONS'|'TRACE'|
       'PATCH';
@@ -62,7 +60,7 @@ export interface GetchOptions {
 
 
 /**
- * Configuration for the Getch `request` method.
+ * Configuration for the Gaxios `request` method.
  */
 export interface RetryConfig {
   /**
@@ -95,12 +93,12 @@ export interface RetryConfig {
   /**
    * Function to invoke when a retry attempt is made.
    */
-  onRetryAttempt?: (err: GetchError) => void;
+  onRetryAttempt?: (err: GaxiosError) => void;
 
   /**
    * Function to invoke which determines if you should retry
    */
-  shouldRetry?: (err: GetchError) => boolean;
+  shouldRetry?: (err: GaxiosError) => boolean;
 
   /**
    * When there is no response, the number of retries to attempt. Defaults to 2.

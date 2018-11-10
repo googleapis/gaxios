@@ -1,17 +1,17 @@
-# @google/getch
-> Consistent request interface for Google npm modules. This is *not* a general purpose HTTP client. It's sole purpose is to use with other Google npm modules.
+# gaxios
+> An HTTP request client that provides an `axios` like interfance over top of `node-fetch`.  Only really useful if you're trying to migrate from axios to the fetch.
 
 
 ## Install
 ```sh
-$ npm install @google/getch
+$ npm install gaxios
 ```
 
 ## Example
 
 ```js
-const {getch} = require('@google/getch');
-const res = await getch({
+const {request} = require('gaxios');
+const res = await request({
   url: 'https://www.googleapis.com/discovery/v1/apis/'
 });
 ```
@@ -75,10 +75,10 @@ const res = await getch({
     statusCodesToRetry?: number[][];
 
     // Function to invoke when a retry attempt is made.
-    onRetryAttempt?: (err: GetchError) => void;
+    onRetryAttempt?: (err: GaxiosError) => void;
 
     // Function to invoke which determines if you should retry
-    shouldRetry?: (err: GetchError) => boolean;
+    shouldRetry?: (err: GaxiosError) => boolean;
 
     // When there is no response, the number of retries to attempt. Defaults to 2.
     noResponseRetries?: number;

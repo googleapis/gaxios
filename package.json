@@ -1,5 +1,5 @@
 {
-  "name": "@google/getch",
+  "name": "gaxios",
   "version": "0.1.0",
   "description": "A simple common HTTP client specifically for Google APIs and services.",
   "main": "build/src/index.js",
@@ -8,22 +8,16 @@
     "build/src"
   ],
   "scripts": {
-    "cover": "nyc --reporter=lcov mocha build/test && nyc report",
-    "docs": "jsdoc -c .jsdoc.js",
     "lint": "eslint samples/ && npm run check",
-    "prettier": "prettier --write samples/*.js",
     "test": "nyc mocha build/test",
     "samples-test": "cd samples/ && npm link ../ && npm test && cd ../",
-    "system-test": "mocha build/system-test --timeout 600000",
-    "check": "gts check",
     "clean": "gts clean",
-    "compile": "tsc -p .",
-    "fix": "gts fix",
+    "compile": "tsc -p . && npm run fix",
+    "fix": "gts fix && eslint --fix 'samples/*.js'",
     "prepare": "npm run compile",
-    "pretest": "npm run compile",
-    "posttest": "npm run check"
+    "pretest": "npm run compile"
   },
-  "repository": "googleapis/getch",
+  "repository": "JustinBeckwith/gaxios",
   "keywords": [
     "google"
   ],
@@ -43,16 +37,12 @@
     "eslint-plugin-node": "^7.0.1",
     "eslint-plugin-prettier": "^2.6.2",
     "gts": "^0.8.0",
-    "ink-docstrap": "^1.3.2",
-    "intelli-espower-loader": "^1.0.1",
-    "jsdoc": "^3.5.5",
     "mocha": "^5.2.0",
     "nock": "^9.6.0",
     "nyc": "^12.0.2",
-    "power-assert": "^1.6.0",
     "prettier": "^1.14.0",
     "source-map-support": "^0.5.6",
-    "typescript": "~3.0.0"
+    "typescript": "~3.1.5"
   },
   "dependencies": {
     "extend": "^3.0.2",

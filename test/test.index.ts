@@ -18,7 +18,7 @@ import * as assert from 'assert';
 
 describe('📝 main exports', () => {
   it('should export all the types', () => {
-    assert(main.Getch);
-    assert(main.GetchError);
+    assert(main.Gaxios);
+    assert(main.GaxiosError);
   });
 });

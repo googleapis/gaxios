@@ -11,12 +11,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-'use strict';
-
-import {getch, GetchError, Getch} from '../src';
-import * as nock from 'nock';
 import * as assert from 'assert';
+import * as nock from 'nock';
 import * as stream from 'stream';
+
+import {Gaxios, GaxiosError, request} from '../src';
+
 const assertRejects = require('assert-rejects');
 
 nock.disableNetConnect();
@@ -29,14 +29,14 @@ const url = 'https://example.com';
 
 describe('🦖 option validation', () => {
   it('should throw an error if a url is not provided', () => {
-    assertRejects(getch({}), /URL is required/);
+    assertRejects(request({}), /URL is required/);
   });
 });
 
 describe('🚙 error handling', () => {
   it('should throw on non-2xx responses by default', async () => {
     const scope = nock(url).get('/').reply(500);
-    await assertRejects(getch({url}), (err: GetchError) => {
+    await assertRejects(request({url}), (err: GaxiosError) => {
       scope.done();
       return err.code === '500';
     });
@@ -46,15 +46,15 @@ describe('🚙 error handling', () => {
 describe('🥁 configuration options', () => {
   it('should use options passed into the constructor', async () => {
     const scope = nock(url).head('/').reply(200);
-    const inst = new Getch({method: 'HEAD'});
-    const res = await inst.getch({url});
+    const inst = new Gaxios({method: 'HEAD'});
+    const res = await inst.request({url});
     scope.done();
     assert.strictEqual(res.config.method, 'HEAD');
   });
 
   it('should allow overriding valid status', async () => {
     const scope = nock(url).get('/').reply(304);
-    const res = await getch({
+    const res = await request({
       url,
       validateStatus: () => {
         return true;
@@ -68,7 +68,7 @@ describe('🥁 configuration options', () => {
     const opts = {url, params: {james: 'kirk', montgomery: 'scott'}};
     const path = '/?james=kirk&montgomery=scott';
     const scope = nock(url).get(path).reply(200, {});
-    const res = await getch(opts);
+    const res = await request(opts);
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.config.url, url + path);
     scope.done();
@@ -77,7 +77,7 @@ describe('🥁 configuration options', () => {
   it('should return json by default', async () => {
     const body = {hello: '🌎'};
     const scope = nock(url).get('/').reply(200, body);
-    const res = await getch({url});
+    const res = await request({url});
     scope.done();
     assert.deepStrictEqual(body, res.data);
   });
@@ -85,7 +85,7 @@ describe('🥁 configuration options', () => {
   it('should return stream if asked nicely', async () => {
     const body = {hello: '🌎'};
     const scope = nock(url).get('/').reply(200, body);
-    const res = await getch<stream.Readable>({url, responseType: 'stream'});
+    const res = await request<stream.Readable>({url, responseType: 'stream'});
     scope.done();
     assert(res.data instanceof stream.Readable);
   });
@@ -93,7 +93,7 @@ describe('🥁 configuration options', () => {
   it('should return text if asked nicely', async () => {
     const body = 'hello 🌎';
     const scope = nock(url).get('/').reply(200, body);
-    const res = await getch<string>({url, responseType: 'text'});
+    const res = await request<string>({url, responseType: 'text'});
     scope.done();
     assert.strictEqual(res.data, body);
   });
@@ -101,7 +101,7 @@ describe('🥁 configuration options', () => {
 
 describe('🍂 defaults & instances', () => {
   it('should allow creating a new instance', () => {
-    const getchInstance = new Getch();
-    assert.equal(typeof getchInstance.getch, 'function');
+    const requestInstance = new Gaxios();
+    assert.equal(typeof requestInstance.request, 'function');
   });
 });
