@@ -8,12 +8,12 @@
     "build/src"
   ],
   "scripts": {
-    "lint": "eslint samples/ && npm run check",
+    "lint": "semistandard && npm run check",
     "test": "nyc mocha build/test",
     "samples-test": "cd samples/ && npm link ../ && npm test && cd ../",
     "clean": "gts clean",
     "compile": "tsc -p . && npm run fix",
-    "fix": "gts fix && eslint --fix 'samples/*.js'",
+    "fix": "gts fix && semistandard --fix",
     "prepare": "npm run compile",
     "pretest": "npm run compile",
     "coverage": "nyc report --reporter=text-lcov && codecov"
@@ -33,15 +33,11 @@
     "@types/qs": "^6.5.1",
     "assert-rejects": "^1.0.0",
     "codecov": "^3.0.4",
-    "eslint": "^5.3.0",
-    "eslint-config-prettier": "^2.9.0",
-    "eslint-plugin-node": "^7.0.1",
-    "eslint-plugin-prettier": "^2.6.2",
     "gts": "^0.8.0",
     "mocha": "^5.2.0",
     "nock": "^9.6.0",
     "nyc": "^12.0.2",
-    "prettier": "^1.14.0",
+    "semistandard": "^13.0.1",
     "source-map-support": "^0.5.6",
     "typescript": "~3.1.5"
   },
