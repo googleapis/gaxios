@@ -15,7 +15,8 @@
     "compile": "tsc -p . && npm run fix",
     "fix": "gts fix && eslint --fix 'samples/*.js'",
     "prepare": "npm run compile",
-    "pretest": "npm run compile"
+    "pretest": "npm run compile",
+    "coverage": "nyc report --reporter=text-lcov && codecov"
   },
   "repository": "JustinBeckwith/gaxios",
   "keywords": [

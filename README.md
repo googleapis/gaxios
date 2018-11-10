@@ -1,6 +1,9 @@
 # gaxios
 > An HTTP request client that provides an `axios` like interfance over top of `node-fetch`.  Only really useful if you're trying to migrate from axios to the fetch.
 
+[![Build Status](https://travis-ci.com/JustinBeckwith/gaxios.svg?branch=master)](https://travis-ci.com/JustinBeckwith/gaxios)
+
+
 
 ## Install
 ```sh
