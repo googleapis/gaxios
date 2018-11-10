@@ -66,7 +66,7 @@ export class Gaxios {
     }
   }
 
-  protected async getResponseData(opts: GaxiosOptions, res: Response) {
+  private async getResponseData(opts: GaxiosOptions, res: Response) {
     if (res.ok) {
       if (opts.responseType === 'stream') {
         return res.body;
@@ -101,7 +101,7 @@ export class Gaxios {
    * fetch format.
    * @param opts The original options passed from the client.
    */
-  protected validateOpts(opts: GaxiosOptions): GaxiosOptions {
+  private validateOpts(opts: GaxiosOptions): GaxiosOptions {
     opts = extend({}, this.defaults, opts);
     if (!opts.url) {
       throw new Error('URL is required.');
@@ -133,11 +133,11 @@ export class Gaxios {
    * By default, throw for any non-2xx status code
    * @param status status code from the HTTP response
    */
-  protected validateStatus(status: number) {
+  private validateStatus(status: number) {
     return status >= 200 && status < 300;
   }
 
-  protected translateResponse<T>(opts: GaxiosOptions, res: Response, data?: T):
+  private translateResponse<T>(opts: GaxiosOptions, res: Response, data?: T):
       GaxiosResponse<T> {
     // headers need to be converted from a map to an obj
     const headers = {} as Headers;
