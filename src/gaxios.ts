@@ -14,7 +14,7 @@
 import * as extend from 'extend';
 import {Agent} from 'https';
 import fetch, {Response} from 'node-fetch';
-import * as qs from 'qs';
+import * as qs from 'querystring';
 import {URL} from 'url';
 
 import {GaxiosError, GaxiosOptions, GaxiosPromise, GaxiosResponse, Headers} from './common';
@@ -50,7 +50,9 @@ export class Gaxios {
       const data = await this.getResponseData(opts, res);
       const translatedResponse = this.translateResponse(opts, res, data);
       if (!opts.validateStatus!(res.status)) {
-        throw new GaxiosError<T>(data, opts, translatedResponse);
+        throw new GaxiosError<T>(
+            `Request failed with status code ${res.status}`, opts,
+            translatedResponse);
       }
       return this.translateResponse(opts, res, data);
     } catch (e) {
@@ -106,7 +108,14 @@ export class Gaxios {
     if (!opts.url) {
       throw new Error('URL is required.');
     }
-    opts.body = opts.data;
+
+    opts.headers = opts.headers || {};
+    if (opts.data) {
+      opts.body = JSON.stringify(opts.data);
+      opts.headers['Content-Type'] = 'application/json';
+      delete opts.data;
+    }
+
     opts.validateStatus = opts.validateStatus || this.validateStatus;
     opts.responseType = opts.responseType || 'json';
     opts.method = opts.method || 'GET';
