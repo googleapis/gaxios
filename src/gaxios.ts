@@ -104,7 +104,7 @@ export class Gaxios {
    * @param opts The original options passed from the client.
    */
   private validateOpts(opts: GaxiosOptions): GaxiosOptions {
-    opts = extend({}, this.defaults, opts);
+    opts = extend(true, {}, this.defaults, opts);
     if (!opts.url) {
       throw new Error('URL is required.');
     }

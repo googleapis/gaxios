@@ -52,6 +52,15 @@ describe('🥁 configuration options', () => {
     assert.strictEqual(res.config.method, 'HEAD');
   });
 
+  it('should handle nested options passed into the constructor', async () => {
+    const scope = nock(url).get('/').reply(200);
+    const inst = new Gaxios({headers: {apple: 'juice'}});
+    const res = await inst.request({url, headers: {figgy: 'pudding'}});
+    scope.done();
+    assert.strictEqual(res.config.headers!.apple, 'juice');
+    assert.strictEqual(res.config.headers!.figgy, 'pudding');
+  });
+
   it('should allow overriding valid status', async () => {
     const scope = nock(url).get('/').reply(304);
     const res = await request({
