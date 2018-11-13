@@ -91,6 +91,13 @@ describe('🥁 configuration options', () => {
     assert.deepStrictEqual(body, res.data);
   });
 
+  it('should send an application/json header by default', async () => {
+    const scope =
+        nock(url).matchHeader('accept', 'application/json').get('/').reply(200);
+    const res = await request({url});
+    scope.done();
+  });
+
   it('should return stream if asked nicely', async () => {
     const body = {hello: '🌎'};
     const scope = nock(url).get('/').reply(200, body);

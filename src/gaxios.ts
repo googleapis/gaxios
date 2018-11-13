@@ -103,8 +103,8 @@ export class Gaxios {
    * fetch format.
    * @param opts The original options passed from the client.
    */
-  private validateOpts(opts: GaxiosOptions): GaxiosOptions {
-    opts = extend(true, {}, this.defaults, opts);
+  private validateOpts(options: GaxiosOptions): GaxiosOptions {
+    const opts = extend(true, {}, this.defaults, options);
     if (!opts.url) {
       throw new Error('URL is required.');
     }
@@ -118,6 +118,9 @@ export class Gaxios {
 
     opts.validateStatus = opts.validateStatus || this.validateStatus;
     opts.responseType = opts.responseType || 'json';
+    if (!opts.headers['Accept'] && opts.responseType === 'json') {
+      opts.headers['Accept'] = 'application/json';
+    }
     opts.method = opts.method || 'GET';
 
     if (opts.params) {
@@ -135,6 +138,7 @@ export class Gaxios {
         this.agentCache.set(proxy, opts.agent!);
       }
     }
+
     return opts;
   }
 
