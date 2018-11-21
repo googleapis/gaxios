@@ -13,15 +13,18 @@
 
 import * as assert from 'assert';
 import * as nock from 'nock';
+import * as sinon from 'sinon';
 import * as stream from 'stream';
-
-import {Gaxios, GaxiosError, request} from '../src';
-
 const assertRejects = require('assert-rejects');
+// tslint:disable-next-line variable-name
+const HttpsProxyAgent = require('https-proxy-agent');
+import {Gaxios, GaxiosError, request} from '../src';
 
 nock.disableNetConnect();
 
+const sandbox = sinon.createSandbox();
 afterEach(() => {
+  sandbox.restore();
   nock.cleanAll();
 });
 
@@ -112,6 +115,16 @@ describe('🥁 configuration options', () => {
     const res = await request<string>({url, responseType: 'text'});
     scope.done();
     assert.strictEqual(res.data, body);
+  });
+
+  it('should use an https proxy if asked nicely', async () => {
+    sandbox.stub(process, 'env').value({https_proxy: 'https://fake.proxy'});
+    const body = {hello: '🌎'};
+    const scope = nock(url).get('/').reply(200, body);
+    const res = await request({url});
+    scope.done();
+    assert.deepStrictEqual(res.data, body);
+    assert.ok(res.config.agent instanceof HttpsProxyAgent);
   });
 });
 
