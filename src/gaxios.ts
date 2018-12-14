@@ -89,12 +89,14 @@ export class Gaxios {
       }
     }
     try {
-      if (res.headers.get('content-type') === 'application/json') {
+      if (res.headers.has('content-type') &&
+          res.headers.get('content-type')!.includes('application/json')) {
         return res.json();
       } else {
         return res.text();
       }
     } catch {
+      // ignore the error
     }
   }
 
