@@ -1,6 +1,6 @@
 # gaxios
 
-[![Build Status](https://travis-ci.com/JustinBeckwith/gaxios.svg?branch=master)](https://travis-ci.com/JustinBeckwith/gaxios)
+[![Build Status](https://api.cirrus-ci.com/github/JustinBeckwith/gaxios.svg)](https://cirrus-ci.com/github/JustinBeckwith/gaxios)
 [![codecov](https://codecov.io/gh/JustinBeckwith/gaxios/branch/master/graph/badge.svg)](https://codecov.io/gh/JustinBeckwith/gaxios)
 
 > An HTTP request client that provides an `axios` like interfance over top of `node-fetch`.  Only really useful if you're trying to migrate from axios to the fetch.

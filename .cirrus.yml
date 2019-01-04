@@ -1,0 +1,21 @@
+container:
+  image: node:10
+
+lint_task:
+  install_scrit: npm install
+  test_script: npm run lint
+
+test_task:
+  container:
+    matrix:
+      image: node:11
+      image: node:10
+      image: node:8
+      image: node:6
+  install_script: npm install
+  test_script: npm test
+
+coverage_task:
+  depends_on:
+    - test
+  script: npm run codecov
