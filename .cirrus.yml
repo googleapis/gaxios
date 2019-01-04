@@ -2,7 +2,7 @@ container:
   image: node:10
 
 lint_task:
-  install_scrit: npm install
+  install_script: npm install
   test_script: npm run lint
 
 test_task:
@@ -15,7 +15,13 @@ test_task:
   install_script: npm install
   test_script: npm test
 
+commit_lint_task:
+  script:
+    - npm install
+    - npm run commitlint
+
 coverage_task:
-  depends_on:
-    - test
-  script: npm run codecov
+  script:
+    - npm install
+    - npm test
+    - npm run codecov
