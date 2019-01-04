@@ -25,3 +25,16 @@ coverage_task:
     - npm install
     - npm test
     - npm run codecov
+
+publish_task:
+  only_if: $CIRRUS_BRANCH == 'master'
+  depends_on:
+    - test_task
+    - lint_task
+    - commit_lint_task
+  environment:
+    GITHUB_TOKEN: ENCRYPTED[8d2c18c6edadfd1ad0ebccb041ea7500081faea2824d499aa3b2882505fbbdbfd97490f499ad5e973db974a38d92d531]
+    NPM_TOKEN: ENCRYPTED[51a4e1758849032273e7fbf5d7afe4fb7bf54a9fa1c500a60b45e7bdda6cd819cc3dc568fb403022f5585859d2b9ae56]
+  script:
+    - npm install
+    - npx semantic-release
