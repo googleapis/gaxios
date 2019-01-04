@@ -126,6 +126,17 @@ describe('🥁 configuration options', () => {
     assert.deepStrictEqual(res.data, body);
     assert.ok(res.config.agent instanceof HttpsProxyAgent);
   });
+
+  it('should load the proxy from the cache', async () => {
+    sandbox.stub(process, 'env').value({HTTPS_PROXY: 'https://fake.proxy'});
+    const body = {hello: '🌎'};
+    const scope = nock(url).get('/').twice().reply(200, body);
+    const res1 = await request({url});
+    const agent = res1.config.agent;
+    const res2 = await request({url});
+    assert.strictEqual(agent, res2.config.agent);
+    scope.done();
+  });
 });
 
 describe('🍂 defaults & instances', () => {
