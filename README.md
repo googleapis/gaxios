@@ -1,5 +1,6 @@
 # gaxios
 
+[![npm version](https://img.shields.io/npm/v/gaxios.svg)](https://www.npmjs.org/package/gaxios)
 [![Build Status](https://api.cirrus-ci.com/github/JustinBeckwith/gaxios.svg)](https://cirrus-ci.com/github/JustinBeckwith/gaxios)
 [![codecov](https://codecov.io/gh/JustinBeckwith/gaxios/branch/master/graph/badge.svg)](https://codecov.io/gh/JustinBeckwith/gaxios)
 
