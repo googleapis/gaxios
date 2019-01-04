@@ -131,8 +131,9 @@ export class Gaxios {
       opts.url = parts.href;
     }
 
-    if (process.env.http_proxy || process.env.https_proxy) {
-      const proxy = (process.env.http_proxy || process.env.https_proxy)!;
+    const proxy = process.env.HTTPS_PROXY || process.env.https_proxy ||
+        process.env.HTTP_PROXY || process.env.http_proxy;
+    if (proxy) {
       if (this.agentCache.has(proxy)) {
         opts.agent = this.agentCache.get(proxy);
       } else {
