@@ -1,0 +1,3 @@
+codecov:
+  ci:
+    - cirrus-ci.com
