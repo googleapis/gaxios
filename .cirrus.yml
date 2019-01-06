@@ -21,6 +21,8 @@ commit_lint_task:
     - npm run commitlint
 
 coverage_task:
+  env:
+    CODECOV_TOKEN: ENCRYPTED[750eb3c966bdd3472a953856902500c28d7785af18131d3045650172d4351bf91617be1f2b4a913a423f5d6fb21a11b8]
   script:
     - npm install
     - npm test
