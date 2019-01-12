@@ -64,14 +64,17 @@ describe('🥁 configuration options', () => {
     assert.strictEqual(res.config.headers!.figgy, 'pudding');
   });
 
+  it('should allow setting a base url in the options', async () => {
+    const scope = nock(url).get('/mango').reply(200, {});
+    const inst = new Gaxios({baseUrl: url});
+    const res = await inst.request({url: '/mango'});
+    scope.done();
+    assert.deepStrictEqual(res.data, {});
+  });
+
   it('should allow overriding valid status', async () => {
     const scope = nock(url).get('/').reply(304);
-    const res = await request({
-      url,
-      validateStatus: () => {
-        return true;
-      }
-    });
+    const res = await request({url, validateStatus: () => true});
     scope.done();
     assert.strictEqual(res.status, 304);
   });
