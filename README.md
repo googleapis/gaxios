@@ -21,7 +21,21 @@ const res = await request({
 });
 ```
 
-## Options
+## Setting Defaults
+Gaxios supports setting default properties both on the default instance, and on additional instances. This is often useful when making many requests to the same domain with the same base settings.  For example:
+
+```js
+const gaxios = require('gaxios');
+gaxios.instances.defaults = {
+  baseUrl: 'https://example.com'
+  headers: {
+    Authorization: 'SOME_TOKEN'
+  }
+}
+gaxios.request({url: '/data'}).then(...);
+```
+
+## Request Options
 
 ```js
 {
@@ -30,6 +44,9 @@ const res = await request({
 
   // The HTTP method to use for the request.  Defaults to `GET`.
   method: 'GET',
+
+  // The base Url to use for the request. Prepended to the `url` property above.
+  baseUrl: 'https://example.com';
 
   // The HTTP methods to be sent with the request.
   headers: { 'some': 'header' },
