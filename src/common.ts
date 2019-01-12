@@ -26,7 +26,6 @@ export class GaxiosError<T = any> extends Error {
   }
 }
 
-
 export type Headers = {
   [index: string]: any
 };
@@ -44,6 +43,7 @@ export interface GaxiosResponse<T = any> {
  */
 export interface GaxiosOptions {
   url?: string;
+  baseUrl?: string;
   method?: 'GET'|'HEAD'|'POST'|'DELETE'|'PUT'|'CONNECT'|'OPTIONS'|'TRACE'|
       'PATCH';
   headers?: {[index: string]: string};
@@ -57,7 +57,6 @@ export interface GaxiosOptions {
   retryConfig?: RetryConfig;
   retry?: boolean;
 }
-
 
 /**
  * Configuration for the Gaxios `request` method.

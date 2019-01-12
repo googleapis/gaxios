@@ -101,14 +101,17 @@ export class Gaxios {
   }
 
   /**
-   * Validate the options, and massage them to match the
-   * fetch format.
+   * Validate the options, and massage them to match the fetch format.
    * @param opts The original options passed from the client.
    */
   private validateOpts(options: GaxiosOptions): GaxiosOptions {
     const opts = extend(true, {}, this.defaults, options);
     if (!opts.url) {
       throw new Error('URL is required.');
+    }
+
+    if (opts.baseUrl) {
+      opts.url = (new URL(opts.url, opts.baseUrl)).toString();
     }
 
     opts.headers = opts.headers || {};
