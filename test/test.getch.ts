@@ -140,6 +140,14 @@ describe('🥁 configuration options', () => {
     assert.strictEqual(agent, res2.config.agent);
     scope.done();
   });
+
+  it('should include the request data in the response config', async () => {
+    const body = {hello: '🌎'};
+    const scope = nock(url).post('/', body).reply(200);
+    const res = await request({url, method: 'POST', data: body});
+    scope.done();
+    assert.deepStrictEqual(res.config.data, body);
+  });
 });
 
 describe('🍂 defaults & instances', () => {
