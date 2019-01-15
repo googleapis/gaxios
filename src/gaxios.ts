@@ -54,7 +54,7 @@ export class Gaxios {
             `Request failed with status code ${res.status}`, opts,
             translatedResponse);
       }
-      return this.translateResponse(opts, res, data);
+      return this.translateResponse<T>(opts, res, data);
     } catch (e) {
       const err = e as GaxiosError;
       err.config = opts;
@@ -68,35 +68,24 @@ export class Gaxios {
     }
   }
 
-  private async getResponseData(opts: GaxiosOptions, res: Response) {
-    if (res.ok) {
-      if (opts.responseType === 'stream') {
+  private async getResponseData(opts: GaxiosOptions, res: Response):
+      Promise<any> {
+    switch (opts.responseType) {
+      case 'stream':
         return res.body;
-      }
-      if (res.size > 0) {
-        switch (opts.responseType) {
-          case 'json':
-            return res.json();
-          case 'text':
-            return res.text();
-          case 'arraybuffer':
-            return res.arrayBuffer();
-          case 'blob':
-            return res.blob();
-          default:
-            throw new Error('Invalid responseType.');
+      case 'json':
+        let data = await res.text();
+        try {
+          data = JSON.parse(data);
+        } catch (e) {
         }
-      }
-    }
-    try {
-      if (res.headers.has('content-type') &&
-          res.headers.get('content-type')!.includes('application/json')) {
-        return res.json();
-      } else {
+        return data as {};
+      case 'arraybuffer':
+        return res.arrayBuffer();
+      case 'blob':
+        return res.blob();
+      default:
         return res.text();
-      }
-    } catch {
-      // ignore the error
     }
   }
 
@@ -118,7 +107,6 @@ export class Gaxios {
     if (opts.data) {
       opts.body = JSON.stringify(opts.data);
       opts.headers['Content-Type'] = 'application/json';
-      delete opts.data;
     }
 
     opts.validateStatus = opts.validateStatus || this.validateStatus;
