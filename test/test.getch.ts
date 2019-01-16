@@ -18,7 +18,7 @@ import * as stream from 'stream';
 const assertRejects = require('assert-rejects');
 // tslint:disable-next-line variable-name
 const HttpsProxyAgent = require('https-proxy-agent');
-import {Gaxios, GaxiosError, request} from '../src';
+import {Gaxios, GaxiosError, request, GaxiosOptions} from '../src';
 
 nock.disableNetConnect();
 
@@ -86,6 +86,24 @@ describe('🥁 configuration options', () => {
     const res = await request(opts);
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.config.url, url + path);
+    scope.done();
+  });
+
+  it('should allow overriding the param serializer', async () => {
+    const qs = '?oh=HAI';
+    const params = {james: 'kirk'};
+    const opts: GaxiosOptions = {
+      url,
+      params,
+      paramsSerializer: (ps) => {
+        assert.deepStrictEqual(params, ps);
+        return '?oh=HAI';
+      }
+    };
+    const scope = nock(url).get(`/${qs}`).reply(200, {});
+    const res = await request(opts);
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.config.url, `${url}/${qs}`);
     scope.done();
   });
 

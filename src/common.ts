@@ -50,6 +50,7 @@ export interface GaxiosOptions {
   data?: any;
   body?: any;
   params?: any;
+  paramsSerializer?: (params: {[index: string]: string|number}) => string;
   timeout?: number;
   responseType?: 'arraybuffer'|'blob'|'json'|'text'|'stream';
   agent?: Agent;
