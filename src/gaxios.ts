@@ -110,6 +110,7 @@ export class Gaxios {
     }
 
     opts.validateStatus = opts.validateStatus || this.validateStatus;
+    opts.paramsSerializer = opts.paramsSerializer || this.paramsSerializer;
     opts.responseType = opts.responseType || 'json';
     if (!opts.headers['Accept'] && opts.responseType === 'json') {
       opts.headers['Accept'] = 'application/json';
@@ -118,7 +119,7 @@ export class Gaxios {
 
     if (opts.params) {
       const parts = new URL(opts.url);
-      parts.search = qs.stringify(opts.params);
+      parts.search = opts.paramsSerializer(opts.params);
       opts.url = parts.href;
     }
 
@@ -142,6 +143,14 @@ export class Gaxios {
    */
   private validateStatus(status: number) {
     return status >= 200 && status < 300;
+  }
+
+  /**
+   * Encode a set of key/value pars into a querystring format (?foo=bar&baz=boo)
+   * @param params key value pars to encode
+   */
+  private paramsSerializer(params: {[index: string]: string|number}) {
+    return qs.stringify(params);
   }
 
   private translateResponse<T>(opts: GaxiosOptions, res: Response, data?: T):

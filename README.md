@@ -62,6 +62,13 @@ gaxios.request({url: '/data'}).then(...);
     querystring: 'parameters'
   },
 
+  // By default, we use the `querystring` package in node core to serialize
+  // querystring parameters.  You can override that and provide your
+  // own implementation.
+  paramsSerializer: (params) => {
+    return qs.stringify(params);
+  },
+
   // The timeout for the HTTP request. Defaults to 0.
   timeout: 1000,
 
