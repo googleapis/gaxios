@@ -105,8 +105,12 @@ export class Gaxios {
 
     opts.headers = opts.headers || {};
     if (opts.data) {
-      opts.body = JSON.stringify(opts.data);
-      opts.headers['Content-Type'] = 'application/json';
+      if (typeof opts.data === 'object') {
+        opts.body = JSON.stringify(opts.data);
+        opts.headers['Content-Type'] = 'application/json';
+      } else {
+        opts.body = opts.data;
+      }
     }
 
     opts.validateStatus = opts.validateStatus || this.validateStatus;
