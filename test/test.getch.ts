@@ -19,6 +19,7 @@ const assertRejects = require('assert-rejects');
 // tslint:disable-next-line variable-name
 const HttpsProxyAgent = require('https-proxy-agent');
 import {Gaxios, GaxiosError, request, GaxiosOptions} from '../src';
+import * as qs from 'querystring';
 
 nock.disableNetConnect();
 
@@ -116,10 +117,31 @@ describe('🥁 configuration options', () => {
   });
 
   it('should send an application/json header by default', async () => {
-    const scope =
-        nock(url).matchHeader('accept', 'application/json').get('/').reply(200);
+    const scope = nock(url)
+                      .matchHeader('accept', 'application/json')
+                      .get('/')
+                      .reply(200, {});
     const res = await request({url});
     scope.done();
+    assert.deepStrictEqual(res.data, {});
+  });
+
+  it('should accept a string in the request data', async () => {
+    const body = {hello: '🌎'};
+    const encoded = qs.stringify(body);
+    const scope =
+        nock(url)
+            .matchHeader('content-type', 'application/x-www-form-urlencoded')
+            .post('/', encoded)
+            .reply(200, {});
+    const res = await request({
+      url,
+      method: 'POST',
+      data: encoded,
+      headers: {'content-type': 'application/x-www-form-urlencoded'}
+    });
+    scope.done();
+    assert.deepStrictEqual(res.data, {});
   });
 
   it('should return stream if asked nicely', async () => {
