@@ -52,6 +52,7 @@ export interface GaxiosOptions {
   params?: any;
   paramsSerializer?: (params: {[index: string]: string|number}) => string;
   timeout?: number;
+  onUploadProgress?: (progressEvent: any) => void;
   responseType?: 'arraybuffer'|'blob'|'json'|'text'|'stream';
   agent?: Agent;
   validateStatus?: (status: number) => boolean;
