@@ -46,7 +46,7 @@ export interface GaxiosOptions {
   baseUrl?: string;
   method?: 'GET'|'HEAD'|'POST'|'DELETE'|'PUT'|'CONNECT'|'OPTIONS'|'TRACE'|
       'PATCH';
-  headers?: {[index: string]: string};
+  headers?: Headers;
   data?: any;
   body?: any;
   params?: any;
