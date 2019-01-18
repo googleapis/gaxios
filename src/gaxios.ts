@@ -43,7 +43,7 @@ export class Gaxios {
    * Perform an HTTP request with the given options.
    * @param opts Set of HTTP options that will be used for this HTTP request.
    */
-  async request<T = any>(opts: GaxiosOptions): GaxiosPromise<T> {
+  async request<T = any>(opts: GaxiosOptions = {}): GaxiosPromise<T> {
     opts = this.validateOpts(opts);
     try {
       const res = await fetch(opts.url!, opts);
