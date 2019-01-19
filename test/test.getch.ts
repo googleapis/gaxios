@@ -20,6 +20,7 @@ const assertRejects = require('assert-rejects');
 const HttpsProxyAgent = require('https-proxy-agent');
 import {Gaxios, GaxiosError, request, GaxiosOptions} from '../src';
 import * as qs from 'querystring';
+import * as fs from 'fs';
 
 nock.disableNetConnect();
 
@@ -126,6 +127,46 @@ describe('🥁 configuration options', () => {
     assert.deepStrictEqual(res.data, {});
   });
 
+  it('should use an https proxy if asked nicely', async () => {
+    sandbox.stub(process, 'env').value({https_proxy: 'https://fake.proxy'});
+    const body = {hello: '🌎'};
+    const scope = nock(url).get('/').reply(200, body);
+    const res = await request({url});
+    scope.done();
+    assert.deepStrictEqual(res.data, body);
+    assert.ok(res.config.agent instanceof HttpsProxyAgent);
+  });
+
+  it('should load the proxy from the cache', async () => {
+    sandbox.stub(process, 'env').value({HTTPS_PROXY: 'https://fake.proxy'});
+    const body = {hello: '🌎'};
+    const scope = nock(url).get('/').twice().reply(200, body);
+    const res1 = await request({url});
+    const agent = res1.config.agent;
+    const res2 = await request({url});
+    assert.strictEqual(agent, res2.config.agent);
+    scope.done();
+  });
+
+  it('should include the request data in the response config', async () => {
+    const body = {hello: '🌎'};
+    const scope = nock(url).post('/', body).reply(200);
+    const res = await request({url, method: 'POST', data: body});
+    scope.done();
+    assert.deepStrictEqual(res.config.data, body);
+  });
+});
+
+describe('🎏 data handling', () => {
+  it('should accpet a ReadableStream as request data', async () => {
+    const body = fs.createReadStream('package.json');
+    const contents = require('../../package.json');
+    const scope = nock(url).post('/', contents).reply(200, {});
+    const res = await request({url, method: 'POST', data: body});
+    scope.done();
+    assert.deepStrictEqual(res.data, {});
+  });
+
   it('should accept a string in the request data', async () => {
     const body = {hello: '🌎'};
     const encoded = qs.stringify(body);
@@ -158,35 +199,6 @@ describe('🥁 configuration options', () => {
     const res = await request<string>({url, responseType: 'text'});
     scope.done();
     assert.strictEqual(res.data, body);
-  });
-
-  it('should use an https proxy if asked nicely', async () => {
-    sandbox.stub(process, 'env').value({https_proxy: 'https://fake.proxy'});
-    const body = {hello: '🌎'};
-    const scope = nock(url).get('/').reply(200, body);
-    const res = await request({url});
-    scope.done();
-    assert.deepStrictEqual(res.data, body);
-    assert.ok(res.config.agent instanceof HttpsProxyAgent);
-  });
-
-  it('should load the proxy from the cache', async () => {
-    sandbox.stub(process, 'env').value({HTTPS_PROXY: 'https://fake.proxy'});
-    const body = {hello: '🌎'};
-    const scope = nock(url).get('/').twice().reply(200, body);
-    const res1 = await request({url});
-    const agent = res1.config.agent;
-    const res2 = await request({url});
-    assert.strictEqual(agent, res2.config.agent);
-    scope.done();
-  });
-
-  it('should include the request data in the response config', async () => {
-    const body = {hello: '🌎'};
-    const scope = nock(url).post('/', body).reply(200);
-    const res = await request({url, method: 'POST', data: body});
-    scope.done();
-    assert.deepStrictEqual(res.config.data, body);
   });
 });
 

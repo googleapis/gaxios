@@ -15,6 +15,7 @@ import * as extend from 'extend';
 import {Agent} from 'https';
 import fetch, {Response} from 'node-fetch';
 import * as qs from 'querystring';
+import * as stream from 'stream';
 import {URL} from 'url';
 
 import {GaxiosError, GaxiosOptions, GaxiosPromise, GaxiosResponse, Headers} from './common';
@@ -105,7 +106,9 @@ export class Gaxios {
 
     opts.headers = opts.headers || {};
     if (opts.data) {
-      if (typeof opts.data === 'object') {
+      if (this.isReadableStream(opts.data)) {
+        opts.body = opts.data;
+      } else if (typeof opts.data === 'object') {
         opts.body = JSON.stringify(opts.data);
         opts.headers['Content-Type'] = 'application/json';
       } else {
@@ -155,6 +158,10 @@ export class Gaxios {
    */
   private paramsSerializer(params: {[index: string]: string|number}) {
     return qs.stringify(params);
+  }
+
+  private isReadableStream(obj: any): boolean {
+    return obj instanceof stream.Readable && typeof obj._read === 'function';
   }
 
   private translateResponse<T>(opts: GaxiosOptions, res: Response, data?: T):
