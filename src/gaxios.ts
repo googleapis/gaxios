@@ -21,8 +21,20 @@ import {URL} from 'url';
 import {GaxiosError, GaxiosOptions, GaxiosPromise, GaxiosResponse, Headers} from './common';
 import {getRetryConfig} from './retry';
 
-// tslint:disable-next-line variable-name
-const HttpsProxyAgent = require('https-proxy-agent');
+// tslint:disable-next-line variable-name no-any
+let HttpsProxyAgent: any;
+
+// Figure out if we should be using a proxy. Only if it's required, load
+// the https-proxy-agent module as it adds startup cost.
+function loadProxy() {
+  const proxy = process.env.HTTPS_PROXY || process.env.https_proxy ||
+      process.env.HTTP_PROXY || process.env.http_proxy;
+  if (proxy) {
+    HttpsProxyAgent = require('https-proxy-agent');
+  }
+  return proxy;
+}
+loadProxy();
 
 export class Gaxios {
   private agentCache = new Map<string, Agent>();
@@ -130,8 +142,7 @@ export class Gaxios {
       opts.url = parts.href;
     }
 
-    const proxy = process.env.HTTPS_PROXY || process.env.https_proxy ||
-        process.env.HTTP_PROXY || process.env.http_proxy;
+    const proxy = loadProxy();
     if (proxy) {
       if (this.agentCache.has(proxy)) {
         opts.agent = this.agentCache.get(proxy);
