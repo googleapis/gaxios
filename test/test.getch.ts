@@ -21,6 +21,7 @@ const HttpsProxyAgent = require('https-proxy-agent');
 import {Gaxios, GaxiosError, request, GaxiosOptions} from '../src';
 import * as qs from 'querystring';
 import * as fs from 'fs';
+import {Blob} from 'node-fetch';
 
 nock.disableNetConnect();
 
@@ -193,6 +194,24 @@ describe('🎏 data handling', () => {
     assert(res.data instanceof stream.Readable);
   });
 
+  it('should return an ArrayBuffer if asked nicely', async () => {
+    const body = {hello: '🌎'};
+    const scope = nock(url).get('/').reply(200, body);
+    const res = await request<ArrayBuffer>({url, responseType: 'arraybuffer'});
+    scope.done();
+    assert(res.data instanceof ArrayBuffer);
+    assert.deepStrictEqual(
+        Buffer.from(JSON.stringify(body)), Buffer.from(res.data));
+  });
+
+  it('should return a blob if asked nicely', async () => {
+    const body = {hello: '🌎'};
+    const scope = nock(url).get('/').reply(200, body);
+    const res = await request<Blob>({url, responseType: 'blob'});
+    scope.done();
+    assert.ok(res.data);
+  });
+
   it('should return text if asked nicely', async () => {
     const body = 'hello 🌎';
     const scope = nock(url).get('/').reply(200, body);
@@ -206,5 +225,14 @@ describe('🍂 defaults & instances', () => {
   it('should allow creating a new instance', () => {
     const requestInstance = new Gaxios();
     assert.equal(typeof requestInstance.request, 'function');
+  });
+
+  it('should allow passing empty options', async () => {
+    const body = {hello: '🌎'};
+    const scope = nock(url).get('/').reply(200, body);
+    const gax = new Gaxios({url});
+    const res = await gax.request();
+    scope.done();
+    assert.deepStrictEqual(res.data, body);
   });
 });
