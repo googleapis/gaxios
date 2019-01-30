@@ -35,6 +35,7 @@ export interface GaxiosResponse<T = any> {
   config: GaxiosOptions;
   data: T;
   status: number;
+  statusText: string;
   headers: Headers;
 }
 

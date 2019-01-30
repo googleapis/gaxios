@@ -219,6 +219,15 @@ describe('🎏 data handling', () => {
     scope.done();
     assert.strictEqual(res.data, body);
   });
+
+  it('should return status text', async () => {
+    const body = {hello: '🌎'};
+    const scope = nock(url).get('/').reply(200, body);
+    const res = await request({url});
+    scope.done();
+    assert.ok(res.data);
+    assert.strictEqual(res.statusText, 'OK');
+  });
 });
 
 describe('🍂 defaults & instances', () => {
