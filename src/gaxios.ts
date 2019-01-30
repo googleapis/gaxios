@@ -183,6 +183,12 @@ export class Gaxios {
       headers[key] = value;
     });
 
-    return {config: opts, data: data as T, headers, status: res.status};
+    return {
+      config: opts,
+      data: data as T,
+      headers,
+      status: res.status,
+      statusText: res.statusText
+    };
   }
 }
