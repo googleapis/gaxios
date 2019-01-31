@@ -44,7 +44,7 @@
     "semistandard": "^13.0.1",
     "sinon": "^7.1.1",
     "source-map-support": "^0.5.6",
-    "typescript": "~3.2.0"
+    "typescript": "~3.3.0"
   },
   "dependencies": {
     "extend": "^3.0.2",
