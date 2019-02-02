@@ -44,7 +44,8 @@ export interface GaxiosResponse<T = any> {
  */
 export interface GaxiosOptions {
   url?: string;
-  baseUrl?: string;
+  baseUrl?: string;  // deprecated
+  baseURL?: string;
   method?: 'GET'|'HEAD'|'POST'|'DELETE'|'PUT'|'CONNECT'|'OPTIONS'|'TRACE'|
       'PATCH';
   headers?: Headers;

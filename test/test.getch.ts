@@ -68,8 +68,8 @@ describe('🥁 configuration options', () => {
   });
 
   it('should allow setting a base url in the options', async () => {
-    const scope = nock(url).get('/mango').reply(200, {});
-    const inst = new Gaxios({baseUrl: url});
+    const scope = nock(url).get('/v1/mango').reply(200, {});
+    const inst = new Gaxios({baseURL: `${url}/v1`});
     const res = await inst.request({url: '/mango'});
     scope.done();
     assert.deepStrictEqual(res.data, {});
