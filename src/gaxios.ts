@@ -59,15 +59,20 @@ export class Gaxios {
   async request<T = any>(opts: GaxiosOptions = {}): GaxiosPromise<T> {
     opts = this.validateOpts(opts);
     try {
-      const res = await fetch(opts.url!, opts);
-      const data = await this.getResponseData(opts, res);
-      const translatedResponse = this.translateResponse(opts, res, data);
-      if (!opts.validateStatus!(res.status)) {
-        throw new GaxiosError<T>(
-            `Request failed with status code ${res.status}`, opts,
-            translatedResponse);
+      let translatedResponse: GaxiosResponse<T>;
+      if (opts.adapter) {
+        translatedResponse = await opts.adapter<T>(opts);
+      } else {
+        const res = await fetch(opts.url!, opts);
+        const data = await this.getResponseData(opts, res);
+        translatedResponse = this.translateResponse<T>(opts, res, data);
       }
-      return this.translateResponse<T>(opts, res, data);
+      if (!opts.validateStatus!(translatedResponse.status)) {
+        throw new GaxiosError<T>(
+            `Request failed with status code ${translatedResponse.status}`,
+            opts, translatedResponse);
+      }
+      return translatedResponse;
     } catch (e) {
       const err = e as GaxiosError;
       err.config = opts;

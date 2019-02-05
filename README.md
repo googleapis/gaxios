@@ -76,6 +76,14 @@ gaxios.request({url: '/data'}).then(...);
   // The timeout for the HTTP request. Defaults to 0.
   timeout: 1000,
 
+  // Optional method to override making the actual HTTP request. Useful
+  // for writing tests.
+  adapter?: (options) => {
+    return {
+      data: 'your data'
+    }
+  };
+
   // The expected return type of the request.  Options are:
   // json | stream | blob | arraybuffer | text
   // Defaults to `json`.
