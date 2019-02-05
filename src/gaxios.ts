@@ -118,6 +118,10 @@ export class Gaxios {
       opts.url = baseUrl + opts.url;
     }
 
+    if (typeof options.maxContentLength === 'number') {
+      opts.size = options.maxContentLength;
+    }
+
     opts.headers = opts.headers || {};
     if (opts.data) {
       if (this.isReadableStream(opts.data)) {
