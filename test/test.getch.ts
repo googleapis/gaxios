@@ -82,6 +82,14 @@ describe('🥁 configuration options', () => {
     assert.strictEqual(res.status, 304);
   });
 
+  it('should allow setting maxContentLength', async () => {
+    const body = {hello: '🌎'};
+    const scope = nock(url).get('/').reply(200, body);
+    const maxContentLength = 1;
+    assertRejects(request({url, maxContentLength}), /over limit/);
+    scope.done();
+  });
+
   it('should encode query string parameters', async () => {
     const opts = {url, params: {james: 'kirk', montgomery: 'scott'}};
     const path = '/?james=kirk&montgomery=scott';

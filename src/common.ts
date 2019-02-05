@@ -51,6 +51,10 @@ export interface GaxiosOptions {
   headers?: Headers;
   data?: any;
   body?: any;
+  /**
+   * The maximum size of the http response content in bytes allowed.
+   */
+  maxContentLength?: number;
   params?: any;
   paramsSerializer?: (params: {[index: string]: string|number}) => string;
   timeout?: number;
@@ -60,6 +64,7 @@ export interface GaxiosOptions {
   validateStatus?: (status: number) => boolean;
   retryConfig?: RetryConfig;
   retry?: boolean;
+  size?: number;
 }
 
 /**

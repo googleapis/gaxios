@@ -56,6 +56,10 @@ gaxios.request({url: '/data'}).then(...);
     some: 'data'
   },
 
+  // The max size of the http response content in bytes allowed.
+  // Defaults to `0`, which is the same as unset.
+  maxContentLength: 2000,
+
   // The querystring parameters that will be encoded using `qs` and
   // appended to the url
   params: {
