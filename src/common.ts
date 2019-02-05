@@ -43,6 +43,11 @@ export interface GaxiosResponse<T = any> {
  * Request options that are used to form the request.
  */
 export interface GaxiosOptions {
+  /**
+   * Optional method to override making the actual HTTP request. Useful
+   * for writing tests.
+   */
+  adapter?: <T = any>(options: GaxiosOptions) => GaxiosPromise<T>;
   url?: string;
   baseUrl?: string;  // deprecated
   baseURL?: string;

@@ -18,7 +18,7 @@ import * as stream from 'stream';
 const assertRejects = require('assert-rejects');
 // tslint:disable-next-line variable-name
 const HttpsProxyAgent = require('https-proxy-agent');
-import {Gaxios, GaxiosError, request, GaxiosOptions} from '../src';
+import {Gaxios, GaxiosError, request, GaxiosOptions, GaxiosResponse} from '../src';
 import * as qs from 'querystring';
 import * as fs from 'fs';
 import {Blob} from 'node-fetch';
@@ -88,6 +88,21 @@ describe('🥁 configuration options', () => {
     const maxContentLength = 1;
     assertRejects(request({url, maxContentLength}), /over limit/);
     scope.done();
+  });
+
+  it('should allow overriding the adapter', async () => {
+    const response: GaxiosResponse = {
+      data: {hello: '🌎'},
+      config: {},
+      status: 200,
+      statusText: 'OK',
+      headers: {}
+    };
+    const adapter = (options: GaxiosOptions) => {
+      return Promise.resolve(response);
+    };
+    const res = await request({url, adapter});
+    assert.strictEqual(response, res);
   });
 
   it('should encode query string parameters', async () => {
