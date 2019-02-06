@@ -12,6 +12,7 @@
 // limitations under the License.
 
 import {Agent} from 'https';
+import {AbortSignal} from 'abort-controller';
 
 export class GaxiosError<T = any> extends Error {
   code?: string;
@@ -69,6 +70,7 @@ export interface GaxiosOptions {
   validateStatus?: (status: number) => boolean;
   retryConfig?: RetryConfig;
   retry?: boolean;
+  signal?: AbortSignal;
   size?: number;
 }
 
