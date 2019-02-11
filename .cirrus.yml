@@ -5,6 +5,10 @@ lint_task:
   install_script: npm install
   test_script: npm run lint
 
+system_test_task:
+  install_script: npm install
+  test_script: npm run system-test
+
 test_task:
   container:
     matrix:
