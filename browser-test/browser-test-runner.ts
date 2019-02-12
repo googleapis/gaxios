@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as child_process from 'child_process';
+import * as execa from 'execa';
 import * as express from 'express';
 import * as http from 'http';
 
@@ -26,20 +26,6 @@ async function listen(
       }
       resolve(server);
     });
-  });
-}
-
-async function spawn(cmd: string, options: [string]): Promise<number> {
-  return new Promise((resolve, reject) => {
-    console.log(process.env['PATH']);
-    child_process.spawn(cmd, options, {stdio: 'inherit'})
-        .on('error', reject)
-        .on('exit', (code, signal) => {
-          if (signal) {
-            resolve(1);
-          }
-          resolve(code || 0);
-        });
   });
 }
 
@@ -63,12 +49,12 @@ async function main() {
 
   const server = await listen(app, port);
   console.log(`[http server] I'm listening on port ${port}! Starting karma.`);
-  const exitCode = await spawn('karma', ['start']);
+  const result = await execa('karma', ['start'], {stdio: 'inherit'});
   server.close();
   console.log(
       `[http server] Karma has finished! I'm no longer listening on port ${
           port}!`);
-  process.exit(exitCode);
+  process.exit(result.failed ? 1 : 0);
 }
 
 main().catch(err => {
