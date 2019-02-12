@@ -16,9 +16,10 @@ import {Agent} from 'https';
 import fetch, {Response} from 'node-fetch';
 import * as qs from 'querystring';
 import * as stream from 'stream';
-import {URL} from 'url';
+import * as URL from 'url';
 
 import {GaxiosError, GaxiosOptions, GaxiosPromise, GaxiosResponse, Headers} from './common';
+import {isBrowser} from './isbrowser';
 import {getRetryConfig} from './retry';
 
 // tslint:disable-next-line variable-name no-any
@@ -148,7 +149,8 @@ export class Gaxios {
     opts.method = opts.method || 'GET';
 
     if (opts.params) {
-      const parts = new URL(opts.url);
+      const parts =
+          isBrowser() ? new window.URL(opts.url) : new URL.URL(opts.url);
       parts.search = opts.paramsSerializer(opts.params);
       opts.url = parts.href;
     }
