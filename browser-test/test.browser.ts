@@ -18,9 +18,4 @@ describe('💻 browser tests', () => {
     assert.strictEqual(result.status, 200);
     assert.strictEqual(result.data, 'value');
   });
-
-  after(async () => {
-    await request({url: `http://localhost:${port}/enough`});
-    // webserver will die now
-  });
 });
