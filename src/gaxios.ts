@@ -16,11 +16,13 @@ import {Agent} from 'https';
 import fetch, {Response} from 'node-fetch';
 import * as qs from 'querystring';
 import * as stream from 'stream';
-import * as URL from 'url';
+import * as url from 'url';
 
 import {GaxiosError, GaxiosOptions, GaxiosPromise, GaxiosResponse, Headers} from './common';
 import {isBrowser} from './isbrowser';
 import {getRetryConfig} from './retry';
+
+const URL = isBrowser() ? window.URL : url.URL;
 
 // tslint:disable-next-line variable-name no-any
 let HttpsProxyAgent: any;
@@ -149,8 +151,7 @@ export class Gaxios {
     opts.method = opts.method || 'GET';
 
     if (opts.params) {
-      const parts =
-          isBrowser() ? new window.URL(opts.url) : new URL.URL(opts.url);
+      const parts = new URL(opts.url);
       parts.search = opts.paramsSerializer(opts.params);
       opts.url = parts.href;
     }

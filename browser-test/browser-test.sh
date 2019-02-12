@@ -13,9 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+PORT=7172
+
 node build/browser-test/webserver.js &
 while : ; do 
-  if curl http://localhost:3000/path > /dev/null 2>&1 ; then
+  if curl http://localhost:$PORT/path > /dev/null 2>&1 ; then
     break
   fi
   echo '[script] Still waiting for server to start...'

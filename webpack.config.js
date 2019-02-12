@@ -27,7 +27,7 @@ module.exports = {
     }
   },
   output: {
-    library: 'Gaxios',
+    library: 'gaxios',
     filename: 'gaxios.min.js',
     path: path.resolve(__dirname, 'dist')
   },
