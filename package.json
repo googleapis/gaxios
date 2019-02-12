@@ -21,6 +21,7 @@
     "codecov": "nyc report --reporter=json && codecov -f coverage/*.json",
     "commitlint": "git log -1 --pretty=%B | commitlint",
     "webpack": "webpack",
+    "prebrowser-test": "npm run compile",
     "browser-test": "node build/browser-test/browser-test-runner.js"
   },
   "repository": "JustinBeckwith/gaxios",

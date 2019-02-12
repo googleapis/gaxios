@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
+import * as assert from 'assert';
 import * as execa from 'execa';
+import * as fs from 'fs';
 import * as mv from 'mv';
 import {ncp} from 'ncp';
+import * as path from 'path';
 import * as tmp from 'tmp';
 import {promisify} from 'util';
 
@@ -32,7 +35,7 @@ describe('📦 pack and install', () => {
    * Create a staging directory with temp fixtures used to test on a fresh
    * application.
    */
-  it('should be able to use the d.ts', async () => {
+  before('pack and install', async () => {
     await execa('npm', ['pack', '--unsafe-perm']);
     const tarball = `${pkg.name}-${pkg.version}.tgz`;
     await mvp(tarball, `${stagingPath}/gaxios.tgz`);
@@ -40,10 +43,21 @@ describe('📦 pack and install', () => {
     await execa(
         'npm', ['install', '--unsafe-perm'],
         {cwd: `${stagingPath}/`, stdio: 'inherit'});
+  });
+
+  it('should run the sample', async () => {
     await execa(
         'node', ['--throw-deprecation', 'build/src/index.js'],
         {cwd: `${stagingPath}/`, stdio: 'inherit'});
   });
+
+  it('should be able to webpack the library', async () => {
+    // we expect npm install is executed in the before hook
+    await execa('npx', ['webpack'], {cwd: `${stagingPath}/`, stdio: 'inherit'});
+    const bundle = path.join(stagingPath, 'dist', 'bundle.min.js');
+    const stat = fs.statSync(bundle);
+    assert(stat.size < 256 * 1024);
+  }).timeout(20000);
 
   /**
    * CLEAN UP - remove the staging directory when done.
