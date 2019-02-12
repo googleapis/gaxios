@@ -16,10 +16,13 @@ import {Agent} from 'https';
 import fetch, {Response} from 'node-fetch';
 import * as qs from 'querystring';
 import * as stream from 'stream';
-import {URL} from 'url';
+import * as url from 'url';
 
 import {GaxiosError, GaxiosOptions, GaxiosPromise, GaxiosResponse, Headers} from './common';
+import {isBrowser} from './isbrowser';
 import {getRetryConfig} from './retry';
+
+const URL = isBrowser() ? window.URL : url.URL;
 
 // tslint:disable-next-line variable-name no-any
 let HttpsProxyAgent: any;

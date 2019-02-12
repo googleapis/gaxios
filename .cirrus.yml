@@ -9,6 +9,14 @@ system_test_task:
   install_script: npm install
   test_script: npm run system-test
 
+browser_test_task:
+  container:
+    image: gmathieu/node-browsers
+    # the most popular image on Dockerhub with both node8, chromium, and
+    # all required dependencies
+  install_script: npm install
+  test_script: npm run browser-test
+
 test_task:
   container:
     matrix:
