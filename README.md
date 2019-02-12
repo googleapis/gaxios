@@ -126,7 +126,11 @@ gaxios.request({url: '/data'}).then(...);
   },
 
   // Enables default configuration for retries.
-  retry: boolean;
+  retry: boolean,
+
+  // Cancelling a request requires the `abort-controller` library.
+  // See https://github.com/bitinn/node-fetch#request-cancellation-with-abortsignal
+  signal?: AbortSignal
 }
 ```
 
