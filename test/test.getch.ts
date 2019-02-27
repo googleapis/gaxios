@@ -86,7 +86,25 @@ describe('🥁 configuration options', () => {
     const body = {hello: '🌎'};
     const scope = nock(url).get('/').reply(200, body);
     const maxContentLength = 1;
-    assertRejects(request({url, maxContentLength}), /over limit/);
+    await assertRejects(request({url, maxContentLength}), /over limit/);
+    scope.done();
+  });
+
+  it('should support redirects by default', async () => {
+    const body = {hello: '🌎'};
+    const scopes = [
+      nock(url).get('/foo').reply(200, body),
+      nock(url).get('/').reply(302, null, {location: '/foo'})
+    ];
+    const res = await request({url});
+    scopes.forEach(x => x.done());
+    assert.deepStrictEqual(res.data, body);
+  });
+
+  it('should support disabling redirects', async () => {
+    const scope = nock(url).get('/').reply(302, null, {location: '/foo'});
+    const maxRedirects = 0;
+    await assertRejects(request({url, maxRedirects}), /maximum redirect/);
     scope.done();
   });
 

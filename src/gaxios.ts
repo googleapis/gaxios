@@ -111,7 +111,7 @@ export class Gaxios {
   }
 
   /**
-   * Validate the options, and massage them to match the fetch format.
+   * Validates the options, and merges them with defaults.
    * @param opts The original options passed from the client.
    */
   private validateOpts(options: GaxiosOptions): GaxiosOptions {
@@ -128,6 +128,10 @@ export class Gaxios {
 
     if (typeof options.maxContentLength === 'number') {
       opts.size = options.maxContentLength;
+    }
+
+    if (typeof options.maxRedirects === 'number') {
+      opts.follow = options.maxRedirects;
     }
 
     opts.headers = opts.headers || {};
