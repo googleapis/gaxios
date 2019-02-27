@@ -60,6 +60,10 @@ gaxios.request({url: '/data'}).then(...);
   // Defaults to `0`, which is the same as unset.
   maxContentLength: 2000,
 
+  // The max number of HTTP redirects to follow.
+  // Defaults to 100.
+  maxRedirects: 100,
+
   // The querystring parameters that will be encoded using `qs` and
   // appended to the url
   params: {

@@ -61,6 +61,11 @@ export interface GaxiosOptions {
    * The maximum size of the http response content in bytes allowed.
    */
   maxContentLength?: number;
+  /**
+   * The maximum number of redirects to follow. Defaults to 20.
+   */
+  maxRedirects?: number;
+  follow?: number;
   params?: any;
   paramsSerializer?: (params: {[index: string]: string|number}) => string;
   timeout?: number;
