@@ -126,6 +126,19 @@ export class Gaxios {
       opts.url = baseUrl + opts.url;
     }
 
+    const parsedUrl = new URL(opts.url);
+    opts.url = `${parsedUrl.origin}${parsedUrl.pathname}`;
+    opts.params = extend(
+        qs.parse(parsedUrl.search.substr(1)),  // removes leading ?
+        opts.params);
+
+    opts.paramsSerializer = opts.paramsSerializer || this.paramsSerializer;
+    if (opts.params) {
+      parsedUrl.search = opts.paramsSerializer(opts.params);
+    }
+
+    opts.url = parsedUrl.href;
+
     if (typeof options.maxContentLength === 'number') {
       opts.size = options.maxContentLength;
     }
@@ -147,18 +160,11 @@ export class Gaxios {
     }
 
     opts.validateStatus = opts.validateStatus || this.validateStatus;
-    opts.paramsSerializer = opts.paramsSerializer || this.paramsSerializer;
     opts.responseType = opts.responseType || 'json';
     if (!opts.headers['Accept'] && opts.responseType === 'json') {
       opts.headers['Accept'] = 'application/json';
     }
     opts.method = opts.method || 'GET';
-
-    if (opts.params) {
-      const parts = new URL(opts.url);
-      parts.search = opts.paramsSerializer(opts.params);
-      opts.url = parts.href;
-    }
 
     const proxy = loadProxy();
     if (proxy) {

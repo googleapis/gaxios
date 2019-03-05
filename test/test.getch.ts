@@ -123,8 +123,31 @@ describe('🥁 configuration options', () => {
     assert.strictEqual(response, res);
   });
 
-  it('should encode query string parameters', async () => {
+  it('should encode URL parameters', async () => {
+    const path = '/?james=kirk&montgomery=scott';
+    const opts = {url: `${url}${path}`};
+    const scope = nock(url).get(path).reply(200, {});
+    const res = await request(opts);
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.config.url, url + path);
+    scope.done();
+  });
+
+  it('should encode parameters from the params option', async () => {
     const opts = {url, params: {james: 'kirk', montgomery: 'scott'}};
+    const path = '/?james=kirk&montgomery=scott';
+    const scope = nock(url).get(path).reply(200, {});
+    const res = await request(opts);
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.config.url, url + path);
+    scope.done();
+  });
+
+  it('should merge URL parameters with the params option', async () => {
+    const opts = {
+      url: `${url}/?james=beckwith&montgomery=scott`,
+      params: {james: 'kirk'}
+    };
     const path = '/?james=kirk&montgomery=scott';
     const scope = nock(url).get(path).reply(200, {});
     const res = await request(opts);
@@ -140,7 +163,7 @@ describe('🥁 configuration options', () => {
       url,
       params,
       paramsSerializer: (ps) => {
-        assert.deepStrictEqual(params, ps);
+        assert.deepEqual(params, ps);
         return '?oh=HAI';
       }
     };
