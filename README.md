@@ -26,7 +26,7 @@ Gaxios supports setting default properties both on the default instance, and on 
 
 ```js
 const gaxios = require('gaxios');
-gaxios.instances.defaults = {
+gaxios.instance.defaults = {
   baseURL: 'https://example.com'
   headers: {
     Authorization: 'SOME_TOKEN'
