@@ -43,7 +43,7 @@
     "@types/node": "^11.9.5",
     "@types/node-fetch": "^2.1.6",
     "@types/sinon": "^7.0.7",
-    "@types/tmp": "0.0.34",
+    "@types/tmp": "0.1.0",
     "assert-rejects": "^1.0.0",
     "codecov": "^3.2.0",
     "express": "^4.16.4",
