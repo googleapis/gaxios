@@ -3,7 +3,5 @@ docs/
 build/
 .nyc_output
 coverage
-package-lock.json
 yarn.lock
 .vscode
-dist/
