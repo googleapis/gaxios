@@ -27,11 +27,6 @@ test_task:
   install_script: npm install
   test_script: npm test
 
-commit_lint_task:
-  script:
-    - npm install
-    - npm run commitlint
-
 coverage_task:
   env:
     CODECOV_TOKEN: ENCRYPTED[750eb3c966bdd3472a953856902500c28d7785af18131d3045650172d4351bf91617be1f2b4a913a423f5d6fb21a11b8]
@@ -45,7 +40,6 @@ publish_task:
   depends_on:
     - test_task
     - lint_task
-    - commit_lint_task
   environment:
     GITHUB_TOKEN: ENCRYPTED[8d2c18c6edadfd1ad0ebccb041ea7500081faea2824d499aa3b2882505fbbdbfd97490f499ad5e973db974a38d92d531]
     NPM_TOKEN: ENCRYPTED[845742743a538e14424940f88bbcdc3e4cdb18bf6ec362dad2509c06c9fb20db3a1820e04e7fcc061fc58ddd4dbf5d4a]
