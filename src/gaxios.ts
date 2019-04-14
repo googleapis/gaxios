@@ -13,7 +13,7 @@
 
 import extend from 'extend';
 import { Agent } from 'https';
-import nodeFetch, { Response as NodeFetchResponse } from 'node-fetch';
+import { Response as NodeFetchResponse } from 'node-fetch';
 import qs from 'querystring';
 import stream from 'stream';
 import url from 'url';
@@ -31,7 +31,6 @@ import { getRetryConfig } from './retry';
 // tslint:disable no-any
 
 const URL = isBrowser() ? window.URL : url.URL;
-const fetch = isBrowser() ? window.fetch : nodeFetch;
 
 // tslint:disable-next-line variable-name
 let HttpsProxyAgent: any;
@@ -49,7 +48,26 @@ function loadProxy() {
   }
   return proxy;
 }
-loadProxy();
+
+const IS_BROWSER = !!process.env.IS_BROWSER;
+
+if (!IS_BROWSER) {
+  loadProxy();
+}
+
+// In browser use window.fetch, node use node-fetch.
+let fetch: typeof import('node-fetch').default;
+async function loadFetch() {
+  if (!fetch) {
+    if (IS_BROWSER) {
+      fetch = window.fetch as any;
+    } else {
+      fetch = (await import('node-fetch')).default;
+    }
+  }
+  return fetch;
+}
+loadFetch();
 
 export class Gaxios {
   private agentCache = new Map<string, Agent>();
@@ -78,6 +96,7 @@ export class Gaxios {
       if (opts.adapter) {
         translatedResponse = await opts.adapter<T>(opts);
       } else {
+        await loadFetch();
         const res = await fetch(opts.url!, opts);
         const data = await this.getResponseData(opts, res);
         translatedResponse = this.translateResponse<T>(opts, res, data);
@@ -139,14 +158,15 @@ export class Gaxios {
     if (baseUrl) {
       opts.url = baseUrl + opts.url;
     }
-
     const parsedUrl = new URL(opts.url);
     opts.url = `${parsedUrl.origin}${parsedUrl.pathname}`;
-    opts.params = extend(
-      qs.parse(parsedUrl.search.substr(1)), // removes leading ?
+    opts.params = Object.assign(
+      {},
+      ...[...(parsedUrl as any).searchParams.entries()].map(([k, v]) => ({
+        [k]: v,
+      })),
       opts.params
     );
-
     opts.paramsSerializer = opts.paramsSerializer || this.paramsSerializer;
     if (opts.params) {
       parsedUrl.search = opts.paramsSerializer(opts.params);
@@ -181,13 +201,15 @@ export class Gaxios {
     }
     opts.method = opts.method || 'GET';
 
-    const proxy = loadProxy();
-    if (proxy) {
-      if (this.agentCache.has(proxy)) {
-        opts.agent = this.agentCache.get(proxy);
-      } else {
-        opts.agent = new HttpsProxyAgent(proxy);
-        this.agentCache.set(proxy, opts.agent!);
+    if (!IS_BROWSER) {
+      const proxy = loadProxy();
+      if (proxy) {
+        if (this.agentCache.has(proxy)) {
+          opts.agent = this.agentCache.get(proxy);
+        } else {
+          opts.agent = new HttpsProxyAgent(proxy);
+          this.agentCache.set(proxy, opts.agent!);
+        }
       }
     }
 

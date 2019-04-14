@@ -1,4 +1,4 @@
-import assert from 'assert';
+import { assert } from 'chai';
 
 import { request } from '../src/index';
 const port = 7172; // should match the port defined in `webserver.ts`
