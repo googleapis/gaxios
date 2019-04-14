@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import * as assert from 'assert';
-import * as execa from 'execa';
-import * as fs from 'fs';
-import * as mv from 'mv';
+import assert from 'assert';
+import execa from 'execa';
+import fs from 'fs';
+import mv from 'mv';
 import {ncp} from 'ncp';
-import * as path from 'path';
-import * as tmp from 'tmp';
+import path from 'path';
+import tmp from 'tmp';
 import {promisify} from 'util';
 
 const keep = false;
