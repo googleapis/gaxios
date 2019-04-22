@@ -11,16 +11,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as assert from 'assert';
-import * as nock from 'nock';
-import * as sinon from 'sinon';
-import * as stream from 'stream';
+import assert from 'assert';
+import nock from 'nock';
+import sinon from 'sinon';
+import stream from 'stream';
 const assertRejects = require('assert-rejects');
 // tslint:disable-next-line variable-name
 const HttpsProxyAgent = require('https-proxy-agent');
 import {Gaxios, GaxiosError, request, GaxiosOptions, GaxiosResponse} from '../src';
-import * as qs from 'querystring';
-import * as fs from 'fs';
+import qs from 'querystring';
+import fs from 'fs';
 import {Blob} from 'node-fetch';
 
 nock.disableNetConnect();

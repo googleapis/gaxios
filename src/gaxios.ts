@@ -11,12 +11,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as extend from 'extend';
+import extend from 'extend';
 import {Agent} from 'https';
 import nodeFetch, {Response as NodeFetchResponse} from 'node-fetch';
-import * as qs from 'querystring';
-import * as stream from 'stream';
-import * as url from 'url';
+import qs from 'querystring';
+import stream from 'stream';
+import url from 'url';
 
 import {GaxiosError, GaxiosOptions, GaxiosPromise, GaxiosResponse, Headers} from './common';
 import {isBrowser} from './isbrowser';

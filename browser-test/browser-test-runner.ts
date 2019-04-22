@@ -11,9 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as execa from 'execa';
-import * as express from 'express';
-import * as http from 'http';
+import execa from 'execa';
+import express from 'express';
+import http from 'http';
 
 const port = 7172;
 
