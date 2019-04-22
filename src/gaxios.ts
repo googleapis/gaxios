@@ -13,7 +13,7 @@
 
 import * as extend from 'extend';
 import {Agent} from 'https';
-import fetch, {Response} from 'node-fetch';
+import nodeFetch, {Response as NodeFetchResponse} from 'node-fetch';
 import * as qs from 'querystring';
 import * as stream from 'stream';
 import * as url from 'url';
@@ -23,6 +23,7 @@ import {isBrowser} from './isbrowser';
 import {getRetryConfig} from './retry';
 
 const URL = isBrowser() ? window.URL : url.URL;
+const fetch = isBrowser() ? window.fetch : nodeFetch;
 
 // tslint:disable-next-line variable-name no-any
 let HttpsProxyAgent: any;
@@ -89,8 +90,8 @@ export class Gaxios {
     }
   }
 
-  private async getResponseData(opts: GaxiosOptions, res: Response):
-      Promise<any> {
+  private async getResponseData(
+      opts: GaxiosOptions, res: Response|NodeFetchResponse): Promise<any> {
     switch (opts.responseType) {
       case 'stream':
         return res.body;
@@ -199,8 +200,9 @@ export class Gaxios {
     return obj instanceof stream.Readable && typeof obj._read === 'function';
   }
 
-  private translateResponse<T>(opts: GaxiosOptions, res: Response, data?: T):
-      GaxiosResponse<T> {
+  private translateResponse<T>(
+      opts: GaxiosOptions, res: Response|NodeFetchResponse,
+      data?: T): GaxiosResponse<T> {
     // headers need to be converted from a map to an obj
     const headers = {} as Headers;
     res.headers.forEach((value, key) => {
