@@ -26,6 +26,9 @@
   "keywords": [
     "google"
   ],
+  "engines": {
+    "node": ">=8"
+  },
   "author": "Google, LLC",
   "license": "Apache-2.0",
   "devDependencies": {
