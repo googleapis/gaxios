@@ -12,27 +12,38 @@
 // limitations under the License.
 
 import extend from 'extend';
-import {Agent} from 'https';
-import nodeFetch, {Response as NodeFetchResponse} from 'node-fetch';
+import { Agent } from 'https';
+import nodeFetch, { Response as NodeFetchResponse } from 'node-fetch';
 import qs from 'querystring';
 import stream from 'stream';
 import url from 'url';
 
-import {GaxiosError, GaxiosOptions, GaxiosPromise, GaxiosResponse, Headers} from './common';
-import {isBrowser} from './isbrowser';
-import {getRetryConfig} from './retry';
+import {
+  GaxiosError,
+  GaxiosOptions,
+  GaxiosPromise,
+  GaxiosResponse,
+  Headers,
+} from './common';
+import { isBrowser } from './isbrowser';
+import { getRetryConfig } from './retry';
+
+// tslint:disable no-any
 
 const URL = isBrowser() ? window.URL : url.URL;
 const fetch = isBrowser() ? window.fetch : nodeFetch;
 
-// tslint:disable-next-line variable-name no-any
+// tslint:disable-next-line variable-name
 let HttpsProxyAgent: any;
 
 // Figure out if we should be using a proxy. Only if it's required, load
 // the https-proxy-agent module as it adds startup cost.
 function loadProxy() {
-  const proxy = process.env.HTTPS_PROXY || process.env.https_proxy ||
-      process.env.HTTP_PROXY || process.env.http_proxy;
+  const proxy =
+    process.env.HTTPS_PROXY ||
+    process.env.https_proxy ||
+    process.env.HTTP_PROXY ||
+    process.env.http_proxy;
   if (proxy) {
     HttpsProxyAgent = require('https-proxy-agent');
   }
@@ -73,17 +84,18 @@ export class Gaxios {
       }
       if (!opts.validateStatus!(translatedResponse.status)) {
         throw new GaxiosError<T>(
-            `Request failed with status code ${translatedResponse.status}`,
-            opts, translatedResponse);
+          `Request failed with status code ${translatedResponse.status}`,
+          opts,
+          translatedResponse
+        );
       }
       return translatedResponse;
     } catch (e) {
       const err = e as GaxiosError;
       err.config = opts;
-      const {shouldRetry, config} = await getRetryConfig(e);
+      const { shouldRetry, config } = await getRetryConfig(e);
       if (shouldRetry && config) {
-        err.config.retryConfig!.currentRetryAttempt =
-            config.retryConfig!.currentRetryAttempt;
+        err.config.retryConfig!.currentRetryAttempt = config.retryConfig!.currentRetryAttempt;
         return this.request<T>(err.config);
       }
       throw err;
@@ -91,7 +103,9 @@ export class Gaxios {
   }
 
   private async getResponseData(
-      opts: GaxiosOptions, res: Response|NodeFetchResponse): Promise<any> {
+    opts: GaxiosOptions,
+    res: Response | NodeFetchResponse
+  ): Promise<any> {
     switch (opts.responseType) {
       case 'stream':
         return res.body;
@@ -99,8 +113,7 @@ export class Gaxios {
         let data = await res.text();
         try {
           data = JSON.parse(data);
-        } catch (e) {
-        }
+        } catch (e) {}
         return data as {};
       case 'arraybuffer':
         return res.arrayBuffer();
@@ -130,8 +143,9 @@ export class Gaxios {
     const parsedUrl = new URL(opts.url);
     opts.url = `${parsedUrl.origin}${parsedUrl.pathname}`;
     opts.params = extend(
-        qs.parse(parsedUrl.search.substr(1)),  // removes leading ?
-        opts.params);
+      qs.parse(parsedUrl.search.substr(1)), // removes leading ?
+      opts.params
+    );
 
     opts.paramsSerializer = opts.paramsSerializer || this.paramsSerializer;
     if (opts.params) {
@@ -192,7 +206,7 @@ export class Gaxios {
    * Encode a set of key/value pars into a querystring format (?foo=bar&baz=boo)
    * @param params key value pars to encode
    */
-  private paramsSerializer(params: {[index: string]: string|number}) {
+  private paramsSerializer(params: { [index: string]: string | number }) {
     return qs.stringify(params);
   }
 
@@ -201,8 +215,10 @@ export class Gaxios {
   }
 
   private translateResponse<T>(
-      opts: GaxiosOptions, res: Response|NodeFetchResponse,
-      data?: T): GaxiosResponse<T> {
+    opts: GaxiosOptions,
+    res: Response | NodeFetchResponse,
+    data?: T
+  ): GaxiosResponse<T> {
     // headers need to be converted from a map to an obj
     const headers = {} as Headers;
     res.headers.forEach((value, key) => {
@@ -214,7 +230,7 @@ export class Gaxios {
       data: data as T,
       headers,
       status: res.status,
-      statusText: res.statusText
+      statusText: res.statusText,
     };
   }
 }

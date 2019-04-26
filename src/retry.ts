@@ -11,24 +11,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GaxiosError} from './common';
+import { GaxiosError } from './common';
 
 export async function getRetryConfig(err: GaxiosError) {
   let config = getConfig(err);
-  if ((!err || !err.config) || (!config && !err.config.retry)) {
-    return {shouldRetry: false};
+  if (!err || !err.config || (!config && !err.config.retry)) {
+    return { shouldRetry: false };
   }
   config = config || {};
   config.currentRetryAttempt = config.currentRetryAttempt || 0;
   config.retry =
-      (config.retry === undefined || config.retry === null) ? 3 : config.retry;
+    config.retry === undefined || config.retry === null ? 3 : config.retry;
   config.retryDelay = config.retryDelay || 100;
-  config.httpMethodsToRetry =
-      config.httpMethodsToRetry || ['GET', 'HEAD', 'PUT', 'OPTIONS', 'DELETE'];
-  config.noResponseRetries = (config.noResponseRetries === undefined ||
-                              config.noResponseRetries === null) ?
-      2 :
-      config.noResponseRetries;
+  config.httpMethodsToRetry = config.httpMethodsToRetry || [
+    'GET',
+    'HEAD',
+    'PUT',
+    'OPTIONS',
+    'DELETE',
+  ];
+  config.noResponseRetries =
+    config.noResponseRetries === undefined || config.noResponseRetries === null
+      ? 2
+      : config.noResponseRetries;
 
   // If this wasn't in the list of status codes where we want
   // to automatically retry, return.
@@ -40,7 +45,9 @@ export async function getRetryConfig(err: GaxiosError) {
     // 4xx - Do not retry (Client errors)
     // 429 - Retry ("Too Many Requests")
     // 5xx - Retry (Server errors)
-    [100, 199], [429, 429], [500, 599]
+    [100, 199],
+    [429, 429],
+    [500, 599],
   ];
   config.statusCodesToRetry = config.statusCodesToRetry || retryRanges;
 
@@ -50,12 +57,12 @@ export async function getRetryConfig(err: GaxiosError) {
   // Determine if we should retry the request
   const shouldRetryFn = config.shouldRetry || shouldRetryRequest;
   if (!shouldRetryFn(err)) {
-    return {shouldRetry: false, config: err.config};
+    return { shouldRetry: false, config: err.config };
   }
 
   // Calculate time to wait with exponential backoff.
   // Formula: (2^c - 1 / 2) * 1000
-  const delay = (Math.pow(2, config.currentRetryAttempt) - 1) / 2 * 1000;
+  const delay = ((Math.pow(2, config.currentRetryAttempt) - 1) / 2) * 1000;
 
   // We're going to retry!  Incremenent the counter.
   err.config.retryConfig!.currentRetryAttempt! += 1;
@@ -72,7 +79,7 @@ export async function getRetryConfig(err: GaxiosError) {
 
   // Return the promise in which recalls Gaxios to retry the request
   await backoff;
-  return {shouldRetry: true, config: err.config};
+  return { shouldRetry: true, config: err.config };
 }
 
 /**
@@ -88,14 +95,18 @@ function shouldRetryRequest(err: GaxiosError) {
   }
 
   // Check if this error has no response (ETIMEDOUT, ENOTFOUND, etc)
-  if (!err.response &&
-      ((config.currentRetryAttempt || 0) >= config.noResponseRetries!)) {
+  if (
+    !err.response &&
+    (config.currentRetryAttempt || 0) >= config.noResponseRetries!
+  ) {
     return false;
   }
 
   // Only retry with configured HttpMethods.
-  if (!err.config.method ||
-      config.httpMethodsToRetry!.indexOf(err.config.method.toUpperCase()) < 0) {
+  if (
+    !err.config.method ||
+    config.httpMethodsToRetry!.indexOf(err.config.method.toUpperCase()) < 0
+  ) {
     return false;
   }
 

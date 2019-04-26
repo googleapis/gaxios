@@ -18,7 +18,9 @@ import http from 'http';
 const port = 7172;
 
 async function listen(
-    app: express.Express, port: number): Promise<http.Server> {
+  app: express.Express,
+  port: number
+): Promise<http.Server> {
   return new Promise((resolve, reject) => {
     const server = app.listen(port, (err: Error) => {
       if (err) {
@@ -49,11 +51,11 @@ async function main() {
 
   const server = await listen(app, port);
   console.log(`[http server] I'm listening on port ${port}! Starting karma.`);
-  const result = await execa('karma', ['start'], {stdio: 'inherit'});
+  const result = await execa('karma', ['start'], { stdio: 'inherit' });
   server.close();
   console.log(
-      `[http server] Karma has finished! I'm no longer listening on port ${
-          port}!`);
+    `[http server] Karma has finished! I'm no longer listening on port ${port}!`
+  );
   process.exit(result.failed ? 1 : 0);
 }
 
