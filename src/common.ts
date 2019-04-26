@@ -11,15 +11,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {AbortSignal} from 'abort-controller';
-import {Agent} from 'https';
+import { AbortSignal } from 'abort-controller';
+import { Agent } from 'https';
+
+// tslint:disable no-any
 
 export class GaxiosError<T = any> extends Error {
   code?: string;
   response?: GaxiosResponse<T>;
   config: GaxiosOptions;
   constructor(
-      message: string, options: GaxiosOptions, response: GaxiosResponse<T>) {
+    message: string,
+    options: GaxiosOptions,
+    response: GaxiosResponse<T>
+  ) {
     super(message);
     this.response = response;
     this.config = options;
@@ -27,9 +32,9 @@ export class GaxiosError<T = any> extends Error {
   }
 }
 
-export type Headers = {
-  [index: string]: any
-};
+export interface Headers {
+  [index: string]: any;
+}
 export type GaxiosPromise<T = any> = Promise<GaxiosResponse<T>>;
 
 export interface GaxiosResponse<T = any> {
@@ -50,10 +55,18 @@ export interface GaxiosOptions {
    */
   adapter?: <T = any>(options: GaxiosOptions) => GaxiosPromise<T>;
   url?: string;
-  baseUrl?: string;  // deprecated
+  baseUrl?: string; // deprecated
   baseURL?: string;
-  method?: 'GET'|'HEAD'|'POST'|'DELETE'|'PUT'|'CONNECT'|'OPTIONS'|'TRACE'|
-      'PATCH';
+  method?:
+    | 'GET'
+    | 'HEAD'
+    | 'POST'
+    | 'DELETE'
+    | 'PUT'
+    | 'CONNECT'
+    | 'OPTIONS'
+    | 'TRACE'
+    | 'PATCH';
   headers?: Headers;
   data?: any;
   body?: any;
@@ -67,10 +80,10 @@ export interface GaxiosOptions {
   maxRedirects?: number;
   follow?: number;
   params?: any;
-  paramsSerializer?: (params: {[index: string]: string|number}) => string;
+  paramsSerializer?: (params: { [index: string]: string | number }) => string;
   timeout?: number;
   onUploadProgress?: (progressEvent: any) => void;
-  responseType?: 'arraybuffer'|'blob'|'json'|'text'|'stream';
+  responseType?: 'arraybuffer' | 'blob' | 'json' | 'text' | 'stream';
   agent?: Agent;
   validateStatus?: (status: number) => boolean;
   retryConfig?: RetryConfig;

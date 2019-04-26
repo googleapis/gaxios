@@ -11,11 +11,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GaxiosOptions} from './common';
-import {Gaxios} from './gaxios';
+import { GaxiosOptions } from './common';
+import { Gaxios } from './gaxios';
 
-export {GaxiosError, GaxiosPromise, GaxiosResponse, Headers, RetryConfig} from './common';
-export {Gaxios, GaxiosOptions};
+export {
+  GaxiosError,
+  GaxiosPromise,
+  GaxiosResponse,
+  Headers,
+  RetryConfig,
+} from './common';
+export { Gaxios, GaxiosOptions };
 
 /**
  * The default instance used when the `request` method is directly
