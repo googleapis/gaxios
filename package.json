@@ -38,7 +38,7 @@
     "@types/mocha": "^5.2.6",
     "@types/mv": "^2.1.0",
     "@types/ncp": "^2.0.1",
-    "@types/nock": "^9.3.1",
+    "@types/nock": "^10.0.0",
     "@types/node": "^11.9.5",
     "@types/node-fetch": "^2.1.6",
     "@types/sinon": "^7.0.7",
