@@ -11,8 +11,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { AbortSignal } from 'abort-controller';
-import { Agent } from 'https';
+import {AbortSignal} from 'abort-controller';
+import {Agent} from 'https';
 
 // tslint:disable no-any
 
@@ -80,7 +80,7 @@ export interface GaxiosOptions {
   maxRedirects?: number;
   follow?: number;
   params?: any;
-  paramsSerializer?: (params: { [index: string]: string | number }) => string;
+  paramsSerializer?: (params: {[index: string]: string | number}) => string;
   timeout?: number;
   onUploadProgress?: (progressEvent: any) => void;
   responseType?: 'arraybuffer' | 'blob' | 'json' | 'text' | 'stream';
