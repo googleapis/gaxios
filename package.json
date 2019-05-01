@@ -23,7 +23,8 @@
     "browser-test": "node build/browser-test/browser-test-runner.js",
     "docs": "compodoc src/",
     "docs-test": "linkinator docs",
-    "predocs-test": "npm run docs"
+    "predocs-test": "npm run docs",
+    "samples-test": "cd samples/ && npm link ../ && npm test && cd ../"
   },
   "repository": "JustinBeckwith/gaxios",
   "keywords": [
