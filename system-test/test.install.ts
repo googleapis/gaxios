@@ -18,15 +18,15 @@ import assert from 'assert';
 import execa from 'execa';
 import fs from 'fs';
 import mv from 'mv';
-import { ncp } from 'ncp';
+import {ncp} from 'ncp';
 import path from 'path';
 import tmp from 'tmp';
-import { promisify } from 'util';
+import {promisify} from 'util';
 
 const keep = false;
 const mvp = (promisify(mv) as {}) as (...args: string[]) => Promise<void>;
 const ncpp = promisify(ncp);
-const stagingDir = tmp.dirSync({ keep, unsafeCleanup: true });
+const stagingDir = tmp.dirSync({keep, unsafeCleanup: true});
 const stagingPath = stagingDir.name;
 const pkg = require('../../package.json');
 

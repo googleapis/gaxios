@@ -12,8 +12,8 @@
 // limitations under the License.
 
 import extend from 'extend';
-import { Agent } from 'https';
-import nodeFetch, { Response as NodeFetchResponse } from 'node-fetch';
+import {Agent} from 'https';
+import nodeFetch, {Response as NodeFetchResponse} from 'node-fetch';
 import qs from 'querystring';
 import stream from 'stream';
 import url from 'url';
@@ -25,8 +25,8 @@ import {
   GaxiosResponse,
   Headers,
 } from './common';
-import { isBrowser } from './isbrowser';
-import { getRetryConfig } from './retry';
+import {isBrowser} from './isbrowser';
+import {getRetryConfig} from './retry';
 
 // tslint:disable no-any
 
@@ -93,7 +93,7 @@ export class Gaxios {
     } catch (e) {
       const err = e as GaxiosError;
       err.config = opts;
-      const { shouldRetry, config } = await getRetryConfig(e);
+      const {shouldRetry, config} = await getRetryConfig(e);
       if (shouldRetry && config) {
         err.config.retryConfig!.currentRetryAttempt = config.retryConfig!.currentRetryAttempt;
         return this.request<T>(err.config);
@@ -206,7 +206,7 @@ export class Gaxios {
    * Encode a set of key/value pars into a querystring format (?foo=bar&baz=boo)
    * @param params key value pars to encode
    */
-  private paramsSerializer(params: { [index: string]: string | number }) {
+  private paramsSerializer(params: {[index: string]: string | number}) {
     return qs.stringify(params);
   }
 
