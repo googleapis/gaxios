@@ -21,7 +21,9 @@
     "webpack": "webpack",
     "prebrowser-test": "npm run compile",
     "browser-test": "node build/browser-test/browser-test-runner.js",
-    "docs": "compodoc src/"
+    "docs": "compodoc src/",
+    "docs-test": "linkinator docs",
+    "predocs-test": "npm run docs"
   },
   "repository": "JustinBeckwith/gaxios",
   "keywords": [
@@ -59,6 +61,7 @@
     "karma-remap-coverage": "^0.1.5",
     "karma-sourcemap-loader": "^0.3.7",
     "karma-webpack": "^3.0.5",
+    "linkinator": "^1.3.1",
     "mocha": "^6.0.2",
     "mv": "^2.1.1",
     "ncp": "^2.0.0",
