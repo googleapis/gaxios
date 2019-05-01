@@ -51,7 +51,7 @@ async function main() {
 
   const server = await listen(app, port);
   console.log(`[http server] I'm listening on port ${port}! Starting karma.`);
-  const result = await execa('karma', ['start'], { stdio: 'inherit' });
+  const result = await execa('karma', ['start'], {stdio: 'inherit'});
   server.close();
   console.log(
     `[http server] Karma has finished! I'm no longer listening on port ${port}!`
