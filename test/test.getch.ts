@@ -43,6 +43,38 @@ describe('🦖 option validation', () => {
   it('should throw an error if a url is not provided', () => {
     assertRejects(request({}), /URL is required/);
   });
+
+  it('should set content-length when data is a readable stream', async () => {
+    const data = 'foo';
+    const scope = nock(url)
+      .matchHeader(
+        'content-length',
+        length => length[0] === data.length.toString()
+      )
+      .post('/')
+      .reply(200, {});
+    const res = await request({
+      url,
+      method: 'POST',
+      maxContentLength: 2048,
+      data,
+    });
+    scope.done();
+  });
+
+  it('should not set content-length when data is a readable stream', async () => {
+    const scope = nock(url)
+      .matchHeader('content-length', length => length === undefined)
+      .post('/')
+      .reply(200, {});
+    const res = await request({
+      url,
+      method: 'POST',
+      maxContentLength: 2048,
+      data: fs.createReadStream('package.json'),
+    });
+    scope.done();
+  });
 });
 
 describe('🚙 error handling', () => {

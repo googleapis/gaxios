@@ -154,7 +154,10 @@ export class Gaxios {
 
     opts.url = parsedUrl.href;
 
-    if (typeof options.maxContentLength === 'number') {
+    if (
+      (!opts.data || !this.isReadableStream(opts.data)) &&
+      typeof options.maxContentLength === 'number'
+    ) {
       opts.size = options.maxContentLength;
     }
 
