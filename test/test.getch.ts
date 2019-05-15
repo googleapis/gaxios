@@ -44,7 +44,7 @@ describe('🦖 option validation', () => {
     assertRejects(request({}), /URL is required/);
   });
 
-  it('should set content-length when data is a readable stream', async () => {
+  it('should set content-length when data is not a readable stream', async () => {
     const data = 'foo';
     const scope = nock(url)
       .matchHeader(
