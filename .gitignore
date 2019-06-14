@@ -7,3 +7,5 @@ yarn.lock
 .vscode
 dist/
 __pycache__
+.coverage
+package-lock.json
