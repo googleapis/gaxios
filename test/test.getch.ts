@@ -116,7 +116,7 @@ describe('🥁 configuration options', () => {
         .reply(200, body),
       nock(url)
         .get('/')
-        .reply(302, null, {location: '/foo'}),
+        .reply(302, undefined, {location: '/foo'}),
     ];
     const res = await request({url});
     scopes.forEach(x => x.done());
@@ -126,7 +126,7 @@ describe('🥁 configuration options', () => {
   it('should support disabling redirects', async () => {
     const scope = nock(url)
       .get('/')
-      .reply(302, null, {location: '/foo'});
+      .reply(302, undefined, {location: '/foo'});
     const maxRedirects = 0;
     await assertRejects(request({url, maxRedirects}), /maximum redirect/);
     scope.done();
