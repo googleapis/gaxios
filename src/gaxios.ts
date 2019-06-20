@@ -25,13 +25,24 @@ import {
   GaxiosResponse,
   Headers,
 } from './common';
-import {isBrowser} from './isbrowser';
 import {getRetryConfig} from './retry';
 
 // tslint:disable no-any
 
-const URL = isBrowser() ? window.URL : url.URL;
-const fetch = isBrowser() ? window.fetch : nodeFetch;
+const URL = hasURL() ? window.URL : url.URL;
+const fetch = hasFetch() ? window.fetch : nodeFetch;
+
+function hasWindow() {
+  return typeof window !== 'undefined' && !!window;
+}
+
+function hasURL() {
+  return hasWindow() && !!window.URL;
+}
+
+function hasFetch() {
+  return hasWindow() && !!window.fetch;
+}
 
 // tslint:disable-next-line variable-name
 let HttpsProxyAgent: any;
