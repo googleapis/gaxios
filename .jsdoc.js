@@ -41,5 +41,8 @@ module.exports = {
     sourceFiles: false,
     systemName: 'gaxios',
     theme: 'lumen'
+  },
+  markdown: {
+    idInHeadings: true
   }
 };
