@@ -13,7 +13,7 @@
     "presystem-test": "npm run compile",
     "system-test": "mocha build/system-test --timeout 40000",
     "clean": "gts clean",
-    "compile": "tsc -p . && npm run fix",
+    "compile": "tsc -p .",
     "fix": "gts fix",
     "prepare": "npm run compile",
     "pretest": "npm run compile",

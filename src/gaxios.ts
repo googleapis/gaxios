@@ -84,6 +84,14 @@ export class Gaxios {
    */
   async request<T = any>(opts: GaxiosOptions = {}): GaxiosPromise<T> {
     opts = this.validateOpts(opts);
+    return this._request(opts);
+  }
+
+  /**
+   * Internal, retryable version of the `request` method.
+   * @param opts Set of HTTP options that will be used for this HTTP request.
+   */
+  private async _request<T = any>(opts: GaxiosOptions = {}): GaxiosPromise<T> {
     try {
       let translatedResponse: GaxiosResponse<T>;
       if (opts.adapter) {
@@ -107,7 +115,7 @@ export class Gaxios {
       const {shouldRetry, config} = await getRetryConfig(e);
       if (shouldRetry && config) {
         err.config.retryConfig!.currentRetryAttempt = config.retryConfig!.currentRetryAttempt;
-        return this.request<T>(err.config);
+        return this._request<T>(err.config);
       }
       throw err;
     }

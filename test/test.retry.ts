@@ -14,7 +14,7 @@
 import assert from 'assert';
 import nock from 'nock';
 
-import {GaxiosError, GaxiosOptions, request} from '../src';
+import {GaxiosError, GaxiosOptions, request, Gaxios} from '../src';
 
 const assertRejects = require('assert-rejects');
 
@@ -135,6 +135,26 @@ describe('🛸 retry & exponential backoff', () => {
       const cfg = getConfig(e);
       return cfg!.currentRetryAttempt === 0;
     });
+    scope.done();
+  });
+
+  it('should retain the baseUrl on retry', async () => {
+    const body = {pumpkin: '🥧'};
+    const url = '/path';
+    const baseUrl = 'http://example.com';
+    const scope = nock(baseUrl)
+      .get(url)
+      .reply(500)
+      .get(url)
+      .reply(200, body);
+    const gaxios = new Gaxios({
+      baseUrl,
+    });
+    const res = await gaxios.request({
+      url,
+      retry: true,
+    });
+    assert.deepStrictEqual(res.data, body);
     scope.done();
   });
 
