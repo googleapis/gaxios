@@ -292,6 +292,37 @@ describe('🎏 data handling', () => {
     assert.deepStrictEqual(res.data, {});
   });
 
+  it('should set content-type for object request', async () => {
+    const body = {hello: '🌎'};
+    const scope = nock(url)
+      .matchHeader('content-type', 'application/json')
+      .post('/', JSON.stringify(body))
+      .reply(200, {});
+    const res = await request({
+      url,
+      method: 'POST',
+      data: body,
+    });
+    scope.done();
+    assert.deepStrictEqual(res.data, {});
+  });
+
+  it('should allow to override content-type for object request', async () => {
+    const body = {hello: '🌎'};
+    const scope = nock(url)
+      .matchHeader('content-type', 'application/octet-stream')
+      .post('/', JSON.stringify(body))
+      .reply(200, {});
+    const res = await request({
+      url,
+      method: 'POST',
+      data: body,
+      headers: {'content-type': 'application/octet-stream'},
+    });
+    scope.done();
+    assert.deepStrictEqual(res.data, {});
+  });
+
   it('should return stream if asked nicely', async () => {
     const body = {hello: '🌎'};
     const scope = nock(url)
