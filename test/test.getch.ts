@@ -301,12 +301,12 @@ describe('🎏 data handling', () => {
     const res = await request({
       url,
       method: 'POST',
-      data: body
+      data: body,
     });
     scope.done();
     assert.deepStrictEqual(res.data, {});
   });
-  
+
   it('should allow to override content-type for object request', async () => {
     const body = {hello: '🌎'};
     const scope = nock(url)
@@ -317,7 +317,7 @@ describe('🎏 data handling', () => {
       url,
       method: 'POST',
       data: body,
-      headers: {'content-type': 'application/octet-stream'}
+      headers: {'content-type': 'application/octet-stream'},
     });
     scope.done();
     assert.deepStrictEqual(res.data, {});
