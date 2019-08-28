@@ -187,13 +187,7 @@ export class Gaxios {
         opts.body = opts.data;
       } else if (typeof opts.data === 'object') {
         opts.body = JSON.stringify(opts.data);
-        if (
-          !Object.keys(opts.headers).some((key: string) =>
-            key.match(/^content-type$/i)
-          )
-        ) {
-          opts.headers['Content-Type'] = 'application/json';
-        }
+        opts.headers['Content-Type'] = 'application/json';
       } else {
         opts.body = opts.data;
       }
