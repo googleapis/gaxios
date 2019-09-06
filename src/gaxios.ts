@@ -16,6 +16,7 @@ import {Agent} from 'https';
 import nodeFetch, {Response as NodeFetchResponse} from 'node-fetch';
 import qs from 'querystring';
 import stream from 'stream';
+import isStream from 'is-stream';
 import url from 'url';
 
 import {
@@ -183,7 +184,7 @@ export class Gaxios {
 
     opts.headers = opts.headers || {};
     if (opts.data) {
-      if (this.isReadableStream(opts.data)) {
+      if (isStream.readable(opts.data)) {
         opts.body = opts.data;
       } else if (typeof opts.data === 'object') {
         opts.body = JSON.stringify(opts.data);
@@ -227,10 +228,6 @@ export class Gaxios {
    */
   private paramsSerializer(params: {[index: string]: string | number}) {
     return qs.stringify(params);
-  }
-
-  private isReadableStream(obj: any): boolean {
-    return obj instanceof stream.Readable && typeof obj._read === 'function';
   }
 
   private translateResponse<T>(

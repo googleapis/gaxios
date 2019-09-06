@@ -81,6 +81,7 @@
     "abort-controller": "^3.0.0",
     "extend": "^3.0.2",
     "https-proxy-agent": "^2.2.1",
+    "is-stream": "^2.0.0",
     "node-fetch": "^2.3.0"
   }
 }
