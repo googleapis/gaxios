@@ -16,6 +16,7 @@ import {Agent} from 'https';
 import nodeFetch, {Response as NodeFetchResponse} from 'node-fetch';
 import qs from 'querystring';
 import stream from 'stream';
+import isStream from 'is-stream';
 import url from 'url';
 
 import {
@@ -230,7 +231,7 @@ export class Gaxios {
   }
 
   private isReadableStream(obj: any): boolean {
-    return obj instanceof stream.Readable && typeof obj._read === 'function';
+    return isStream.readable(obj);
   }
 
   private translateResponse<T>(
