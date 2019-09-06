@@ -184,7 +184,7 @@ export class Gaxios {
 
     opts.headers = opts.headers || {};
     if (opts.data) {
-      if (this.isReadableStream(opts.data)) {
+      if (isStream.readable(opts.data)) {
         opts.body = opts.data;
       } else if (typeof opts.data === 'object') {
         opts.body = JSON.stringify(opts.data);
@@ -228,10 +228,6 @@ export class Gaxios {
    */
   private paramsSerializer(params: {[index: string]: string | number}) {
     return qs.stringify(params);
-  }
-
-  private isReadableStream(obj: any): boolean {
-    return isStream.readable(obj);
   }
 
   private translateResponse<T>(
