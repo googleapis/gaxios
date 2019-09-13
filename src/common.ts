@@ -12,7 +12,8 @@
 // limitations under the License.
 
 import {AbortSignal} from 'abort-controller';
-import {Agent} from 'https';
+import {Agent} from 'http';
+import {URL} from 'url';
 
 // tslint:disable no-any
 
@@ -84,7 +85,7 @@ export interface GaxiosOptions {
   timeout?: number;
   onUploadProgress?: (progressEvent: any) => void;
   responseType?: 'arraybuffer' | 'blob' | 'json' | 'text' | 'stream';
-  agent?: Agent;
+  agent?: Agent | ((parsedUrl: URL) => Agent);
   validateStatus?: (status: number) => boolean;
   retryConfig?: RetryConfig;
   retry?: boolean;
