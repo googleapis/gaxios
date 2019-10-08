@@ -12,7 +12,7 @@
 // limitations under the License.
 
 import extend from 'extend';
-import {Agent} from 'https';
+import {Agent} from 'http';
 import nodeFetch, {Response as NodeFetchResponse} from 'node-fetch';
 import qs from 'querystring';
 import stream from 'stream';
@@ -64,7 +64,10 @@ function loadProxy() {
 loadProxy();
 
 export class Gaxios {
-  private agentCache = new Map<string, Agent>();
+  private agentCache = new Map<
+    string,
+    Agent | ((parsedUrl: url.URL) => Agent)
+  >();
 
   /**
    * Default HTTP options that will be used for every HTTP request.
