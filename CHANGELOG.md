@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.1.0](https://www.github.com/googleapis/gaxios/compare/v2.0.3...v2.1.0) (2019-10-09)
+
+
+### Bug Fixes
+
+* **deps:** update dependency https-proxy-agent to v3 ([#172](https://www.github.com/googleapis/gaxios/issues/172)) ([4a38f35](https://www.github.com/googleapis/gaxios/commit/4a38f35))
+
+
+### Features
+
+* **TypeScript:** agent can now be passed as builder method, rather than agent instance ([c84ddd6](https://www.github.com/googleapis/gaxios/commit/c84ddd6))
+
 ### [2.0.3](https://www.github.com/googleapis/gaxios/compare/v2.0.2...v2.0.3) (2019-09-11)
 
 
