@@ -68,7 +68,7 @@
     "ncp": "^2.0.0",
     "nock": "^11.0.0",
     "null-loader": "^3.0.0",
-    "puppeteer": "^1.12.2",
+    "puppeteer": "^2.0.0",
     "sinon": "^7.2.5",
     "source-map-support": "^0.5.10",
     "tmp": "0.1.0",
