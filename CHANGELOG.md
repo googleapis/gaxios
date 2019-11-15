@@ -1,5 +1,12 @@
 # Changelog
 
+### [2.1.1](https://www.github.com/googleapis/gaxios/compare/v2.1.0...v2.1.1) (2019-11-15)
+
+
+### Bug Fixes
+
+* **docs:** snippets are now replaced in jsdoc comments ([#183](https://www.github.com/googleapis/gaxios/issues/183)) ([8dd1324](https://www.github.com/googleapis/gaxios/commit/8dd1324256590bd2f2e9015c813950e1cd8cb330))
+
 ## [2.1.0](https://www.github.com/googleapis/gaxios/compare/v2.0.3...v2.1.0) (2019-10-09)
 
 
