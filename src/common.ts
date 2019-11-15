@@ -38,12 +38,19 @@ export interface Headers {
 }
 export type GaxiosPromise<T = any> = Promise<GaxiosResponse<T>>;
 
+export interface GaxiosXMLHttpRequest {
+  responseURL: string;
+  status: number;
+  statusText: string;
+}
+
 export interface GaxiosResponse<T = any> {
   config: GaxiosOptions;
   data: T;
   status: number;
   statusText: string;
   headers: Headers;
+  request: GaxiosXMLHttpRequest;
 }
 
 /**

@@ -250,6 +250,13 @@ export class Gaxios {
       headers,
       status: res.status,
       statusText: res.statusText,
+
+      // XMLHttpRequestLike
+      request: {
+        responseURL: res.url,
+        status: res.status,
+        statusText: res.statusText,
+      },
     };
   }
 }
