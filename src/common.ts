@@ -19,6 +19,7 @@ import {URL} from 'url';
 
 export class GaxiosError<T = any> extends Error {
   code?: string;
+  type?: string;
   response?: GaxiosResponse<T>;
   config: GaxiosOptions;
   constructor(

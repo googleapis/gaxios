@@ -89,6 +89,12 @@ export async function getRetryConfig(err: GaxiosError) {
 function shouldRetryRequest(err: GaxiosError) {
   const config = getConfig(err);
 
+  // If the user has explicitly aborted the request, don't retry.
+  // "type" is populated on the error objects created by node-fetch.
+  if (err.type === 'aborted') {
+    return false;
+  }
+
   // If there's no config, or retries are disabled, return.
   if (!config || config.retry === 0) {
     return false;
