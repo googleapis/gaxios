@@ -89,9 +89,9 @@ export async function getRetryConfig(err: GaxiosError) {
 function shouldRetryRequest(err: GaxiosError) {
   const config = getConfig(err);
 
-  // If the user has explicitly aborted the request, don't retry.
-  // "type" is populated on the error objects created by node-fetch.
-  if (err.type === 'aborted') {
+  // node-fetch raises an AbortError if signaled:
+  // https://github.com/bitinn/node-fetch#request-cancellation-with-abortsignal
+  if (err.name === 'AbortError') {
     return false;
   }
 
