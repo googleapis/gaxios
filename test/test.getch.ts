@@ -142,8 +142,6 @@ describe('🥁 configuration options', () => {
       headers: {},
       request: {
         responseURL: url,
-        status: 200,
-        statusText: 'OK',
       },
     };
     const adapter = (options: GaxiosOptions) => {

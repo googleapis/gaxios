@@ -254,8 +254,6 @@ export class Gaxios {
       // XMLHttpRequestLike
       request: {
         responseURL: res.url,
-        status: res.status,
-        statusText: res.statusText,
       },
     };
   }
