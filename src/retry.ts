@@ -89,6 +89,12 @@ export async function getRetryConfig(err: GaxiosError) {
 function shouldRetryRequest(err: GaxiosError) {
   const config = getConfig(err);
 
+  // node-fetch raises an AbortError if signaled:
+  // https://github.com/bitinn/node-fetch#request-cancellation-with-abortsignal
+  if (err.name === 'AbortError') {
+    return false;
+  }
+
   // If there's no config, or retries are disabled, return.
   if (!config || config.retry === 0) {
     return false;

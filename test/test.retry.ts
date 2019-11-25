@@ -14,6 +14,7 @@
 import assert from 'assert';
 import nock from 'nock';
 
+import {AbortController} from 'abort-controller';
 import {GaxiosError, GaxiosOptions, request, Gaxios} from '../src';
 
 const assertRejects = require('assert-rejects');
@@ -100,6 +101,25 @@ describe('🛸 retry & exponential backoff', () => {
       }
     );
     scope.done();
+  });
+
+  it('should not retry if user aborted request', async () => {
+    const ac = new AbortController();
+    const config: GaxiosOptions = {
+      method: 'GET',
+      url: 'https://google.com',
+      signal: ac.signal,
+      retryConfig: {retry: 10, noResponseRetries: 10},
+    };
+    const req = request(config);
+    ac.abort();
+    try {
+      await req;
+      throw Error('unreachable');
+    } catch (err) {
+      assert(err.config);
+      assert.strictEqual(err.config.retryConfig.currentRetryAttempt, 0);
+    }
   });
 
   it('should retry at least the configured number of times', async () => {
