@@ -121,6 +121,7 @@ describe('🥁 configuration options', () => {
     const res = await request({url});
     scopes.forEach(x => x.done());
     assert.deepStrictEqual(res.data, body);
+    assert.strictEqual(res.request.responseURL, `${url}/foo`);
   });
 
   it('should support disabling redirects', async () => {
@@ -139,6 +140,9 @@ describe('🥁 configuration options', () => {
       status: 200,
       statusText: 'OK',
       headers: {},
+      request: {
+        responseURL: url,
+      },
     };
     const adapter = (options: GaxiosOptions) => {
       return Promise.resolve(response);
