@@ -1,5 +1,12 @@
 # Changelog
 
+### [2.1.2](https://www.github.com/googleapis/gaxios/compare/v2.1.1...v2.1.2) (2019-11-25)
+
+
+### Bug Fixes
+
+* don't retry a request that is aborted intentionally ([#190](https://www.github.com/googleapis/gaxios/issues/190)) ([ba9777b](https://www.github.com/googleapis/gaxios/commit/ba9777b15b5262f8288a8bb3cca49a1de8427d8e))
+
 ### [2.1.1](https://www.github.com/googleapis/gaxios/compare/v2.1.0...v2.1.1) (2019-11-15)
 
 
