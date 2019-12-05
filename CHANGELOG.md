@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.2.0](https://www.github.com/googleapis/gaxios/compare/v2.1.1...v2.2.0) (2019-12-05)
+
+
+### Features
+
+* populate GaxiosResponse with raw response information (res.url) ([#189](https://www.github.com/googleapis/gaxios/issues/189)) ([53a7f54](https://www.github.com/googleapis/gaxios/commit/53a7f54cc0f20320d7a6a21a9a9f36050cec2eec))
+
+
+### Bug Fixes
+
+* don't retry a request that is aborted intentionally ([#190](https://www.github.com/googleapis/gaxios/issues/190)) ([ba9777b](https://www.github.com/googleapis/gaxios/commit/ba9777b15b5262f8288a8bb3cca49a1de8427d8e))
+* **deps:** pin TypeScript below 3.7.0 ([5373f07](https://www.github.com/googleapis/gaxios/commit/5373f0793a765965a8221ecad2f99257ed1b7444))
+
 ### [2.1.1](https://www.github.com/googleapis/gaxios/compare/v2.1.0...v2.1.1) (2019-11-15)
 
 
