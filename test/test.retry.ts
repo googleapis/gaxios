@@ -50,7 +50,6 @@ describe('🛸 retry & exponential backoff', () => {
       assert.strictEqual(config!.currentRetryAttempt, 3);
       assert.strictEqual(config!.retry, 3);
       assert.strictEqual(config!.noResponseRetries, 2);
-      assert.strictEqual(config!.retryDelay, 100);
       const expectedMethods = ['GET', 'HEAD', 'PUT', 'OPTIONS', 'DELETE'];
       for (const method of config!.httpMethodsToRetry!) {
         assert(expectedMethods.indexOf(method) > -1);

@@ -22,7 +22,6 @@ export async function getRetryConfig(err: GaxiosError) {
   config.currentRetryAttempt = config.currentRetryAttempt || 0;
   config.retry =
     config.retry === undefined || config.retry === null ? 3 : config.retry;
-  config.retryDelay = config.retryDelay || 100;
   config.httpMethodsToRetry = config.httpMethodsToRetry || [
     'GET',
     'HEAD',
