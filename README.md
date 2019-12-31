@@ -50,7 +50,7 @@ gaxios.request({url: '/data'}).then(...);
   // The HTTP methods to be sent with the request.
   headers: { 'some': 'header' },
 
-  // The data to base64 encode and send in the body of the request.
+  // The data to send in the body of the request. Data objects will be serialized as JSON.
   data: {
     some: 'data'
   },
