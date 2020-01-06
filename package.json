@@ -63,7 +63,7 @@
     "karma-sourcemap-loader": "^0.3.7",
     "karma-webpack": "^4.0.0",
     "linkinator": "^1.5.0",
-    "mocha": "^6.0.2",
+    "mocha": "^7.0.0",
     "mv": "^2.1.1",
     "ncp": "^2.0.0",
     "nock": "^11.0.0",
