@@ -1,5 +1,13 @@
 # Changelog
 
+### [2.2.1](https://www.github.com/googleapis/gaxios/compare/v2.2.0...v2.2.1) (2020-01-04)
+
+
+### Bug Fixes
+
+* **deps:** update dependency https-proxy-agent to v4 ([#201](https://www.github.com/googleapis/gaxios/issues/201)) ([5cdeef2](https://www.github.com/googleapis/gaxios/commit/5cdeef288a0c5c544c0dc2659aafbb2215d06c4b))
+* remove retryDelay option ([#203](https://www.github.com/googleapis/gaxios/issues/203)) ([d21e08d](https://www.github.com/googleapis/gaxios/commit/d21e08d2aada980d39bc5ca7093d54452be2d646))
+
 ## [2.2.0](https://www.github.com/googleapis/gaxios/compare/v2.1.1...v2.2.0) (2019-12-05)
 
 
