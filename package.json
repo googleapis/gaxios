@@ -1,6 +1,6 @@
 {
   "name": "gaxios",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "A simple common HTTP client specifically for Google APIs and services.",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
@@ -48,7 +48,7 @@
     "@types/sinon": "^7.0.7",
     "@types/tmp": "0.1.0",
     "assert-rejects": "^1.0.0",
-    "c8": "^6.0.0",
+    "c8": "^7.0.0",
     "codecov": "^3.2.0",
     "execa": "^3.0.0",
     "express": "^4.16.4",
@@ -63,13 +63,13 @@
     "karma-sourcemap-loader": "^0.3.7",
     "karma-webpack": "^4.0.0",
     "linkinator": "^1.5.0",
-    "mocha": "^6.0.2",
+    "mocha": "^7.0.0",
     "mv": "^2.1.1",
     "ncp": "^2.0.0",
     "nock": "^11.0.0",
     "null-loader": "^3.0.0",
     "puppeteer": "^2.0.0",
-    "sinon": "^7.2.5",
+    "sinon": "^8.0.0",
     "source-map-support": "^0.5.10",
     "tmp": "0.1.0",
     "ts-loader": "^6.0.0",
@@ -80,7 +80,7 @@
   "dependencies": {
     "abort-controller": "^3.0.0",
     "extend": "^3.0.2",
-    "https-proxy-agent": "^3.0.0",
+    "https-proxy-agent": "^4.0.0",
     "is-stream": "^2.0.0",
     "node-fetch": "^2.3.0"
   }

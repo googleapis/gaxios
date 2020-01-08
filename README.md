@@ -50,7 +50,7 @@ gaxios.request({url: '/data'}).then(...);
   // The HTTP methods to be sent with the request.
   headers: { 'some': 'header' },
 
-  // The data to base64 encode and send in the body of the request.
+  // The data to send in the body of the request. Data objects will be serialized as JSON.
   data: {
     some: 'data'
   },
@@ -106,9 +106,6 @@ gaxios.request({url: '/data'}).then(...);
 
     // The number of retries already attempted.
     currentRetryAttempt?: number;
-
-    // The amount of time to initially delay the retry.  Defaults to 100.
-    retryDelay?: number;
 
     // The HTTP Methods that will be automatically retried.
     // Defaults to ['GET','PUT','HEAD','OPTIONS','DELETE']

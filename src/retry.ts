@@ -1,4 +1,4 @@
-// Copyright 2018, Google, LLC.
+// Copyright 2018 Google LLC
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -22,7 +22,6 @@ export async function getRetryConfig(err: GaxiosError) {
   config.currentRetryAttempt = config.currentRetryAttempt || 0;
   config.retry =
     config.retry === undefined || config.retry === null ? 3 : config.retry;
-  config.retryDelay = config.retryDelay || 100;
   config.httpMethodsToRetry = config.httpMethodsToRetry || [
     'GET',
     'HEAD',
