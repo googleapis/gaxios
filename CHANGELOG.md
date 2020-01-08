@@ -1,5 +1,12 @@
 # Changelog
 
+### [2.2.2](https://www.github.com/googleapis/gaxios/compare/v2.2.1...v2.2.2) (2020-01-08)
+
+
+### Bug Fixes
+
+* **build:** add publication configuration ([#218](https://www.github.com/googleapis/gaxios/issues/218)) ([43e581f](https://www.github.com/googleapis/gaxios/commit/43e581ff4ed5e79d72f6f29748a5eebb6bff1229))
+
 ### [2.2.1](https://www.github.com/googleapis/gaxios/compare/v2.2.0...v2.2.1) (2020-01-04)
 
 
