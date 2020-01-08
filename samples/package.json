@@ -10,6 +10,6 @@
     "mocha": "^7.0.0"
   },
   "dependencies": {
-    "gaxios": "^2.2.1"
+    "gaxios": "^2.2.2"
   }
 }
