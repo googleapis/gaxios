@@ -55,7 +55,8 @@ export async function getRetryConfig(err: GaxiosError) {
 
   // Determine if we should retry the request
   const shouldRetryFn = config.shouldRetry || shouldRetryRequest;
-  if (!shouldRetryFn(err)) {
+  const shouldRetryFnPromise = Promise.resolve(shouldRetryFn(err));
+  if (!(await shouldRetryFnPromise)) {
     return {shouldRetry: false, config: err.config};
   }
 
