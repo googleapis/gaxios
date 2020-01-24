@@ -218,7 +218,7 @@ describe('🛸 retry & exponential backoff', () => {
     scopes.forEach(s => s.done());
   });
 
-  it('should notify on retry attempts, including promises', async () => {
+  it('accepts async onRetryAttempt handler', async () => {
     const body = {buttered: '🥖'};
     const scopes = [
       nock(url)
