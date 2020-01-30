@@ -11,11 +11,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import {AbortController} from 'abort-controller';
 import assert from 'assert';
 import nock from 'nock';
-
-import {AbortController} from 'abort-controller';
-import {GaxiosError, GaxiosOptions, request, Gaxios} from '../src';
+import {Gaxios, GaxiosError, GaxiosOptions, request} from '../src';
 
 const assertRejects = require('assert-rejects');
 
@@ -219,6 +218,32 @@ describe('🛸 retry & exponential backoff', () => {
     scopes.forEach(s => s.done());
   });
 
+  it('accepts async onRetryAttempt handler', async () => {
+    const body = {buttered: '🥖'};
+    const scopes = [
+      nock(url)
+        .get('/')
+        .reply(500),
+      nock(url)
+        .get('/')
+        .reply(200, body),
+    ];
+    let flipped = false;
+    const config: GaxiosOptions = {
+      url,
+      retryConfig: {
+        onRetryAttempt: async err => {
+          const cfg = getConfig(err);
+          assert.strictEqual(cfg!.currentRetryAttempt, 1);
+          flipped = true;
+        },
+      },
+    };
+    await request(config);
+    assert.strictEqual(flipped, true);
+    scopes.forEach(s => s.done());
+  });
+
   it('should support overriding the shouldRetry method', async () => {
     const scope = nock(url)
       .get('/')
@@ -227,6 +252,25 @@ describe('🛸 retry & exponential backoff', () => {
       url,
       retryConfig: {
         shouldRetry: () => {
+          return false;
+        },
+      },
+    };
+    await assertRejects(request(config), (e: Error) => {
+      const cfg = getConfig(e);
+      return cfg!.currentRetryAttempt === 0;
+    });
+    scope.done();
+  });
+
+  it('should support overriding the shouldRetry method with a promise', async () => {
+    const scope = nock(url)
+      .get('/')
+      .reply(500);
+    const config = {
+      url,
+      retryConfig: {
+        shouldRetry: async () => {
           return false;
         },
       },

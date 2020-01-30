@@ -133,12 +133,12 @@ export interface RetryConfig {
   /**
    * Function to invoke when a retry attempt is made.
    */
-  onRetryAttempt?: (err: GaxiosError) => void;
+  onRetryAttempt?: (err: GaxiosError) => Promise<void> | void;
 
   /**
    * Function to invoke which determines if you should retry
    */
-  shouldRetry?: (err: GaxiosError) => boolean;
+  shouldRetry?: (err: GaxiosError) => Promise<boolean> | boolean;
 
   /**
    * When there is no response, the number of retries to attempt. Defaults to 2.
