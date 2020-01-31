@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.0](https://www.github.com/googleapis/gaxios/compare/v2.2.2...v2.3.0) (2020-01-31)
+
+
+### Features
+
+* add promise support for onRetryAttempt and shouldRetry ([#223](https://www.github.com/googleapis/gaxios/issues/223)) ([061afa3](https://www.github.com/googleapis/gaxios/commit/061afa381a51d39823e63accf3dacd16e191f3b9))
+
 ### [2.2.2](https://www.github.com/googleapis/gaxios/compare/v2.2.1...v2.2.2) (2020-01-08)
 
 
