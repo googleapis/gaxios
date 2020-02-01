@@ -70,7 +70,6 @@
     "null-loader": "^3.0.0",
     "puppeteer": "^2.0.0",
     "sinon": "^8.0.0",
-    "source-map-support": "^0.5.10",
     "tmp": "0.1.0",
     "ts-loader": "^6.0.0",
     "typescript": "3.6.4",
