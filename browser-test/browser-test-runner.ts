@@ -1,4 +1,4 @@
-// Copyright 2019, Google, LLC.
+// Copyright 2019 Google, LLC
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -51,7 +51,7 @@ async function main() {
 
   const server = await listen(app, port);
   console.log(`[http server] I'm listening on port ${port}! Starting karma.`);
-  const result = await execa('karma', ['start'], { stdio: 'inherit' });
+  const result = await execa('karma', ['start'], {stdio: 'inherit'});
   server.close();
   console.log(
     `[http server] Karma has finished! I'm no longer listening on port ${port}!`

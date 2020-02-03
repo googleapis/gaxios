@@ -1,4 +1,4 @@
-// Copyright 2019, Google, LLC.
+// Copyright 2019 Google, LLC
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -12,13 +12,13 @@
 // limitations under the License.
 
 import assert from 'assert';
-import { describe, it } from 'mocha';
-import { request } from '../src/index';
+import {describe, it} from 'mocha';
+import {request} from '../src/index';
 const port = 7172; // should match the port defined in `webserver.ts`
 
 describe('💻 browser tests', () => {
   it('should just work from browser', async () => {
-    const result = await request({ url: `http://localhost:${port}/path` });
+    const result = await request({url: `http://localhost:${port}/path`});
     assert.strictEqual(result.status, 200);
     assert.strictEqual(result.data, 'response');
   });
@@ -26,7 +26,7 @@ describe('💻 browser tests', () => {
   it('should pass querystring parameters from browser', async () => {
     const result = await request({
       url: `http://localhost:${port}/querystring`,
-      params: { query: 'value' },
+      params: {query: 'value'},
     });
     assert.strictEqual(result.status, 200);
     assert.strictEqual(result.data, 'value');

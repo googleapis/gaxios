@@ -15,7 +15,7 @@ import assert from 'assert';
 import nock from 'nock';
 import sinon from 'sinon';
 import stream from 'stream';
-import { describe, it, afterEach } from 'mocha';
+import {describe, it, afterEach} from 'mocha';
 import assertRejects = require('assert-rejects');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const HttpsProxyAgent = require('https-proxy-agent');
@@ -28,7 +28,7 @@ import {
 } from '../src';
 import qs from 'querystring';
 import fs from 'fs';
-import { Blob } from 'node-fetch';
+import {Blob} from 'node-fetch';
 
 nock.disableNetConnect();
 
@@ -51,7 +51,7 @@ describe('🚙 error handling', () => {
     const scope = nock(url)
       .get('/')
       .reply(500);
-    await assertRejects(request({ url }), (err: GaxiosError) => {
+    await assertRejects(request({url}), (err: GaxiosError) => {
       scope.done();
       return err.code === '500';
     });
@@ -63,8 +63,8 @@ describe('🥁 configuration options', () => {
     const scope = nock(url)
       .head('/')
       .reply(200);
-    const inst = new Gaxios({ method: 'HEAD' });
-    const res = await inst.request({ url });
+    const inst = new Gaxios({method: 'HEAD'});
+    const res = await inst.request({url});
     scope.done();
     assert.strictEqual(res.config.method, 'HEAD');
   });
@@ -73,8 +73,8 @@ describe('🥁 configuration options', () => {
     const scope = nock(url)
       .get('/')
       .reply(200);
-    const inst = new Gaxios({ headers: { apple: 'juice' } });
-    const res = await inst.request({ url, headers: { figgy: 'pudding' } });
+    const inst = new Gaxios({headers: {apple: 'juice'}});
+    const res = await inst.request({url, headers: {figgy: 'pudding'}});
     scope.done();
     assert.strictEqual(res.config.headers!.apple, 'juice');
     assert.strictEqual(res.config.headers!.figgy, 'pudding');
@@ -84,8 +84,8 @@ describe('🥁 configuration options', () => {
     const scope = nock(url)
       .get('/v1/mango')
       .reply(200, {});
-    const inst = new Gaxios({ baseURL: `${url}/v1` });
-    const res = await inst.request({ url: '/mango' });
+    const inst = new Gaxios({baseURL: `${url}/v1`});
+    const res = await inst.request({url: '/mango'});
     scope.done();
     assert.deepStrictEqual(res.data, {});
   });
@@ -94,32 +94,32 @@ describe('🥁 configuration options', () => {
     const scope = nock(url)
       .get('/')
       .reply(304);
-    const res = await request({ url, validateStatus: () => true });
+    const res = await request({url, validateStatus: () => true});
     scope.done();
     assert.strictEqual(res.status, 304);
   });
 
   it('should allow setting maxContentLength', async () => {
-    const body = { hello: '🌎' };
+    const body = {hello: '🌎'};
     const scope = nock(url)
       .get('/')
       .reply(200, body);
     const maxContentLength = 1;
-    await assertRejects(request({ url, maxContentLength }), /over limit/);
+    await assertRejects(request({url, maxContentLength}), /over limit/);
     scope.done();
   });
 
   it('should support redirects by default', async () => {
-    const body = { hello: '🌎' };
+    const body = {hello: '🌎'};
     const scopes = [
       nock(url)
         .get('/foo')
         .reply(200, body),
       nock(url)
         .get('/')
-        .reply(302, undefined, { location: '/foo' }),
+        .reply(302, undefined, {location: '/foo'}),
     ];
-    const res = await request({ url });
+    const res = await request({url});
     scopes.forEach(x => x.done());
     assert.deepStrictEqual(res.data, body);
     assert.strictEqual(res.request.responseURL, `${url}/foo`);
@@ -128,15 +128,15 @@ describe('🥁 configuration options', () => {
   it('should support disabling redirects', async () => {
     const scope = nock(url)
       .get('/')
-      .reply(302, undefined, { location: '/foo' });
+      .reply(302, undefined, {location: '/foo'});
     const maxRedirects = 0;
-    await assertRejects(request({ url, maxRedirects }), /maximum redirect/);
+    await assertRejects(request({url, maxRedirects}), /maximum redirect/);
     scope.done();
   });
 
   it('should allow overriding the adapter', async () => {
     const response: GaxiosResponse = {
-      data: { hello: '🌎' },
+      data: {hello: '🌎'},
       config: {},
       status: 200,
       statusText: 'OK',
@@ -146,13 +146,13 @@ describe('🥁 configuration options', () => {
       },
     };
     const adapter = () => Promise.resolve(response);
-    const res = await request({ url, adapter });
+    const res = await request({url, adapter});
     assert.strictEqual(response, res);
   });
 
   it('should encode URL parameters', async () => {
     const path = '/?james=kirk&montgomery=scott';
-    const opts = { url: `${url}${path}` };
+    const opts = {url: `${url}${path}`};
     const scope = nock(url)
       .get(path)
       .reply(200, {});
@@ -163,7 +163,7 @@ describe('🥁 configuration options', () => {
   });
 
   it('should encode parameters from the params option', async () => {
-    const opts = { url, params: { james: 'kirk', montgomery: 'scott' } };
+    const opts = {url, params: {james: 'kirk', montgomery: 'scott'}};
     const path = '/?james=kirk&montgomery=scott';
     const scope = nock(url)
       .get(path)
@@ -177,7 +177,7 @@ describe('🥁 configuration options', () => {
   it('should merge URL parameters with the params option', async () => {
     const opts = {
       url: `${url}/?james=beckwith&montgomery=scott`,
-      params: { james: 'kirk' },
+      params: {james: 'kirk'},
     };
     const path = '/?james=kirk&montgomery=scott';
     const scope = nock(url)
@@ -191,7 +191,7 @@ describe('🥁 configuration options', () => {
 
   it('should allow overriding the param serializer', async () => {
     const qs = '?oh=HAI';
-    const params = { james: 'kirk' };
+    const params = {james: 'kirk'};
     const opts: GaxiosOptions = {
       url,
       params,
@@ -210,11 +210,11 @@ describe('🥁 configuration options', () => {
   });
 
   it('should return json by default', async () => {
-    const body = { hello: '🌎' };
+    const body = {hello: '🌎'};
     const scope = nock(url)
       .get('/')
       .reply(200, body);
-    const res = await request({ url });
+    const res = await request({url});
     scope.done();
     assert.deepStrictEqual(body, res.data);
   });
@@ -224,43 +224,43 @@ describe('🥁 configuration options', () => {
       .matchHeader('accept', 'application/json')
       .get('/')
       .reply(200, {});
-    const res = await request({ url });
+    const res = await request({url});
     scope.done();
     assert.deepStrictEqual(res.data, {});
   });
 
   it('should use an https proxy if asked nicely', async () => {
-    sandbox.stub(process, 'env').value({ https_proxy: 'https://fake.proxy' });
-    const body = { hello: '🌎' };
+    sandbox.stub(process, 'env').value({https_proxy: 'https://fake.proxy'});
+    const body = {hello: '🌎'};
     const scope = nock(url)
       .get('/')
       .reply(200, body);
-    const res = await request({ url });
+    const res = await request({url});
     scope.done();
     assert.deepStrictEqual(res.data, body);
     assert.ok(res.config.agent instanceof HttpsProxyAgent);
   });
 
   it('should load the proxy from the cache', async () => {
-    sandbox.stub(process, 'env').value({ HTTPS_PROXY: 'https://fake.proxy' });
-    const body = { hello: '🌎' };
+    sandbox.stub(process, 'env').value({HTTPS_PROXY: 'https://fake.proxy'});
+    const body = {hello: '🌎'};
     const scope = nock(url)
       .get('/')
       .twice()
       .reply(200, body);
-    const res1 = await request({ url });
+    const res1 = await request({url});
     const agent = res1.config.agent;
-    const res2 = await request({ url });
+    const res2 = await request({url});
     assert.strictEqual(agent, res2.config.agent);
     scope.done();
   });
 
   it('should include the request data in the response config', async () => {
-    const body = { hello: '🌎' };
+    const body = {hello: '🌎'};
     const scope = nock(url)
       .post('/', body)
       .reply(200);
-    const res = await request({ url, method: 'POST', data: body });
+    const res = await request({url, method: 'POST', data: body});
     scope.done();
     assert.deepStrictEqual(res.config.data, body);
   });
@@ -274,13 +274,13 @@ describe('🎏 data handling', () => {
     const scope = nock(url)
       .post('/', contents)
       .reply(200, {});
-    const res = await request({ url, method: 'POST', data: body });
+    const res = await request({url, method: 'POST', data: body});
     scope.done();
     assert.deepStrictEqual(res.data, {});
   });
 
   it('should accept a string in the request data', async () => {
-    const body = { hello: '🌎' };
+    const body = {hello: '🌎'};
     const encoded = qs.stringify(body);
     const scope = nock(url)
       .matchHeader('content-type', 'application/x-www-form-urlencoded')
@@ -290,14 +290,14 @@ describe('🎏 data handling', () => {
       url,
       method: 'POST',
       data: encoded,
-      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      headers: {'content-type': 'application/x-www-form-urlencoded'},
     });
     scope.done();
     assert.deepStrictEqual(res.data, {});
   });
 
   it('should set content-type for object request', async () => {
-    const body = { hello: '🌎' };
+    const body = {hello: '🌎'};
     const scope = nock(url)
       .matchHeader('content-type', 'application/json')
       .post('/', JSON.stringify(body))
@@ -312,17 +312,17 @@ describe('🎏 data handling', () => {
   });
 
   it('should return stream if asked nicely', async () => {
-    const body = { hello: '🌎' };
+    const body = {hello: '🌎'};
     const scope = nock(url)
       .get('/')
       .reply(200, body);
-    const res = await request<stream.Readable>({ url, responseType: 'stream' });
+    const res = await request<stream.Readable>({url, responseType: 'stream'});
     scope.done();
     assert(res.data instanceof stream.Readable);
   });
 
   it('should return an ArrayBuffer if asked nicely', async () => {
-    const body = { hello: '🌎' };
+    const body = {hello: '🌎'};
     const scope = nock(url)
       .get('/')
       .reply(200, body);
@@ -339,11 +339,11 @@ describe('🎏 data handling', () => {
   });
 
   it('should return a blob if asked nicely', async () => {
-    const body = { hello: '🌎' };
+    const body = {hello: '🌎'};
     const scope = nock(url)
       .get('/')
       .reply(200, body);
-    const res = await request<Blob>({ url, responseType: 'blob' });
+    const res = await request<Blob>({url, responseType: 'blob'});
     scope.done();
     assert.ok(res.data);
   });
@@ -353,17 +353,17 @@ describe('🎏 data handling', () => {
     const scope = nock(url)
       .get('/')
       .reply(200, body);
-    const res = await request<string>({ url, responseType: 'text' });
+    const res = await request<string>({url, responseType: 'text'});
     scope.done();
     assert.strictEqual(res.data, body);
   });
 
   it('should return status text', async () => {
-    const body = { hello: '🌎' };
+    const body = {hello: '🌎'};
     const scope = nock(url)
       .get('/')
       .reply(200, body);
-    const res = await request({ url });
+    const res = await request({url});
     scope.done();
     assert.ok(res.data);
     assert.strictEqual(res.statusText, 'OK');
@@ -377,11 +377,11 @@ describe('🍂 defaults & instances', () => {
   });
 
   it('should allow passing empty options', async () => {
-    const body = { hello: '🌎' };
+    const body = {hello: '🌎'};
     const scope = nock(url)
       .get('/')
       .reply(200, body);
-    const gax = new Gaxios({ url });
+    const gax = new Gaxios({url});
     const res = await gax.request();
     scope.done();
     assert.deepStrictEqual(res.data, body);
