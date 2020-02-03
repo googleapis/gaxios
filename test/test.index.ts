@@ -11,12 +11,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import assert from 'assert';
+import assert from "assert";
+import { describe, it } from "mocha";
+import * as main from "../src/index";
 
-import * as main from '../src/index';
-
-describe('📝 main exports', () => {
-  it('should export all the types', () => {
+describe("📝 main exports", () => {
+  it("should export all the types", () => {
     assert(main.Gaxios);
     assert(main.GaxiosError);
   });

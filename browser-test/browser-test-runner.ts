@@ -11,9 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import execa from 'execa';
-import express from 'express';
-import http from 'http';
+import execa from "execa";
+import express from "express";
+import http from "http";
 
 const port = 7172;
 
@@ -35,30 +35,32 @@ async function listen(
 // tests.
 async function main() {
   const app = express();
-  app.get('/path', (req: express.Request, res: express.Response) => {
-    if (req.header('origin')) {
-      res.set('Access-Control-Allow-Origin', req.header('origin'));
+  app.get("/path", (req: express.Request, res: express.Response) => {
+    if (req.header("origin")) {
+      res.set("Access-Control-Allow-Origin", req.header("origin"));
     }
-    res.send('response');
+    res.send("response");
   });
-  app.get('/querystring', (req: express.Request, res: express.Response) => {
-    if (req.header('origin')) {
-      res.set('Access-Control-Allow-Origin', req.header('origin'));
+  app.get("/querystring", (req: express.Request, res: express.Response) => {
+    if (req.header("origin")) {
+      res.set("Access-Control-Allow-Origin", req.header("origin"));
     }
     const query = req.query.query;
-    res.send(query || '');
+    res.send(query || "");
   });
 
   const server = await listen(app, port);
   console.log(`[http server] I'm listening on port ${port}! Starting karma.`);
-  const result = await execa('karma', ['start'], {stdio: 'inherit'});
+  const result = await execa("karma", ["start"], { stdio: "inherit" });
   server.close();
   console.log(
     `[http server] Karma has finished! I'm no longer listening on port ${port}!`
   );
-  process.exit(result.failed ? 1 : 0);
+  if (result.failed) {
+    throw new Error("Tests failed.");
+  }
 }
 
 main().catch(err => {
-  console.log('Error:', err);
+  console.log("Error:", err);
 });

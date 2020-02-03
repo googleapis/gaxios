@@ -14,33 +14,33 @@
 
 // Use `npm run webpack` to produce Webpack bundle for this library.
 
-const path = require('path');
+const path = require("path");
 
 module.exports = {
   resolve: {
-    extensions: ['.ts', '.js', '.json'],
+    extensions: [".ts", ".js", ".json"],
     alias: {
-      '../../package.json': path.resolve(__dirname, 'package.json')
+      "../../package.json": path.resolve(__dirname, "package.json")
     }
   },
   node: {
-    child_process: 'empty',
-    fs: 'empty',
-    crypto: 'empty'
+    child_process: "empty",
+    fs: "empty",
+    crypto: "empty"
   },
   module: {
     rules: [
       {
         test: /node_modules\/https-proxy-agent\//,
-        use: 'null-loader'
+        use: "null-loader"
       },
       {
         test: /\.ts$/,
-        use: 'ts-loader',
+        use: "ts-loader",
         exclude: /node_modules/
       }
     ]
   },
-  mode: 'production',
+  mode: "production",
   plugins: []
 };

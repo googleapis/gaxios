@@ -23,7 +23,9 @@
     "docs": "compodoc src/",
     "docs-test": "linkinator docs",
     "predocs-test": "npm run docs",
-    "samples-test": "cd samples/ && npm link ../ && npm test && cd ../"
+    "samples-test": "cd samples/ && npm link ../ && npm test && cd ../",
+    "check": "gts check",
+    "posttest": "npm run check"
   },
   "repository": "JustinBeckwith/gaxios",
   "keywords": [
@@ -52,7 +54,7 @@
     "codecov": "^3.2.0",
     "execa": "^4.0.0",
     "express": "^4.16.4",
-    "gts": "^1.0.0",
+    "gts": "file:../gts/gts-1.1.2.tgz",
     "is-docker": "^2.0.0",
     "karma": "^4.0.0",
     "karma-chrome-launcher": "^3.0.0",

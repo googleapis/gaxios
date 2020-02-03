@@ -11,16 +11,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {AbortController} from 'abort-controller';
-import assert from 'assert';
-import nock from 'nock';
-import {Gaxios, GaxiosError, GaxiosOptions, request} from '../src';
-
-const assertRejects = require('assert-rejects');
+import { AbortController } from "abort-controller";
+import assert from "assert";
+import nock from "nock";
+import { describe, it, afterEach } from "mocha";
+import { Gaxios, GaxiosError, GaxiosOptions, request } from "../src";
+import assertRejects = require("assert-rejects");
 
 nock.disableNetConnect();
 
-const url = 'https://example.com';
+const url = "https://example.com";
 
 function getConfig(err: Error) {
   const e = err as GaxiosError;
@@ -34,29 +34,29 @@ afterEach(() => {
   nock.cleanAll();
 });
 
-describe('🛸 retry & exponential backoff', () => {
-  it('should provide an expected set of defaults', async () => {
+describe("🛸 retry & exponential backoff", () => {
+  it("should provide an expected set of defaults", async () => {
     const scope = nock(url)
-      .get('/')
+      .get("/")
       .times(4)
       .reply(500);
-    await assertRejects(request({url, retry: true}), (e: Error) => {
+    await assertRejects(request({ url, retry: true }), (e: Error) => {
       scope.done();
       const config = getConfig(e);
       if (!config) {
-        assert.fail('no config available');
+        assert.fail("no config available");
       }
       assert.strictEqual(config!.currentRetryAttempt, 3);
       assert.strictEqual(config!.retry, 3);
       assert.strictEqual(config!.noResponseRetries, 2);
-      const expectedMethods = ['GET', 'HEAD', 'PUT', 'OPTIONS', 'DELETE'];
+      const expectedMethods = ["GET", "HEAD", "PUT", "OPTIONS", "DELETE"];
       for (const method of config!.httpMethodsToRetry!) {
         assert(expectedMethods.indexOf(method) > -1);
       }
       const expectedStatusCodes = [
         [100, 199],
         [429, 429],
-        [500, 599],
+        [500, 599]
       ];
       const statusCodesToRetry = config!.statusCodesToRetry!;
       for (let i = 0; i < statusCodesToRetry.length; i++) {
@@ -69,30 +69,30 @@ describe('🛸 retry & exponential backoff', () => {
     });
   });
 
-  it('should retry on 500 on the main export', async () => {
-    const body = {buttered: '🥖'};
+  it("should retry on 500 on the main export", async () => {
+    const body = { buttered: "🥖" };
     const scopes = [
       nock(url)
-        .get('/')
+        .get("/")
         .reply(500),
       nock(url)
-        .get('/')
-        .reply(200, body),
+        .get("/")
+        .reply(200, body)
     ];
     const res = await request({
       url,
-      retry: true,
+      retry: true
     });
     assert.deepStrictEqual(res.data, body);
     scopes.forEach(s => s.done());
   });
 
-  it('should not retry on a post', async () => {
+  it("should not retry on a post", async () => {
     const scope = nock(url)
-      .post('/')
+      .post("/")
       .reply(500);
     await assertRejects(
-      request({url, method: 'POST', retry: true}),
+      request({ url, method: "POST", retry: true }),
       (e: Error) => {
         const config = getConfig(e);
         return config!.currentRetryAttempt === 0;
@@ -101,90 +101,90 @@ describe('🛸 retry & exponential backoff', () => {
     scope.done();
   });
 
-  it('should not retry if user aborted request', async () => {
+  it("should not retry if user aborted request", async () => {
     const ac = new AbortController();
     const config: GaxiosOptions = {
-      method: 'GET',
-      url: 'https://google.com',
+      method: "GET",
+      url: "https://google.com",
       signal: ac.signal,
-      retryConfig: {retry: 10, noResponseRetries: 10},
+      retryConfig: { retry: 10, noResponseRetries: 10 }
     };
     const req = request(config);
     ac.abort();
     try {
       await req;
-      throw Error('unreachable');
+      throw Error("unreachable");
     } catch (err) {
       assert(err.config);
       assert.strictEqual(err.config.retryConfig.currentRetryAttempt, 0);
     }
   });
 
-  it('should retry at least the configured number of times', async () => {
-    const body = {dippy: '🥚'};
+  it("should retry at least the configured number of times", async () => {
+    const body = { dippy: "🥚" };
     const scopes = [
       nock(url)
-        .get('/')
+        .get("/")
         .times(3)
         .reply(500),
       nock(url)
-        .get('/')
-        .reply(200, body),
+        .get("/")
+        .reply(200, body)
     ];
-    const cfg = {url, retryConfig: {retry: 4}};
+    const cfg = { url, retryConfig: { retry: 4 } };
     const res = await request(cfg);
     assert.deepStrictEqual(res.data, body);
     scopes.forEach(s => s.done());
   });
 
-  it('should not retry more than configured', async () => {
+  it("should not retry more than configured", async () => {
     const scope = nock(url)
-      .get('/')
+      .get("/")
       .twice()
       .reply(500);
-    const cfg = {url, retryConfig: {retry: 1}};
+    const cfg = { url, retryConfig: { retry: 1 } };
     await assertRejects(request(cfg), (e: Error) => {
       return getConfig(e)!.currentRetryAttempt === 1;
     });
     scope.done();
   });
 
-  it('should not retry on 4xx errors', async () => {
+  it("should not retry on 4xx errors", async () => {
     const scope = nock(url)
-      .get('/')
+      .get("/")
       .reply(404);
-    await assertRejects(request({url, retry: true}), (e: Error) => {
+    await assertRejects(request({ url, retry: true }), (e: Error) => {
       const cfg = getConfig(e);
       return cfg!.currentRetryAttempt === 0;
     });
     scope.done();
   });
 
-  it('should retain the baseUrl on retry', async () => {
-    const body = {pumpkin: '🥧'};
-    const url = '/path';
-    const baseUrl = 'http://example.com';
+  it("should retain the baseUrl on retry", async () => {
+    const body = { pumpkin: "🥧" };
+    const url = "/path";
+    const baseUrl = "http://example.com";
     const scope = nock(baseUrl)
       .get(url)
       .reply(500)
       .get(url)
       .reply(200, body);
     const gaxios = new Gaxios({
-      baseUrl,
+      baseUrl
     });
     const res = await gaxios.request({
       url,
-      retry: true,
+      retry: true
     });
     assert.deepStrictEqual(res.data, body);
     scope.done();
   });
 
-  it('should not retry if retries set to 0', async () => {
+  it("should not retry if retries set to 0", async () => {
     const scope = nock(url)
-      .get('/')
+      .get("/")
       .reply(500);
-    const cfg = {url, retryConfig: {retry: 0}};
+    const cfg = { url, retryConfig: { retry: 0 } };
     await assertRejects(request(cfg), (e: Error) => {
       const cfg = getConfig(e);
       return cfg!.currentRetryAttempt === 0;
@@ -192,15 +192,15 @@ describe('🛸 retry & exponential backoff', () => {
     scope.done();
   });
 
-  it('should notify on retry attempts', async () => {
-    const body = {buttered: '🥖'};
+  it("should notify on retry attempts", async () => {
+    const body = { buttered: "🥖" };
     const scopes = [
       nock(url)
-        .get('/')
+        .get("/")
         .reply(500),
       nock(url)
-        .get('/')
-        .reply(200, body),
+        .get("/")
+        .reply(200, body)
     ];
     let flipped = false;
     const config: GaxiosOptions = {
@@ -210,23 +210,23 @@ describe('🛸 retry & exponential backoff', () => {
           const cfg = getConfig(err);
           assert.strictEqual(cfg!.currentRetryAttempt, 1);
           flipped = true;
-        },
-      },
+        }
+      }
     };
     await request(config);
     assert.strictEqual(flipped, true);
     scopes.forEach(s => s.done());
   });
 
-  it('accepts async onRetryAttempt handler', async () => {
-    const body = {buttered: '🥖'};
+  it("accepts async onRetryAttempt handler", async () => {
+    const body = { buttered: "🥖" };
     const scopes = [
       nock(url)
-        .get('/')
+        .get("/")
         .reply(500),
       nock(url)
-        .get('/')
-        .reply(200, body),
+        .get("/")
+        .reply(200, body)
     ];
     let flipped = false;
     const config: GaxiosOptions = {
@@ -236,25 +236,25 @@ describe('🛸 retry & exponential backoff', () => {
           const cfg = getConfig(err);
           assert.strictEqual(cfg!.currentRetryAttempt, 1);
           flipped = true;
-        },
-      },
+        }
+      }
     };
     await request(config);
     assert.strictEqual(flipped, true);
     scopes.forEach(s => s.done());
   });
 
-  it('should support overriding the shouldRetry method', async () => {
+  it("should support overriding the shouldRetry method", async () => {
     const scope = nock(url)
-      .get('/')
+      .get("/")
       .reply(500);
     const config = {
       url,
       retryConfig: {
         shouldRetry: () => {
           return false;
-        },
-      },
+        }
+      }
     };
     await assertRejects(request(config), (e: Error) => {
       const cfg = getConfig(e);
@@ -263,17 +263,17 @@ describe('🛸 retry & exponential backoff', () => {
     scope.done();
   });
 
-  it('should support overriding the shouldRetry method with a promise', async () => {
+  it("should support overriding the shouldRetry method with a promise", async () => {
     const scope = nock(url)
-      .get('/')
+      .get("/")
       .reply(500);
     const config = {
       url,
       retryConfig: {
         shouldRetry: async () => {
           return false;
-        },
-      },
+        }
+      }
     };
     await assertRejects(request(config), (e: Error) => {
       const cfg = getConfig(e);
@@ -282,41 +282,41 @@ describe('🛸 retry & exponential backoff', () => {
     scope.done();
   });
 
-  it('should retry on ENOTFOUND', async () => {
-    const body = {spicy: '🌮'};
+  it("should retry on ENOTFOUND", async () => {
+    const body = { spicy: "🌮" };
     const scopes = [
       nock(url)
-        .get('/')
-        .replyWithError({code: 'ENOTFOUND'}),
+        .get("/")
+        .replyWithError({ code: "ENOTFOUND" }),
       nock(url)
-        .get('/')
-        .reply(200, body),
+        .get("/")
+        .reply(200, body)
     ];
-    const res = await request({url, retry: true});
+    const res = await request({ url, retry: true });
     assert.deepStrictEqual(res.data, body);
     scopes.forEach(s => s.done());
   });
 
-  it('should retry on ETIMEDOUT', async () => {
-    const body = {sizzling: '🥓'};
+  it("should retry on ETIMEDOUT", async () => {
+    const body = { sizzling: "🥓" };
     const scopes = [
       nock(url)
-        .get('/')
-        .replyWithError({code: 'ETIMEDOUT'}),
+        .get("/")
+        .replyWithError({ code: "ETIMEDOUT" }),
       nock(url)
-        .get('/')
-        .reply(200, body),
+        .get("/")
+        .reply(200, body)
     ];
-    const res = await request({url, retry: true});
+    const res = await request({ url, retry: true });
     assert.deepStrictEqual(res.data, body);
     scopes.forEach(s => s.done());
   });
 
-  it('should allow configuring noResponseRetries', async () => {
+  it("should allow configuring noResponseRetries", async () => {
     const scope = nock(url)
-      .get('/')
-      .replyWithError({code: 'ETIMEDOUT'});
-    const config = {url, retryConfig: {noResponseRetries: 0}};
+      .get("/")
+      .replyWithError({ code: "ETIMEDOUT" });
+    const config = { url, retryConfig: { noResponseRetries: 0 } };
     await assertRejects(request(config), (e: Error) => {
       const cfg = getConfig(e);
       return cfg!.currentRetryAttempt === 0;

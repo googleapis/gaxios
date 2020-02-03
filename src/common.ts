@@ -11,11 +11,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {AbortSignal} from 'abort-controller';
-import {Agent} from 'http';
-import {URL} from 'url';
+import { AbortSignal } from "abort-controller";
+import { Agent } from "http";
+import { URL } from "url";
 
-// tslint:disable no-any
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export class GaxiosError<T = any> extends Error {
   code?: string;
@@ -64,15 +64,15 @@ export interface GaxiosOptions {
   baseUrl?: string; // deprecated
   baseURL?: string;
   method?:
-    | 'GET'
-    | 'HEAD'
-    | 'POST'
-    | 'DELETE'
-    | 'PUT'
-    | 'CONNECT'
-    | 'OPTIONS'
-    | 'TRACE'
-    | 'PATCH';
+    | "GET"
+    | "HEAD"
+    | "POST"
+    | "DELETE"
+    | "PUT"
+    | "CONNECT"
+    | "OPTIONS"
+    | "TRACE"
+    | "PATCH";
   headers?: Headers;
   data?: any;
   body?: any;
@@ -86,10 +86,10 @@ export interface GaxiosOptions {
   maxRedirects?: number;
   follow?: number;
   params?: any;
-  paramsSerializer?: (params: {[index: string]: string | number}) => string;
+  paramsSerializer?: (params: { [index: string]: string | number }) => string;
   timeout?: number;
   onUploadProgress?: (progressEvent: any) => void;
-  responseType?: 'arraybuffer' | 'blob' | 'json' | 'text' | 'stream';
+  responseType?: "arraybuffer" | "blob" | "json" | "text" | "stream";
   agent?: Agent | ((parsedUrl: URL) => Agent);
   validateStatus?: (status: number) => boolean;
   retryConfig?: RetryConfig;

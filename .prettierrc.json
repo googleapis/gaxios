@@ -1,0 +1,3 @@
+{
+  "prettier": "./node_modules/gts/build/src/prettier.config.js"
+}
