@@ -11,21 +11,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import extend from "extend";
-import { Agent } from "http";
-import nodeFetch, { Response as NodeFetchResponse } from "node-fetch";
-import qs from "querystring";
-import isStream from "is-stream";
-import url from "url";
+import extend from 'extend';
+import { Agent } from 'http';
+import nodeFetch, { Response as NodeFetchResponse } from 'node-fetch';
+import qs from 'querystring';
+import isStream from 'is-stream';
+import url from 'url';
 
 import {
   GaxiosError,
   GaxiosOptions,
   GaxiosPromise,
   GaxiosResponse,
-  Headers
-} from "./common";
-import { getRetryConfig } from "./retry";
+  Headers,
+} from './common';
+import { getRetryConfig } from './retry';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable node/no-unsupported-features/node-builtins */
@@ -34,7 +34,7 @@ const URL = hasURL() ? window.URL : url.URL;
 const fetch = hasFetch() ? window.fetch : nodeFetch;
 
 function hasWindow() {
-  return typeof window !== "undefined" && !!window;
+  return typeof window !== 'undefined' && !!window;
 }
 
 function hasURL() {
@@ -56,7 +56,7 @@ function loadProxy() {
     process.env.HTTP_PROXY ||
     process.env.http_proxy;
   if (proxy) {
-    HttpsProxyAgent = require("https-proxy-agent");
+    HttpsProxyAgent = require('https-proxy-agent');
   }
   return proxy;
 }
@@ -129,9 +129,9 @@ export class Gaxios {
     res: Response | NodeFetchResponse
   ): Promise<any> {
     switch (opts.responseType) {
-      case "stream":
+      case 'stream':
         return res.body;
-      case "json": {
+      case 'json': {
         let data = await res.text();
         try {
           data = JSON.parse(data);
@@ -140,9 +140,9 @@ export class Gaxios {
         }
         return data as {};
       }
-      case "arraybuffer":
+      case 'arraybuffer':
         return res.arrayBuffer();
-      case "blob":
+      case 'blob':
         return res.blob();
       default:
         return res.text();
@@ -156,7 +156,7 @@ export class Gaxios {
   private validateOpts(options: GaxiosOptions): GaxiosOptions {
     const opts = extend(true, {}, this.defaults, options);
     if (!opts.url) {
-      throw new Error("URL is required.");
+      throw new Error('URL is required.');
     }
 
     // baseUrl has been deprecated, remove in 2.0
@@ -179,11 +179,11 @@ export class Gaxios {
 
     opts.url = parsedUrl.href;
 
-    if (typeof options.maxContentLength === "number") {
+    if (typeof options.maxContentLength === 'number') {
       opts.size = options.maxContentLength;
     }
 
-    if (typeof options.maxRedirects === "number") {
+    if (typeof options.maxRedirects === 'number') {
       opts.follow = options.maxRedirects;
     }
 
@@ -191,20 +191,20 @@ export class Gaxios {
     if (opts.data) {
       if (isStream.readable(opts.data)) {
         opts.body = opts.data;
-      } else if (typeof opts.data === "object") {
+      } else if (typeof opts.data === 'object') {
         opts.body = JSON.stringify(opts.data);
-        opts.headers["Content-Type"] = "application/json";
+        opts.headers['Content-Type'] = 'application/json';
       } else {
         opts.body = opts.data;
       }
     }
 
     opts.validateStatus = opts.validateStatus || this.validateStatus;
-    opts.responseType = opts.responseType || "json";
-    if (!opts.headers["Accept"] && opts.responseType === "json") {
-      opts.headers["Accept"] = "application/json";
+    opts.responseType = opts.responseType || 'json';
+    if (!opts.headers['Accept'] && opts.responseType === 'json') {
+      opts.headers['Accept'] = 'application/json';
     }
-    opts.method = opts.method || "GET";
+    opts.method = opts.method || 'GET';
 
     const proxy = loadProxy();
     if (proxy) {
@@ -255,8 +255,8 @@ export class Gaxios {
 
       // XMLHttpRequestLike
       request: {
-        responseURL: res.url
-      }
+        responseURL: res.url,
+      },
     };
   }
 }

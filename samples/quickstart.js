@@ -13,13 +13,13 @@
 // limitations under the License.
 
 // [START gaxios_quickstart]
-const { request } = require("gaxios");
+const { request } = require('gaxios');
 
 /**
  * Perform a simple `GET` request to a JSON API.
  */
 async function quickstart() {
-  const url = "https://www.googleapis.com/discovery/v1/apis/";
+  const url = 'https://www.googleapis.com/discovery/v1/apis/';
   const res = await request({ url });
   console.log(`status: ${res.status}`);
   console.log(`data:`);

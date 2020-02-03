@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { GaxiosError } from "./common";
+import { GaxiosError } from './common';
 
 export async function getRetryConfig(err: GaxiosError) {
   let config = getConfig(err);
@@ -23,11 +23,11 @@ export async function getRetryConfig(err: GaxiosError) {
   config.retry =
     config.retry === undefined || config.retry === null ? 3 : config.retry;
   config.httpMethodsToRetry = config.httpMethodsToRetry || [
-    "GET",
-    "HEAD",
-    "PUT",
-    "OPTIONS",
-    "DELETE"
+    'GET',
+    'HEAD',
+    'PUT',
+    'OPTIONS',
+    'DELETE',
   ];
   config.noResponseRetries =
     config.noResponseRetries === undefined || config.noResponseRetries === null
@@ -46,7 +46,7 @@ export async function getRetryConfig(err: GaxiosError) {
     // 5xx - Retry (Server errors)
     [100, 199],
     [429, 429],
-    [500, 599]
+    [500, 599],
   ];
   config.statusCodesToRetry = config.statusCodesToRetry || retryRanges;
 
@@ -90,7 +90,7 @@ function shouldRetryRequest(err: GaxiosError) {
 
   // node-fetch raises an AbortError if signaled:
   // https://github.com/bitinn/node-fetch#request-cancellation-with-abortsignal
-  if (err.name === "AbortError") {
+  if (err.name === 'AbortError') {
     return false;
   }
 
