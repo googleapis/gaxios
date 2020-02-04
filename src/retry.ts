@@ -11,12 +11,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GaxiosError} from './common';
+import { GaxiosError } from './common';
 
 export async function getRetryConfig(err: GaxiosError) {
   let config = getConfig(err);
   if (!err || !err.config || (!config && !err.config.retry)) {
-    return {shouldRetry: false};
+    return { shouldRetry: false };
   }
   config = config || {};
   config.currentRetryAttempt = config.currentRetryAttempt || 0;
@@ -56,7 +56,7 @@ export async function getRetryConfig(err: GaxiosError) {
   // Determine if we should retry the request
   const shouldRetryFn = config.shouldRetry || shouldRetryRequest;
   if (!(await shouldRetryFn(err))) {
-    return {shouldRetry: false, config: err.config};
+    return { shouldRetry: false, config: err.config };
   }
 
   // Calculate time to wait with exponential backoff.
@@ -78,7 +78,7 @@ export async function getRetryConfig(err: GaxiosError) {
 
   // Return the promise in which recalls Gaxios to retry the request
   await backoff;
-  return {shouldRetry: true, config: err.config};
+  return { shouldRetry: true, config: err.config };
 }
 
 /**

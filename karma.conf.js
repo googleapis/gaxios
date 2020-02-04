@@ -52,8 +52,8 @@ module.exports = function(config) {
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
     reporters: ['progress', 'coverage', 'remap-coverage'],
 
-    coverageReporter: {type: 'in-memory'},
-    remapCoverageReporter: {html: './coverage'},
+    coverageReporter: { type: 'in-memory' },
+    remapCoverageReporter: { html: './coverage' },
 
     // web server port
     port: 9876,

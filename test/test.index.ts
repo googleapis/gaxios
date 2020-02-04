@@ -12,7 +12,7 @@
 // limitations under the License.
 
 import assert from 'assert';
-import {describe, it} from 'mocha';
+import { describe, it } from 'mocha';
 import * as main from '../src/index';
 
 describe('📝 main exports', () => {

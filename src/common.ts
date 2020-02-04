@@ -11,9 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {AbortSignal} from 'abort-controller';
-import {Agent} from 'http';
-import {URL} from 'url';
+import { AbortSignal } from 'abort-controller';
+import { Agent } from 'http';
+import { URL } from 'url';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -86,7 +86,7 @@ export interface GaxiosOptions {
   maxRedirects?: number;
   follow?: number;
   params?: any;
-  paramsSerializer?: (params: {[index: string]: string | number}) => string;
+  paramsSerializer?: (params: { [index: string]: string | number }) => string;
   timeout?: number;
   onUploadProgress?: (progressEvent: any) => void;
   responseType?: 'arraybuffer' | 'blob' | 'json' | 'text' | 'stream';
