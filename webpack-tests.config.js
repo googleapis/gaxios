@@ -20,27 +20,27 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.js', '.json'],
     alias: {
-      '../../package.json': path.resolve(__dirname, 'package.json')
-    }
+      '../../package.json': path.resolve(__dirname, 'package.json'),
+    },
   },
   node: {
     child_process: 'empty',
     fs: 'empty',
-    crypto: 'empty'
+    crypto: 'empty',
   },
   module: {
     rules: [
       {
         test: /node_modules\/https-proxy-agent\//,
-        use: 'null-loader'
+        use: 'null-loader',
       },
       {
         test: /\.ts$/,
         use: 'ts-loader',
-        exclude: /node_modules/
-      }
-    ]
+        exclude: /node_modules/,
+      },
+    ],
   },
   mode: 'production',
-  plugins: []
+  plugins: [],
 };

@@ -12,8 +12,8 @@
 // limitations under the License.
 
 import extend from 'extend';
-import { Agent } from 'http';
-import nodeFetch, { Response as NodeFetchResponse } from 'node-fetch';
+import {Agent} from 'http';
+import nodeFetch, {Response as NodeFetchResponse} from 'node-fetch';
 import qs from 'querystring';
 import isStream from 'is-stream';
 import url from 'url';
@@ -23,9 +23,9 @@ import {
   GaxiosOptions,
   GaxiosPromise,
   GaxiosResponse,
-  Headers
+  Headers,
 } from './common';
-import { getRetryConfig } from './retry';
+import {getRetryConfig} from './retry';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable node/no-unsupported-features/node-builtins */
@@ -115,7 +115,7 @@ export class Gaxios {
     } catch (e) {
       const err = e as GaxiosError;
       err.config = opts;
-      const { shouldRetry, config } = await getRetryConfig(e);
+      const {shouldRetry, config} = await getRetryConfig(e);
       if (shouldRetry && config) {
         err.config.retryConfig!.currentRetryAttempt = config.retryConfig!.currentRetryAttempt;
         return this._request<T>(err.config);
@@ -231,7 +231,7 @@ export class Gaxios {
    * Encode a set of key/value pars into a querystring format (?foo=bar&baz=boo)
    * @param params key value pars to encode
    */
-  private paramsSerializer(params: { [index: string]: string | number }) {
+  private paramsSerializer(params: {[index: string]: string | number}) {
     return qs.stringify(params);
   }
 
@@ -255,8 +255,8 @@ export class Gaxios {
 
       // XMLHttpRequestLike
       request: {
-        responseURL: res.url
-      }
+        responseURL: res.url,
+      },
     };
   }
 }

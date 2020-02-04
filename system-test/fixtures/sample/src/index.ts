@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { request } from 'gaxios';
+import {request} from 'gaxios';
 async function main() {
   await request({
-    url: 'https://www.googleapis.com/discovery/v1/apis/'
+    url: 'https://www.googleapis.com/discovery/v1/apis/',
   });
 }
 main();

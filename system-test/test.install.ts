@@ -16,16 +16,16 @@ import assert from 'assert';
 import execa from 'execa';
 import fs from 'fs';
 import mv from 'mv';
-import { ncp } from 'ncp';
+import {ncp} from 'ncp';
 import path from 'path';
 import tmp from 'tmp';
-import { promisify } from 'util';
-import { describe, it, before, after } from 'mocha';
+import {promisify} from 'util';
+import {describe, it, before, after} from 'mocha';
 
 const keep = false;
 const mvp = (promisify(mv) as {}) as (...args: string[]) => Promise<void>;
 const ncpp = promisify(ncp);
-const stagingDir = tmp.dirSync({ keep, unsafeCleanup: true });
+const stagingDir = tmp.dirSync({keep, unsafeCleanup: true});
 const stagingPath = stagingDir.name;
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const pkg = require('../../package.json');
@@ -42,14 +42,14 @@ describe('📦 pack and install', () => {
     await ncpp('system-test/fixtures/sample', `${stagingPath}/`);
     await execa('npm', ['install', '--unsafe-perm'], {
       cwd: `${stagingPath}/`,
-      stdio: 'inherit'
+      stdio: 'inherit',
     });
   });
 
   it('should run the sample', async () => {
     await execa('node', ['--throw-deprecation', 'build/src/index.js'], {
       cwd: `${stagingPath}/`,
-      stdio: 'inherit'
+      stdio: 'inherit',
     });
   });
 
@@ -57,7 +57,7 @@ describe('📦 pack and install', () => {
     // we expect npm install is executed in the before hook
     await execa('npx', ['webpack'], {
       cwd: `${stagingPath}/`,
-      stdio: 'inherit'
+      stdio: 'inherit',
     });
     const bundle = path.join(stagingPath, 'dist', 'bundle.min.js');
     const stat = fs.statSync(bundle);
