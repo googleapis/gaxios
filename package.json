@@ -12,7 +12,6 @@
     "test": "c8 mocha build/test",
     "presystem-test": "npm run compile",
     "system-test": "mocha build/system-test --timeout 40000",
-    "clean": "gts clean",
     "compile": "tsc -p .",
     "fix": "gts fix",
     "prepare": "npm run compile",
@@ -23,9 +22,7 @@
     "docs": "compodoc src/",
     "docs-test": "linkinator docs",
     "predocs-test": "npm run docs",
-    "samples-test": "cd samples/ && npm link ../ && npm test && cd ../",
-    "check": "gts check",
-    "posttest": "npm run check"
+    "samples-test": "cd samples/ && npm link ../ && npm test && cd ../"
   },
   "repository": "JustinBeckwith/gaxios",
   "keywords": [
