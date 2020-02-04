@@ -19,7 +19,7 @@ export {
   GaxiosPromise,
   GaxiosResponse,
   Headers,
-  RetryConfig,
+  RetryConfig
 } from './common';
 export { Gaxios, GaxiosOptions };
 

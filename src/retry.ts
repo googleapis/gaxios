@@ -27,7 +27,7 @@ export async function getRetryConfig(err: GaxiosError) {
     'HEAD',
     'PUT',
     'OPTIONS',
-    'DELETE',
+    'DELETE'
   ];
   config.noResponseRetries =
     config.noResponseRetries === undefined || config.noResponseRetries === null
@@ -46,7 +46,7 @@ export async function getRetryConfig(err: GaxiosError) {
     // 5xx - Retry (Server errors)
     [100, 199],
     [429, 429],
-    [500, 599],
+    [500, 599]
   ];
   config.statusCodesToRetry = config.statusCodesToRetry || retryRanges;
 

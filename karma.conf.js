@@ -42,7 +42,7 @@ module.exports = function(config) {
     preprocessors: {
       './src/*.ts': ['coverage'],
       './src/**/*.ts': ['coverage'],
-      './browser-test/*.ts': ['webpack', 'sourcemap'],
+      './browser-test/*.ts': ['webpack', 'sourcemap']
     },
 
     webpack: webpackConfig,
@@ -76,8 +76,8 @@ module.exports = function(config) {
         base: 'ChromeHeadless',
         // We must disable the Chrome sandbox when running Chrome inside Docker (Chrome's sandbox needs
         // more permissions than Docker allows by default)
-        flags: isDocker ? ['--no-sandbox'] : [],
-      },
+        flags: isDocker ? ['--no-sandbox'] : []
+      }
     },
 
     // Continuous Integration mode
@@ -90,7 +90,7 @@ module.exports = function(config) {
 
     // set correct MIME type when serving .ts files (already compiled to JavaScript):
     mime: {
-      'text/javascript': ['ts'],
-    },
+      'text/javascript': ['ts']
+    }
   });
 };

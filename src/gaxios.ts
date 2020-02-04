@@ -23,7 +23,7 @@ import {
   GaxiosOptions,
   GaxiosPromise,
   GaxiosResponse,
-  Headers,
+  Headers
 } from './common';
 import { getRetryConfig } from './retry';
 
@@ -255,8 +255,8 @@ export class Gaxios {
 
       // XMLHttpRequestLike
       request: {
-        responseURL: res.url,
-      },
+        responseURL: res.url
+      }
     };
   }
 }

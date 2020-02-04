@@ -26,7 +26,7 @@ describe('💻 browser tests', () => {
   it('should pass querystring parameters from browser', async () => {
     const result = await request({
       url: `http://localhost:${port}/querystring`,
-      params: { query: 'value' },
+      params: { query: 'value' }
     });
     assert.strictEqual(result.status, 200);
     assert.strictEqual(result.data, 'value');

@@ -56,7 +56,7 @@ describe('🛸 retry & exponential backoff', () => {
       const expectedStatusCodes = [
         [100, 199],
         [429, 429],
-        [500, 599],
+        [500, 599]
       ];
       const statusCodesToRetry = config!.statusCodesToRetry!;
       for (let i = 0; i < statusCodesToRetry.length; i++) {
@@ -77,11 +77,11 @@ describe('🛸 retry & exponential backoff', () => {
         .reply(500),
       nock(url)
         .get('/')
-        .reply(200, body),
+        .reply(200, body)
     ];
     const res = await request({
       url,
-      retry: true,
+      retry: true
     });
     assert.deepStrictEqual(res.data, body);
     scopes.forEach(s => s.done());
@@ -107,7 +107,7 @@ describe('🛸 retry & exponential backoff', () => {
       method: 'GET',
       url: 'https://google.com',
       signal: ac.signal,
-      retryConfig: { retry: 10, noResponseRetries: 10 },
+      retryConfig: { retry: 10, noResponseRetries: 10 }
     };
     const req = request(config);
     ac.abort();
@@ -129,7 +129,7 @@ describe('🛸 retry & exponential backoff', () => {
         .reply(500),
       nock(url)
         .get('/')
-        .reply(200, body),
+        .reply(200, body)
     ];
     const cfg = { url, retryConfig: { retry: 4 } };
     const res = await request(cfg);
@@ -170,11 +170,11 @@ describe('🛸 retry & exponential backoff', () => {
       .get(url)
       .reply(200, body);
     const gaxios = new Gaxios({
-      baseUrl,
+      baseUrl
     });
     const res = await gaxios.request({
       url,
-      retry: true,
+      retry: true
     });
     assert.deepStrictEqual(res.data, body);
     scope.done();
@@ -200,7 +200,7 @@ describe('🛸 retry & exponential backoff', () => {
         .reply(500),
       nock(url)
         .get('/')
-        .reply(200, body),
+        .reply(200, body)
     ];
     let flipped = false;
     const config: GaxiosOptions = {
@@ -210,8 +210,8 @@ describe('🛸 retry & exponential backoff', () => {
           const cfg = getConfig(err);
           assert.strictEqual(cfg!.currentRetryAttempt, 1);
           flipped = true;
-        },
-      },
+        }
+      }
     };
     await request(config);
     assert.strictEqual(flipped, true);
@@ -226,7 +226,7 @@ describe('🛸 retry & exponential backoff', () => {
         .reply(500),
       nock(url)
         .get('/')
-        .reply(200, body),
+        .reply(200, body)
     ];
     let flipped = false;
     const config: GaxiosOptions = {
@@ -236,8 +236,8 @@ describe('🛸 retry & exponential backoff', () => {
           const cfg = getConfig(err);
           assert.strictEqual(cfg!.currentRetryAttempt, 1);
           flipped = true;
-        },
-      },
+        }
+      }
     };
     await request(config);
     assert.strictEqual(flipped, true);
@@ -253,8 +253,8 @@ describe('🛸 retry & exponential backoff', () => {
       retryConfig: {
         shouldRetry: () => {
           return false;
-        },
-      },
+        }
+      }
     };
     await assertRejects(request(config), (e: Error) => {
       const cfg = getConfig(e);
@@ -272,8 +272,8 @@ describe('🛸 retry & exponential backoff', () => {
       retryConfig: {
         shouldRetry: async () => {
           return false;
-        },
-      },
+        }
+      }
     };
     await assertRejects(request(config), (e: Error) => {
       const cfg = getConfig(e);
@@ -290,7 +290,7 @@ describe('🛸 retry & exponential backoff', () => {
         .replyWithError({ code: 'ENOTFOUND' }),
       nock(url)
         .get('/')
-        .reply(200, body),
+        .reply(200, body)
     ];
     const res = await request({ url, retry: true });
     assert.deepStrictEqual(res.data, body);
@@ -305,7 +305,7 @@ describe('🛸 retry & exponential backoff', () => {
         .replyWithError({ code: 'ETIMEDOUT' }),
       nock(url)
         .get('/')
-        .reply(200, body),
+        .reply(200, body)
     ];
     const res = await request({ url, retry: true });
     assert.deepStrictEqual(res.data, body);

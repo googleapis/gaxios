@@ -24,7 +24,7 @@ import {
   GaxiosError,
   request,
   GaxiosOptions,
-  GaxiosResponse,
+  GaxiosResponse
 } from '../src';
 import qs from 'querystring';
 import fs from 'fs';
@@ -117,7 +117,7 @@ describe('🥁 configuration options', () => {
         .reply(200, body),
       nock(url)
         .get('/')
-        .reply(302, undefined, { location: '/foo' }),
+        .reply(302, undefined, { location: '/foo' })
     ];
     const res = await request({ url });
     scopes.forEach(x => x.done());
@@ -142,8 +142,8 @@ describe('🥁 configuration options', () => {
       statusText: 'OK',
       headers: {},
       request: {
-        responseURL: url,
-      },
+        responseURL: url
+      }
     };
     const adapter = () => Promise.resolve(response);
     const res = await request({ url, adapter });
@@ -177,7 +177,7 @@ describe('🥁 configuration options', () => {
   it('should merge URL parameters with the params option', async () => {
     const opts = {
       url: `${url}/?james=beckwith&montgomery=scott`,
-      params: { james: 'kirk' },
+      params: { james: 'kirk' }
     };
     const path = '/?james=kirk&montgomery=scott';
     const scope = nock(url)
@@ -198,7 +198,7 @@ describe('🥁 configuration options', () => {
       paramsSerializer: ps => {
         assert.strictEqual(JSON.stringify(params), JSON.stringify(ps));
         return '?oh=HAI';
-      },
+      }
     };
     const scope = nock(url)
       .get(`/${qs}`)
@@ -290,7 +290,7 @@ describe('🎏 data handling', () => {
       url,
       method: 'POST',
       data: encoded,
-      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      headers: { 'content-type': 'application/x-www-form-urlencoded' }
     });
     scope.done();
     assert.deepStrictEqual(res.data, {});
@@ -305,7 +305,7 @@ describe('🎏 data handling', () => {
     const res = await request({
       url,
       method: 'POST',
-      data: body,
+      data: body
     });
     scope.done();
     assert.deepStrictEqual(res.data, {});
@@ -328,7 +328,7 @@ describe('🎏 data handling', () => {
       .reply(200, body);
     const res = await request<ArrayBuffer>({
       url,
-      responseType: 'arraybuffer',
+      responseType: 'arraybuffer'
     });
     scope.done();
     assert(res.data instanceof ArrayBuffer);

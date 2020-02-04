@@ -42,14 +42,14 @@ describe('📦 pack and install', () => {
     await ncpp('system-test/fixtures/sample', `${stagingPath}/`);
     await execa('npm', ['install', '--unsafe-perm'], {
       cwd: `${stagingPath}/`,
-      stdio: 'inherit',
+      stdio: 'inherit'
     });
   });
 
   it('should run the sample', async () => {
     await execa('node', ['--throw-deprecation', 'build/src/index.js'], {
       cwd: `${stagingPath}/`,
-      stdio: 'inherit',
+      stdio: 'inherit'
     });
   });
 
@@ -57,7 +57,7 @@ describe('📦 pack and install', () => {
     // we expect npm install is executed in the before hook
     await execa('npx', ['webpack'], {
       cwd: `${stagingPath}/`,
-      stdio: 'inherit',
+      stdio: 'inherit'
     });
     const bundle = path.join(stagingPath, 'dist', 'bundle.min.js');
     const stat = fs.statSync(bundle);
