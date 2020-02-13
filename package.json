@@ -80,7 +80,7 @@
   "dependencies": {
     "abort-controller": "^3.0.0",
     "extend": "^3.0.2",
-    "https-proxy-agent": "^4.0.0",
+    "https-proxy-agent": "^5.0.0",
     "is-stream": "^2.0.0",
     "node-fetch": "^2.3.0"
   }
