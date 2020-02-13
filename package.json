@@ -23,7 +23,8 @@
     "docs": "compodoc src/",
     "docs-test": "linkinator docs",
     "predocs-test": "npm run docs",
-    "samples-test": "cd samples/ && npm link ../ && npm test && cd ../"
+    "samples-test": "cd samples/ && npm link ../ && npm test && cd ../",
+    "prelint": "cd samples; npm link ../; npm i"
   },
   "repository": "JustinBeckwith/gaxios",
   "keywords": [
