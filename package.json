@@ -1,6 +1,6 @@
 {
   "name": "gaxios",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "A simple common HTTP client specifically for Google APIs and services.",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
@@ -22,7 +22,8 @@
     "docs": "compodoc src/",
     "docs-test": "linkinator docs",
     "predocs-test": "npm run docs",
-    "samples-test": "cd samples/ && npm link ../ && npm test && cd ../"
+    "samples-test": "cd samples/ && npm link ../ && npm test && cd ../",
+    "prelint": "cd samples; npm link ../; npm i"
   },
   "repository": "JustinBeckwith/gaxios",
   "keywords": [
@@ -61,7 +62,7 @@
     "karma-remap-coverage": "^0.1.5",
     "karma-sourcemap-loader": "^0.3.7",
     "karma-webpack": "^4.0.0",
-    "linkinator": "^1.5.0",
+    "linkinator": "^2.0.0",
     "mocha": "^7.0.0",
     "mv": "^2.1.1",
     "ncp": "^2.0.0",
@@ -78,7 +79,7 @@
   "dependencies": {
     "abort-controller": "^3.0.0",
     "extend": "^3.0.2",
-    "https-proxy-agent": "^4.0.0",
+    "https-proxy-agent": "^5.0.0",
     "is-stream": "^2.0.0",
     "node-fetch": "^2.3.0"
   }

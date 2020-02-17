@@ -1,5 +1,12 @@
 # Changelog
 
+### [2.3.1](https://www.github.com/googleapis/gaxios/compare/v2.3.0...v2.3.1) (2020-02-13)
+
+
+### Bug Fixes
+
+* **deps:** update dependency https-proxy-agent to v5 ([#233](https://www.github.com/googleapis/gaxios/issues/233)) ([56de0a8](https://www.github.com/googleapis/gaxios/commit/56de0a824a2f9622e3e4d4bdd41adccd812a30b4))
+
 ## [2.3.0](https://www.github.com/googleapis/gaxios/compare/v2.2.2...v2.3.0) (2020-01-31)
 
 
