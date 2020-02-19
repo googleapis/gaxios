@@ -26,7 +26,7 @@
     "samples-test": "cd samples/ && npm link ../ && npm test && cd ../",
     "prelint": "cd samples; npm link ../; npm i"
   },
-  "repository": "JustinBeckwith/gaxios",
+  "repository": "googleapis/gaxios",
   "keywords": [
     "google"
   ],
