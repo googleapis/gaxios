@@ -22,7 +22,7 @@ process.env.CHROME_BIN = fs.existsSync('/usr/bin/chromium-browser')
   ? '/usr/bin/chromium-browser'
   : require('puppeteer').executablePath();
 
-module.exports = function (config) {
+module.exports = function(config) {
   config.set({
     // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: '',
@@ -42,7 +42,7 @@ module.exports = function (config) {
     preprocessors: {
       './src/*.ts': ['coverage'],
       './src/**/*.ts': ['coverage'],
-      './browser-test/*.ts': ['webpack', 'sourcemap']
+      './browser-test/*.ts': ['webpack', 'sourcemap'],
     },
 
     webpack: webpackConfig,
@@ -52,8 +52,8 @@ module.exports = function (config) {
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
     reporters: ['progress', 'coverage', 'remap-coverage'],
 
-    coverageReporter: { type: 'in-memory' },
-    remapCoverageReporter: { html: './coverage' },
+    coverageReporter: {type: 'in-memory'},
+    remapCoverageReporter: {html: './coverage'},
 
     // web server port
     port: 9876,
@@ -76,8 +76,8 @@ module.exports = function (config) {
         base: 'ChromeHeadless',
         // We must disable the Chrome sandbox when running Chrome inside Docker (Chrome's sandbox needs
         // more permissions than Docker allows by default)
-        flags: isDocker ? ['--no-sandbox'] : []
-      }
+        flags: isDocker ? ['--no-sandbox'] : [],
+      },
     },
 
     // Continuous Integration mode
@@ -90,7 +90,7 @@ module.exports = function (config) {
 
     // set correct MIME type when serving .ts files (already compiled to JavaScript):
     mime: {
-      'text/javascript': ['ts']
-    }
+      'text/javascript': ['ts'],
+    },
   });
 };

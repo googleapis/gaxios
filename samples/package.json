@@ -1,6 +1,9 @@
 {
   "name": "gaxios-samples",
   "private": true,
+  "files": [
+    "*.js"
+  ],
   "scripts": {
     "test": "mocha"
   },

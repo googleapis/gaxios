@@ -15,7 +15,7 @@ import {AbortSignal} from 'abort-controller';
 import {Agent} from 'http';
 import {URL} from 'url';
 
-// tslint:disable no-any
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export class GaxiosError<T = any> extends Error {
   code?: string;

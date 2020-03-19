@@ -14,9 +14,9 @@
 import {AbortController} from 'abort-controller';
 import assert from 'assert';
 import nock from 'nock';
+import {describe, it, afterEach} from 'mocha';
 import {Gaxios, GaxiosError, GaxiosOptions, request} from '../src';
-
-const assertRejects = require('assert-rejects');
+import assertRejects = require('assert-rejects');
 
 nock.disableNetConnect();
 
