@@ -1,5 +1,12 @@
 # Changelog
 
+### [2.3.2](https://www.github.com/googleapis/gaxios/compare/v2.3.1...v2.3.2) (2020-02-28)
+
+
+### Bug Fixes
+
+* update github repo in package ([#239](https://www.github.com/googleapis/gaxios/issues/239)) ([7e750cb](https://www.github.com/googleapis/gaxios/commit/7e750cbaaa59812817d725c74fb9d364c4b71096))
+
 ### [2.3.1](https://www.github.com/googleapis/gaxios/compare/v2.3.0...v2.3.1) (2020-02-13)
 
 

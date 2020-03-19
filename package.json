@@ -1,6 +1,6 @@
 {
   "name": "gaxios",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "description": "A simple common HTTP client specifically for Google APIs and services.",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
@@ -25,7 +25,7 @@
     "samples-test": "cd samples/ && npm link ../ && npm test && cd ../",
     "prelint": "cd samples; npm link ../; npm i"
   },
-  "repository": "JustinBeckwith/gaxios",
+  "repository": "googleapis/gaxios",
   "keywords": [
     "google"
   ],
@@ -66,10 +66,10 @@
     "mocha": "^7.0.0",
     "mv": "^2.1.1",
     "ncp": "^2.0.0",
-    "nock": "^11.0.0",
+    "nock": "^12.0.0",
     "null-loader": "^3.0.0",
     "puppeteer": "^2.0.0",
-    "sinon": "^8.0.0",
+    "sinon": "^9.0.0",
     "tmp": "0.1.0",
     "ts-loader": "^6.0.0",
     "typescript": "3.6.4",
