@@ -1,5 +1,12 @@
 # Changelog
 
+### [3.0.1](https://www.github.com/googleapis/gaxios/compare/v3.0.0...v3.0.1) (2020-03-23)
+
+
+### Bug Fixes
+
+* allow an alternate JSON content-type to be set ([#257](https://www.github.com/googleapis/gaxios/issues/257)) ([698a29f](https://www.github.com/googleapis/gaxios/commit/698a29ff3b22f30ea99ad190c4592940bef88f1f))
+
 ## [3.0.0](https://www.github.com/googleapis/gaxios/compare/v2.3.2...v3.0.0) (2020-03-19)
 
 
