@@ -193,7 +193,11 @@ export class Gaxios {
         opts.body = opts.data;
       } else if (typeof opts.data === 'object') {
         opts.body = JSON.stringify(opts.data);
-        opts.headers['Content-Type'] = 'application/json';
+        // Allow the user to specifiy their own content type,
+        // such as application/json-patch+json:
+        if (!opts.headers['Content-Type']) {
+          opts.headers['Content-Type'] = 'application/json';
+        }
       } else {
         opts.body = opts.data;
       }

@@ -296,16 +296,34 @@ describe('🎏 data handling', () => {
     assert.deepStrictEqual(res.data, {});
   });
 
-  it('should set content-type for object request', async () => {
+  it('should set application/json content-type for object request by default', async () => {
     const body = {hello: '🌎'};
     const scope = nock(url)
-      .matchHeader('content-type', 'application/json')
+      .matchHeader('Content-Type', 'application/json')
       .post('/', JSON.stringify(body))
       .reply(200, {});
     const res = await request({
       url,
       method: 'POST',
       data: body,
+    });
+    scope.done();
+    assert.deepStrictEqual(res.data, {});
+  });
+
+  it('should allow other JSON content-types to be specified', async () => {
+    const body = {hello: '🌎'};
+    const scope = nock(url)
+      .matchHeader('Content-Type', 'application/json-patch+json')
+      .post('/', JSON.stringify(body))
+      .reply(200, {});
+    const res = await request({
+      url,
+      method: 'POST',
+      data: body,
+      headers: {
+        'Content-Type': 'application/json-patch+json',
+      },
     });
     scope.done();
     assert.deepStrictEqual(res.data, {});
