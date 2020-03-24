@@ -1,5 +1,12 @@
 # Changelog
 
+### [3.0.2](https://www.github.com/googleapis/gaxios/compare/v3.0.1...v3.0.2) (2020-03-24)
+
+
+### Bug Fixes
+
+* continue replacing application/x-www-form-urlencoded with application/json ([#263](https://www.github.com/googleapis/gaxios/issues/263)) ([dca176d](https://www.github.com/googleapis/gaxios/commit/dca176df0990f2c22255f9764405c496ea07ada2))
+
 ### [3.0.1](https://www.github.com/googleapis/gaxios/compare/v3.0.0...v3.0.1) (2020-03-23)
 
 
