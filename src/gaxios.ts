@@ -201,7 +201,10 @@ export class Gaxios {
         //
         // TODO: refactor upstream dependencies to stop relying on this
         // side-effect.
-        if (!opts.headers['Content-Type'] || !opts.headers['Content-Type'].includes('json')) {
+        if (
+          !opts.headers['Content-Type'] ||
+          !opts.headers['Content-Type'].includes('json')
+        ) {
           opts.headers['Content-Type'] = 'application/json';
         }
       } else {
