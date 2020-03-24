@@ -196,8 +196,8 @@ export class Gaxios {
         // Allow the user to specifiy their own content type,
         // such as application/json-patch+json; for historical reasons this
         // content type must currently be a json type, as we are relying on
-        // application/x-www-form-urlencoded (which is incompatible with)
-        // upstream GCP APIs, being rewritten to application/json.
+        // application/x-www-form-urlencoded (which is incompatible with
+        // upstream GCP APIs) being rewritten to application/json.
         //
         // TODO: refactor upstream dependencies to stop relying on this
         // side-effect.
