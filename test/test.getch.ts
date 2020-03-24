@@ -329,6 +329,24 @@ describe('🎏 data handling', () => {
     assert.deepStrictEqual(res.data, {});
   });
 
+  it('replaces application/x-www-form-urlencoded with application/json', async () => {
+    const body = {hello: '🌎'};
+    const scope = nock(url)
+      .matchHeader('Content-Type', 'application/json')
+      .post('/', JSON.stringify(body))
+      .reply(200, {});
+    const res = await request({
+      url,
+      method: 'POST',
+      data: body,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    scope.done();
+    assert.deepStrictEqual(res.data, {});
+  });
+
   it('should return stream if asked nicely', async () => {
     const body = {hello: '🌎'};
     const scope = nock(url)
