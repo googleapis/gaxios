@@ -116,10 +116,10 @@ gaxios.request({url: '/data'}).then(...);
     statusCodesToRetry?: number[][];
 
     // Function to invoke when a retry attempt is made.
-    onRetryAttempt?: (err: GaxiosError) => Promise<void> | void;
+    onRetryAttempt?: (err: GaxiosError) => void;
 
     // Function to invoke which determines if you should retry
-    shouldRetry?: (err: GaxiosError) => Promise<boolean> | boolean;
+    shouldRetry?: (err: GaxiosError) => boolean;
 
     // When there is no response, the number of retries to attempt. Defaults to 2.
     noResponseRetries?: number;

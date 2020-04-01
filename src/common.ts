@@ -15,7 +15,7 @@ import {AbortSignal} from 'abort-controller';
 import {Agent} from 'http';
 import {URL} from 'url';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// tslint:disable no-any
 
 export class GaxiosError<T = any> extends Error {
   code?: string;
@@ -133,12 +133,12 @@ export interface RetryConfig {
   /**
    * Function to invoke when a retry attempt is made.
    */
-  onRetryAttempt?: (err: GaxiosError) => Promise<void> | void;
+  onRetryAttempt?: (err: GaxiosError) => void;
 
   /**
    * Function to invoke which determines if you should retry
    */
-  shouldRetry?: (err: GaxiosError) => Promise<boolean> | boolean;
+  shouldRetry?: (err: GaxiosError) => boolean;
 
   /**
    * When there is no response, the number of retries to attempt. Defaults to 2.

@@ -15,9 +15,8 @@ import assert from 'assert';
 import nock from 'nock';
 import sinon from 'sinon';
 import stream from 'stream';
-import {describe, it, afterEach} from 'mocha';
-import assertRejects = require('assert-rejects');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+const assertRejects = require('assert-rejects');
+// tslint:disable-next-line variable-name
 const HttpsProxyAgent = require('https-proxy-agent');
 import {
   Gaxios,
@@ -145,7 +144,9 @@ describe('🥁 configuration options', () => {
         responseURL: url,
       },
     };
-    const adapter = () => Promise.resolve(response);
+    const adapter = (options: GaxiosOptions) => {
+      return Promise.resolve(response);
+    };
     const res = await request({url, adapter});
     assert.strictEqual(response, res);
   });
@@ -269,7 +270,6 @@ describe('🥁 configuration options', () => {
 describe('🎏 data handling', () => {
   it('should accpet a ReadableStream as request data', async () => {
     const body = fs.createReadStream('package.json');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const contents = require('../../package.json');
     const scope = nock(url)
       .post('/', contents)
@@ -296,52 +296,16 @@ describe('🎏 data handling', () => {
     assert.deepStrictEqual(res.data, {});
   });
 
-  it('should set application/json content-type for object request by default', async () => {
+  it('should set content-type for object request', async () => {
     const body = {hello: '🌎'};
     const scope = nock(url)
-      .matchHeader('Content-Type', 'application/json')
+      .matchHeader('content-type', 'application/json')
       .post('/', JSON.stringify(body))
       .reply(200, {});
     const res = await request({
       url,
       method: 'POST',
       data: body,
-    });
-    scope.done();
-    assert.deepStrictEqual(res.data, {});
-  });
-
-  it('should allow other JSON content-types to be specified', async () => {
-    const body = {hello: '🌎'};
-    const scope = nock(url)
-      .matchHeader('Content-Type', 'application/json-patch+json')
-      .post('/', JSON.stringify(body))
-      .reply(200, {});
-    const res = await request({
-      url,
-      method: 'POST',
-      data: body,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-      },
-    });
-    scope.done();
-    assert.deepStrictEqual(res.data, {});
-  });
-
-  it('replaces application/x-www-form-urlencoded with application/json', async () => {
-    const body = {hello: '🌎'};
-    const scope = nock(url)
-      .matchHeader('Content-Type', 'application/json')
-      .post('/', JSON.stringify(body))
-      .reply(200, {});
-    const res = await request({
-      url,
-      method: 'POST',
-      data: body,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
     });
     scope.done();
     assert.deepStrictEqual(res.data, {});

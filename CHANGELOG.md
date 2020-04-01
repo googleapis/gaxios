@@ -1,53 +1,5 @@
 # Changelog
 
-### [3.0.2](https://www.github.com/googleapis/gaxios/compare/v3.0.1...v3.0.2) (2020-03-24)
-
-
-### Bug Fixes
-
-* continue replacing application/x-www-form-urlencoded with application/json ([#263](https://www.github.com/googleapis/gaxios/issues/263)) ([dca176d](https://www.github.com/googleapis/gaxios/commit/dca176df0990f2c22255f9764405c496ea07ada2))
-
-### [3.0.1](https://www.github.com/googleapis/gaxios/compare/v3.0.0...v3.0.1) (2020-03-23)
-
-
-### Bug Fixes
-
-* allow an alternate JSON content-type to be set ([#257](https://www.github.com/googleapis/gaxios/issues/257)) ([698a29f](https://www.github.com/googleapis/gaxios/commit/698a29ff3b22f30ea99ad190c4592940bef88f1f))
-
-## [3.0.0](https://www.github.com/googleapis/gaxios/compare/v2.3.2...v3.0.0) (2020-03-19)
-
-
-### ⚠ BREAKING CHANGES
-
-* **deps:** TypeScript introduced breaking changes in generated code in 3.7.x
-* drop Node 8 from engines field (#254)
-
-### Features
-
-* drop Node 8 from engines field ([#254](https://www.github.com/googleapis/gaxios/issues/254)) ([8c9fff7](https://www.github.com/googleapis/gaxios/commit/8c9fff7f92f70f029292c906c62d194c1d58827d))
-* **deps:** updates to latest TypeScript ([#253](https://www.github.com/googleapis/gaxios/issues/253)) ([054267b](https://www.github.com/googleapis/gaxios/commit/054267bf12e1801c134e3b5cae92dcc5ea041fab))
-
-### [2.3.2](https://www.github.com/googleapis/gaxios/compare/v2.3.1...v2.3.2) (2020-02-28)
-
-
-### Bug Fixes
-
-* update github repo in package ([#239](https://www.github.com/googleapis/gaxios/issues/239)) ([7e750cb](https://www.github.com/googleapis/gaxios/commit/7e750cbaaa59812817d725c74fb9d364c4b71096))
-
-### [2.3.1](https://www.github.com/googleapis/gaxios/compare/v2.3.0...v2.3.1) (2020-02-13)
-
-
-### Bug Fixes
-
-* **deps:** update dependency https-proxy-agent to v5 ([#233](https://www.github.com/googleapis/gaxios/issues/233)) ([56de0a8](https://www.github.com/googleapis/gaxios/commit/56de0a824a2f9622e3e4d4bdd41adccd812a30b4))
-
-## [2.3.0](https://www.github.com/googleapis/gaxios/compare/v2.2.2...v2.3.0) (2020-01-31)
-
-
-### Features
-
-* add promise support for onRetryAttempt and shouldRetry ([#223](https://www.github.com/googleapis/gaxios/issues/223)) ([061afa3](https://www.github.com/googleapis/gaxios/commit/061afa381a51d39823e63accf3dacd16e191f3b9))
-
 ### [2.2.2](https://www.github.com/googleapis/gaxios/compare/v2.2.1...v2.2.2) (2020-01-08)
 
 

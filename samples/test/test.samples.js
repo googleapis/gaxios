@@ -16,7 +16,7 @@ const {execSync} = require('child_process');
 const {assert} = require('chai');
 const {describe, it} = require('mocha');
 
-const exec = cmd => execSync(cmd, {encoding: 'utf8'});
+const exec = cmd => execSync(cmd, { encoding: 'utf8'});
 
 describe(__filename, () => {
   it('should run the quickstart', () => {

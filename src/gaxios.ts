@@ -15,6 +15,7 @@ import extend from 'extend';
 import {Agent} from 'http';
 import nodeFetch, {Response as NodeFetchResponse} from 'node-fetch';
 import qs from 'querystring';
+import stream from 'stream';
 import isStream from 'is-stream';
 import url from 'url';
 
@@ -27,8 +28,7 @@ import {
 } from './common';
 import {getRetryConfig} from './retry';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable node/no-unsupported-features/node-builtins */
+// tslint:disable no-any
 
 const URL = hasURL() ? window.URL : url.URL;
 const fetch = hasFetch() ? window.fetch : nodeFetch;
@@ -45,6 +45,7 @@ function hasFetch() {
   return hasWindow() && !!window.fetch;
 }
 
+// tslint:disable-next-line variable-name
 let HttpsProxyAgent: any;
 
 // Figure out if we should be using a proxy. Only if it's required, load
@@ -131,15 +132,12 @@ export class Gaxios {
     switch (opts.responseType) {
       case 'stream':
         return res.body;
-      case 'json': {
+      case 'json':
         let data = await res.text();
         try {
           data = JSON.parse(data);
-        } catch {
-          // continue
-        }
+        } catch (e) {}
         return data as {};
-      }
       case 'arraybuffer':
         return res.arrayBuffer();
       case 'blob':
@@ -193,20 +191,7 @@ export class Gaxios {
         opts.body = opts.data;
       } else if (typeof opts.data === 'object') {
         opts.body = JSON.stringify(opts.data);
-        // Allow the user to specifiy their own content type,
-        // such as application/json-patch+json; for historical reasons this
-        // content type must currently be a json type, as we are relying on
-        // application/x-www-form-urlencoded (which is incompatible with
-        // upstream GCP APIs) being rewritten to application/json.
-        //
-        // TODO: refactor upstream dependencies to stop relying on this
-        // side-effect.
-        if (
-          !opts.headers['Content-Type'] ||
-          !opts.headers['Content-Type'].includes('json')
-        ) {
-          opts.headers['Content-Type'] = 'application/json';
-        }
+        opts.headers['Content-Type'] = 'application/json';
       } else {
         opts.body = opts.data;
       }

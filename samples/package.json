@@ -1,9 +1,6 @@
 {
   "name": "gaxios-samples",
   "private": true,
-  "files": [
-    "*.js"
-  ],
   "scripts": {
     "test": "mocha"
   },
@@ -13,6 +10,6 @@
     "mocha": "^7.0.0"
   },
   "dependencies": {
-    "gaxios": "^3.0.2"
+    "gaxios": "^2.2.2"
   }
 }
