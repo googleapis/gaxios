@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.0.0](https://www.github.com/googleapis/gaxios/compare/v2.3.2...v3.0.0) (2020-03-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* **deps:** TypeScript introduced breaking changes in generated code in 3.7.x
+* drop Node 8 from engines field (#254)
+
+### Features
+
+* drop Node 8 from engines field ([#254](https://www.github.com/googleapis/gaxios/issues/254)) ([8c9fff7](https://www.github.com/googleapis/gaxios/commit/8c9fff7f92f70f029292c906c62d194c1d58827d))
+* **deps:** updates to latest TypeScript ([#253](https://www.github.com/googleapis/gaxios/issues/253)) ([054267b](https://www.github.com/googleapis/gaxios/commit/054267bf12e1801c134e3b5cae92dcc5ea041fab))
+
 ### [2.3.2](https://www.github.com/googleapis/gaxios/compare/v2.3.1...v2.3.2) (2020-02-28)
 
 
