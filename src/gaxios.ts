@@ -15,7 +15,6 @@ import extend from 'extend';
 import {Agent} from 'http';
 import nodeFetch, {Response as NodeFetchResponse} from 'node-fetch';
 import qs from 'querystring';
-import stream from 'stream';
 import isStream from 'is-stream';
 import url from 'url';
 
@@ -28,7 +27,8 @@ import {
 } from './common';
 import {getRetryConfig} from './retry';
 
-// tslint:disable no-any
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable node/no-unsupported-features/node-builtins */
 
 const URL = hasURL() ? window.URL : url.URL;
 const fetch = hasFetch() ? window.fetch : nodeFetch;
@@ -45,7 +45,6 @@ function hasFetch() {
   return hasWindow() && !!window.fetch;
 }
 
-// tslint:disable-next-line variable-name
 let HttpsProxyAgent: any;
 
 // Figure out if we should be using a proxy. Only if it's required, load
@@ -132,12 +131,15 @@ export class Gaxios {
     switch (opts.responseType) {
       case 'stream':
         return res.body;
-      case 'json':
+      case 'json': {
         let data = await res.text();
         try {
           data = JSON.parse(data);
-        } catch (e) {}
+        } catch {
+          // continue
+        }
         return data as {};
+      }
       case 'arraybuffer':
         return res.arrayBuffer();
       case 'blob':

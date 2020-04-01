@@ -1,4 +1,4 @@
-// Copyright 2019, Google, LLC.
+// Copyright 2019 Google, LLC
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -56,7 +56,9 @@ async function main() {
   console.log(
     `[http server] Karma has finished! I'm no longer listening on port ${port}!`
   );
-  process.exit(result.failed ? 1 : 0);
+  if (result.failed) {
+    throw new Error('Tests failed.');
+  }
 }
 
 main().catch(err => {
