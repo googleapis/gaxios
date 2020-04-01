@@ -194,8 +194,17 @@ export class Gaxios {
       } else if (typeof opts.data === 'object') {
         opts.body = JSON.stringify(opts.data);
         // Allow the user to specifiy their own content type,
-        // such as application/json-patch+json:
-        if (!opts.headers['Content-Type']) {
+        // such as application/json-patch+json; for historical reasons this
+        // content type must currently be a json type, as we are relying on
+        // application/x-www-form-urlencoded (which is incompatible with
+        // upstream GCP APIs) being rewritten to application/json.
+        //
+        // TODO: refactor upstream dependencies to stop relying on this
+        // side-effect.
+        if (
+          !opts.headers['Content-Type'] ||
+          !opts.headers['Content-Type'].includes('json')
+        ) {
           opts.headers['Content-Type'] = 'application/json';
         }
       } else {
