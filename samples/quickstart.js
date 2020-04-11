@@ -22,7 +22,7 @@ async function quickstart() {
   const url = 'https://www.googleapis.com/discovery/v1/apis/';
   const res = await request({url});
   console.log(`status: ${res.status}`);
-  console.log(`data:`);
+  console.log('data:');
   console.log(res.data);
 }
 quickstart();
