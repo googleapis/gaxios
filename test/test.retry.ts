@@ -16,7 +16,6 @@ import assert from 'assert';
 import nock from 'nock';
 import {describe, it, afterEach} from 'mocha';
 import {Gaxios, GaxiosError, GaxiosOptions, request} from '../src';
-import assertRejects = require('assert-rejects');
 
 nock.disableNetConnect();
 
@@ -36,11 +35,8 @@ afterEach(() => {
 
 describe('🛸 retry & exponential backoff', () => {
   it('should provide an expected set of defaults', async () => {
-    const scope = nock(url)
-      .get('/')
-      .times(4)
-      .reply(500);
-    await assertRejects(request({url, retry: true}), (e: Error) => {
+    const scope = nock(url).get('/').times(4).reply(500);
+    await assert.rejects(request({url, retry: true}), (e: Error) => {
       scope.done();
       const config = getConfig(e);
       if (!config) {
@@ -72,12 +68,8 @@ describe('🛸 retry & exponential backoff', () => {
   it('should retry on 500 on the main export', async () => {
     const body = {buttered: '🥖'};
     const scopes = [
-      nock(url)
-        .get('/')
-        .reply(500),
-      nock(url)
-        .get('/')
-        .reply(200, body),
+      nock(url).get('/').reply(500),
+      nock(url).get('/').reply(200, body),
     ];
     const res = await request({
       url,
@@ -88,10 +80,8 @@ describe('🛸 retry & exponential backoff', () => {
   });
 
   it('should not retry on a post', async () => {
-    const scope = nock(url)
-      .post('/')
-      .reply(500);
-    await assertRejects(
+    const scope = nock(url).post('/').reply(500);
+    await assert.rejects(
       request({url, method: 'POST', retry: true}),
       (e: Error) => {
         const config = getConfig(e);
@@ -123,13 +113,8 @@ describe('🛸 retry & exponential backoff', () => {
   it('should retry at least the configured number of times', async () => {
     const body = {dippy: '🥚'};
     const scopes = [
-      nock(url)
-        .get('/')
-        .times(3)
-        .reply(500),
-      nock(url)
-        .get('/')
-        .reply(200, body),
+      nock(url).get('/').times(3).reply(500),
+      nock(url).get('/').reply(200, body),
     ];
     const cfg = {url, retryConfig: {retry: 4}};
     const res = await request(cfg);
@@ -138,22 +123,17 @@ describe('🛸 retry & exponential backoff', () => {
   });
 
   it('should not retry more than configured', async () => {
-    const scope = nock(url)
-      .get('/')
-      .twice()
-      .reply(500);
+    const scope = nock(url).get('/').twice().reply(500);
     const cfg = {url, retryConfig: {retry: 1}};
-    await assertRejects(request(cfg), (e: Error) => {
+    await assert.rejects(request(cfg), (e: Error) => {
       return getConfig(e)!.currentRetryAttempt === 1;
     });
     scope.done();
   });
 
   it('should not retry on 4xx errors', async () => {
-    const scope = nock(url)
-      .get('/')
-      .reply(404);
-    await assertRejects(request({url, retry: true}), (e: Error) => {
+    const scope = nock(url).get('/').reply(404);
+    await assert.rejects(request({url, retry: true}), (e: Error) => {
       const cfg = getConfig(e);
       return cfg!.currentRetryAttempt === 0;
     });
@@ -164,11 +144,7 @@ describe('🛸 retry & exponential backoff', () => {
     const body = {pumpkin: '🥧'};
     const url = '/path';
     const baseUrl = 'http://example.com';
-    const scope = nock(baseUrl)
-      .get(url)
-      .reply(500)
-      .get(url)
-      .reply(200, body);
+    const scope = nock(baseUrl).get(url).reply(500).get(url).reply(200, body);
     const gaxios = new Gaxios({
       baseUrl,
     });
@@ -181,11 +157,9 @@ describe('🛸 retry & exponential backoff', () => {
   });
 
   it('should not retry if retries set to 0', async () => {
-    const scope = nock(url)
-      .get('/')
-      .reply(500);
+    const scope = nock(url).get('/').reply(500);
     const cfg = {url, retryConfig: {retry: 0}};
-    await assertRejects(request(cfg), (e: Error) => {
+    await assert.rejects(request(cfg), (e: Error) => {
       const cfg = getConfig(e);
       return cfg!.currentRetryAttempt === 0;
     });
@@ -195,12 +169,8 @@ describe('🛸 retry & exponential backoff', () => {
   it('should notify on retry attempts', async () => {
     const body = {buttered: '🥖'};
     const scopes = [
-      nock(url)
-        .get('/')
-        .reply(500),
-      nock(url)
-        .get('/')
-        .reply(200, body),
+      nock(url).get('/').reply(500),
+      nock(url).get('/').reply(200, body),
     ];
     let flipped = false;
     const config: GaxiosOptions = {
@@ -221,12 +191,8 @@ describe('🛸 retry & exponential backoff', () => {
   it('accepts async onRetryAttempt handler', async () => {
     const body = {buttered: '🥖'};
     const scopes = [
-      nock(url)
-        .get('/')
-        .reply(500),
-      nock(url)
-        .get('/')
-        .reply(200, body),
+      nock(url).get('/').reply(500),
+      nock(url).get('/').reply(200, body),
     ];
     let flipped = false;
     const config: GaxiosOptions = {
@@ -245,9 +211,7 @@ describe('🛸 retry & exponential backoff', () => {
   });
 
   it('should support overriding the shouldRetry method', async () => {
-    const scope = nock(url)
-      .get('/')
-      .reply(500);
+    const scope = nock(url).get('/').reply(500);
     const config = {
       url,
       retryConfig: {
@@ -256,7 +220,7 @@ describe('🛸 retry & exponential backoff', () => {
         },
       },
     };
-    await assertRejects(request(config), (e: Error) => {
+    await assert.rejects(request(config), (e: Error) => {
       const cfg = getConfig(e);
       return cfg!.currentRetryAttempt === 0;
     });
@@ -264,9 +228,7 @@ describe('🛸 retry & exponential backoff', () => {
   });
 
   it('should support overriding the shouldRetry method with a promise', async () => {
-    const scope = nock(url)
-      .get('/')
-      .reply(500);
+    const scope = nock(url).get('/').reply(500);
     const config = {
       url,
       retryConfig: {
@@ -275,7 +237,7 @@ describe('🛸 retry & exponential backoff', () => {
         },
       },
     };
-    await assertRejects(request(config), (e: Error) => {
+    await assert.rejects(request(config), (e: Error) => {
       const cfg = getConfig(e);
       return cfg!.currentRetryAttempt === 0;
     });
@@ -285,12 +247,8 @@ describe('🛸 retry & exponential backoff', () => {
   it('should retry on ENOTFOUND', async () => {
     const body = {spicy: '🌮'};
     const scopes = [
-      nock(url)
-        .get('/')
-        .replyWithError({code: 'ENOTFOUND'}),
-      nock(url)
-        .get('/')
-        .reply(200, body),
+      nock(url).get('/').replyWithError({code: 'ENOTFOUND'}),
+      nock(url).get('/').reply(200, body),
     ];
     const res = await request({url, retry: true});
     assert.deepStrictEqual(res.data, body);
@@ -300,12 +258,8 @@ describe('🛸 retry & exponential backoff', () => {
   it('should retry on ETIMEDOUT', async () => {
     const body = {sizzling: '🥓'};
     const scopes = [
-      nock(url)
-        .get('/')
-        .replyWithError({code: 'ETIMEDOUT'}),
-      nock(url)
-        .get('/')
-        .reply(200, body),
+      nock(url).get('/').replyWithError({code: 'ETIMEDOUT'}),
+      nock(url).get('/').reply(200, body),
     ];
     const res = await request({url, retry: true});
     assert.deepStrictEqual(res.data, body);
@@ -313,11 +267,9 @@ describe('🛸 retry & exponential backoff', () => {
   });
 
   it('should allow configuring noResponseRetries', async () => {
-    const scope = nock(url)
-      .get('/')
-      .replyWithError({code: 'ETIMEDOUT'});
+    const scope = nock(url).get('/').replyWithError({code: 'ETIMEDOUT'});
     const config = {url, retryConfig: {noResponseRetries: 0}};
-    await assertRejects(request(config), (e: Error) => {
+    await assert.rejects(request(config), (e: Error) => {
       const cfg = getConfig(e);
       return cfg!.currentRetryAttempt === 0;
     });
