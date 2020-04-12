@@ -40,8 +40,8 @@ afterEach(() => {
 const url = 'https://example.com';
 
 describe('🦖 option validation', () => {
-  it('should throw an error if a url is not provided', () => {
-    assert.rejects(request({}), /URL is required/);
+  it('should throw an error if a url is not provided', async () => {
+    await assert.rejects(request({}), /URL is required/);
   });
 });
 
