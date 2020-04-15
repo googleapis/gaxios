@@ -19,7 +19,7 @@
     "@types/node": "^10.3.0",
     "typescript": "^3.0.0",
     "gts": "^2.0.0",
-    "null-loader": "^3.0.0",
+    "null-loader": "^4.0.0",
     "ts-loader": "^7.0.0",
     "webpack": "^4.29.3",
     "webpack-cli": "^3.2.3"
