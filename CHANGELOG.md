@@ -1,5 +1,12 @@
 # Changelog
 
+### [3.0.3](https://www.github.com/googleapis/gaxios/compare/v3.0.2...v3.0.3) (2020-04-20)
+
+
+### Bug Fixes
+
+* apache license URL ([#468](https://www.github.com/googleapis/gaxios/issues/468)) ([#272](https://www.github.com/googleapis/gaxios/issues/272)) ([cf1b7cb](https://www.github.com/googleapis/gaxios/commit/cf1b7cb66e4c98405236834e63349931b4f35b90))
+
 ### [3.0.2](https://www.github.com/googleapis/gaxios/compare/v3.0.1...v3.0.2) (2020-03-24)
 
 
