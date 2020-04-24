@@ -23,7 +23,9 @@
     "docs-test": "linkinator docs",
     "predocs-test": "npm run docs",
     "samples-test": "cd samples/ && npm link ../ && npm test && cd ../",
-    "prelint": "cd samples; npm link ../; npm i"
+    "prelint": "cd samples; npm link ../; npm install",
+    "clean": "gts clean",
+    "precompile": "gts clean"
   },
   "repository": "googleapis/gaxios",
   "keywords": [
