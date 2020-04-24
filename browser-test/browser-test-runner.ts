@@ -14,6 +14,8 @@
 import execa from 'execa';
 import express from 'express';
 import http from 'http';
+import * as multiparty from 'multiparty';
+import cors from 'cors';
 
 const port = 7172;
 
@@ -35,6 +37,22 @@ async function listen(
 // tests.
 async function main() {
   const app = express();
+
+  app.use(cors());
+
+  app.post('/path', (req: express.Request, res: express.Response) => {
+    if (req.header('origin')) {
+      res.set('Access-Control-Allow-Origin', req.header('origin'));
+    }
+    const form = new multiparty.Form({autoFields: true});
+    form.parse(req, (err, fields) => {
+      if (err) {
+        res.status(500).send({message: err.message});
+      } else {
+        res.status(200).send(fields.null);
+      }
+    });
+  });
   app.get('/path', (req: express.Request, res: express.Response) => {
     if (req.header('origin')) {
       res.set('Access-Control-Allow-Origin', req.header('origin'));
