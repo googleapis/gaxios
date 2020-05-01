@@ -79,7 +79,7 @@
     "tmp": "0.2.0",
     "ts-loader": "^7.0.0",
     "typescript": "^3.8.3",
-    "uuid": "^7.0.3",
+    "uuid": "^8.0.0",
     "webpack": "^4.29.5",
     "webpack-cli": "^3.2.3"
   },
