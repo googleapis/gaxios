@@ -1,5 +1,12 @@
 # Changelog
 
+### [3.0.4](https://www.github.com/googleapis/gaxios/compare/v3.0.3...v3.0.4) (2020-07-09)
+
+
+### Bug Fixes
+
+* typeo in nodejs .gitattribute ([#306](https://www.github.com/googleapis/gaxios/issues/306)) ([8514672](https://www.github.com/googleapis/gaxios/commit/8514672f9d56bc6f077dcbab050b3342d4e343c6))
+
 ### [3.0.3](https://www.github.com/googleapis/gaxios/compare/v3.0.2...v3.0.3) (2020-04-20)
 
 
