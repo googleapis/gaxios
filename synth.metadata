@@ -4,7 +4,7 @@
       "git": {
         "name": ".",
         "remote": "https://github.com/googleapis/gaxios.git",
-        "sha": "b8715cba25cfe2bc45cf711f3f2df43fbac0d99b"
+        "sha": "9e2f9c25841635b42035d8586a9000ae20c85076"
       }
     },
     {
