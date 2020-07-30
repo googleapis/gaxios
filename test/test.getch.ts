@@ -131,6 +131,34 @@ describe('🥁 configuration options', () => {
     assert.strictEqual(response, res);
   });
 
+  it('should allow overriding the adapter with default adapter wrapper', async () => {
+    const body = {hello: '🌎'};
+    const extraProperty = '🦦';
+    const scope = nock(url).get('/').reply(200, body);
+    const timings: {duration: number}[] = [];
+    const res = await request({
+      url,
+      adapter: async (opts, defaultAdapter) => {
+        const begin = Date.now();
+        const res = await defaultAdapter(opts);
+        const end = Date.now();
+        res.data = {
+          ...res.data,
+          extraProperty,
+        };
+        timings.push({duration: end - begin});
+        return res;
+      },
+    });
+    scope.done();
+    assert.deepStrictEqual(res.data, {
+      ...body,
+      extraProperty,
+    });
+    assert(timings.length === 1);
+    assert(typeof timings[0].duration === 'number');
+  });
+
   it('should encode URL parameters', async () => {
     const path = '/?james=kirk&montgomery=scott';
     const opts = {url: `${url}${path}`};

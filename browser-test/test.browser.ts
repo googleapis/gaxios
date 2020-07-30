@@ -14,14 +14,8 @@
 import assert from 'assert';
 import {describe, it} from 'mocha';
 import {request} from '../src/index';
-import {PassThrough} from 'stream';
-import * as stream from 'stream';
 import * as uuid from 'uuid';
 const port = 7172; // should match the port defined in `webserver.ts`
-
-function isReadableStream(obj: stream.Readable | string) {
-  return obj instanceof stream.Readable && typeof obj._read === 'function';
-}
 
 describe('💻 browser tests', () => {
   it('should just work from browser', async () => {

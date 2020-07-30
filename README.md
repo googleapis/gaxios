@@ -80,11 +80,14 @@ gaxios.request({url: '/data'}).then(...);
   timeout: 1000,
 
   // Optional method to override making the actual HTTP request. Useful
-  // for writing tests.
-  adapter?: (options) => {
-    return {
-      data: 'your data'
-    }
+  // for writing tests and instrumentation
+  adapter?: async (options, defaultAdapter) => {
+    const res = await defaultAdapter(options);
+    res.data = {
+      ...res.data,
+      extraProperty: 'your extra property',
+    };
+    return res;
   };
 
   // The expected return type of the request.  Options are:

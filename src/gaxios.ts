@@ -90,6 +90,14 @@ export class Gaxios {
     return this._request(opts);
   }
 
+  private async _defaultAdapter<T>(
+    opts: GaxiosOptions
+  ): Promise<GaxiosResponse<T>> {
+    const res = await fetch(opts.url!, opts);
+    const data = await this.getResponseData(opts, res);
+    return this.translateResponse<T>(opts, res, data);
+  }
+
   /**
    * Internal, retryable version of the `request` method.
    * @param opts Set of HTTP options that will be used for this HTTP request.
@@ -98,11 +106,12 @@ export class Gaxios {
     try {
       let translatedResponse: GaxiosResponse<T>;
       if (opts.adapter) {
-        translatedResponse = await opts.adapter<T>(opts);
+        translatedResponse = await opts.adapter<T>(
+          opts,
+          this._defaultAdapter.bind(this)
+        );
       } else {
-        const res = await fetch(opts.url!, opts);
-        const data = await this.getResponseData(opts, res);
-        translatedResponse = this.translateResponse<T>(opts, res, data);
+        translatedResponse = await this._defaultAdapter(opts);
       }
       if (!opts.validateStatus!(translatedResponse.status)) {
         throw new GaxiosError<T>(
