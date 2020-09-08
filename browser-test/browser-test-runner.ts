@@ -24,7 +24,7 @@ async function listen(
   port: number
 ): Promise<http.Server> {
   return new Promise((resolve, reject) => {
-    const server = app.listen(port, (err: Error) => {
+    const server = app.listen(port, (err?: Error) => {
       if (err) {
         reject(err);
       }
