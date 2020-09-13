@@ -30,15 +30,10 @@ import {getRetryConfig} from './retry';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable node/no-unsupported-features/node-builtins */
 
-const URL = hasURL() ? window.URL : url.URL;
 const fetch = hasFetch() ? window.fetch : nodeFetch;
 
 function hasWindow() {
   return typeof window !== 'undefined' && !!window;
-}
-
-function hasURL() {
-  return hasWindow() && !!window.URL;
 }
 
 function hasFetch() {
@@ -174,19 +169,15 @@ export class Gaxios {
       opts.url = baseUrl + opts.url;
     }
 
-    const parsedUrl = new URL(opts.url);
-    opts.url = `${parsedUrl.origin}${parsedUrl.pathname}`;
-    opts.params = extend(
-      qs.parse(parsedUrl.search.substr(1)), // removes leading ?
-      opts.params
-    );
-
     opts.paramsSerializer = opts.paramsSerializer || this.paramsSerializer;
     if (opts.params) {
-      parsedUrl.search = opts.paramsSerializer(opts.params);
+      let additionalQueryParams = opts.paramsSerializer(opts.params);
+      if (additionalQueryParams.startsWith('?')) {
+        additionalQueryParams = additionalQueryParams.slice(1);
+      }
+      const prefix = opts.url.includes('?') ? '&' : '?';
+      opts.url = opts.url + prefix + additionalQueryParams;
     }
-
-    opts.url = parsedUrl.href;
 
     if (typeof options.maxContentLength === 'number') {
       opts.size = options.maxContentLength;
