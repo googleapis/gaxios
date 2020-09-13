@@ -275,4 +275,30 @@ describe('🛸 retry & exponential backoff', () => {
     });
     scope.done();
   });
+
+  it('should delay the initial retry by 100ms by default', async () => {
+    const scope = nock(url).get('/').reply(500).get('/').reply(200, {});
+    const start = Date.now();
+    await request({
+      url,
+      retry: true,
+    });
+    const delay = Date.now() - start;
+    assert.ok(delay > 100 && delay < 150);
+    scope.done();
+  });
+
+  it('should respect the retryDelay if configured', async () => {
+    const scope = nock(url).get('/').reply(500).get('/').reply(200, {});
+    const start = Date.now();
+    await request({
+      url,
+      retryConfig: {
+        retryDelay: 500,
+      },
+    });
+    const delay = Date.now() - start;
+    assert.ok(delay > 500 && delay < 550);
+    scope.done();
+  });
 });
