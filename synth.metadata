@@ -3,8 +3,15 @@
     {
       "git": {
         "name": ".",
-        "remote": "git@github.com:googleapis/gaxios.git",
-        "sha": "5ea4c2d46a697504d4473dc174e78702b5ff06a6"
+        "remote": "https://github.com/googleapis/gaxios.git",
+        "sha": "bf9fc652da64ea73e361402209530e530d6d3a95"
+      }
+    },
+    {
+      "git": {
+        "name": "synthtool",
+        "remote": "https://github.com/googleapis/synthtool.git",
+        "sha": "fdd03c161003ab97657cc0218f25c82c89ddf4b6"
       }
     }
   ],
@@ -55,6 +62,8 @@
     "CONTRIBUTING.md",
     "LICENSE",
     "api-extractor.json",
-    "renovate.json"
+    "package-lock.json.2884699295",
+    "renovate.json",
+    "samples/package-lock.json.3832649480"
   ]
 }
