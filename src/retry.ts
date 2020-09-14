@@ -60,8 +60,11 @@ export async function getRetryConfig(err: GaxiosError) {
   }
 
   // Calculate time to wait with exponential backoff.
-  // Formula: (2^c - 1 / 2) * 1000
-  const delay = ((Math.pow(2, config.currentRetryAttempt) - 1) / 2) * 1000;
+  // If this is the first retry, look for a configured retryDelay.
+  const retryDelay = config.currentRetryAttempt ? 0 : config.retryDelay ?? 100;
+  // Formula: retryDelay + ((2^c - 1 / 2) * 1000)
+  const delay =
+    retryDelay + ((Math.pow(2, config.currentRetryAttempt) - 1) / 2) * 1000;
 
   // We're going to retry!  Incremenent the counter.
   err.config.retryConfig!.currentRetryAttempt! += 1;
