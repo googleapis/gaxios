@@ -33,6 +33,14 @@ describe('💻 browser tests', () => {
     assert.strictEqual(result.data, 'value');
   });
 
+  it('should allow passing browser fetch explicitly', async () => {
+    const result = await request({
+      url: `http://localhost:${port}`,
+      fetchImplementation: window.fetch,
+    });
+    assert.strictEqual(result.status, 200);
+  });
+
   it('should support multipart post from the browser', async () => {
     const headers: {[key: string]: string} = {};
     const multipart = [

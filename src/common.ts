@@ -14,6 +14,7 @@
 import {AbortSignal} from 'abort-controller';
 import {Agent} from 'http';
 import {URL} from 'url';
+import fetch from 'node-fetch';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -99,6 +100,12 @@ export interface GaxiosOptions {
   retry?: boolean;
   signal?: AbortSignal;
   size?: number;
+  /**
+   * Implementation of `fetch` to use when making the API call. By default,
+   * will use the browser context if available, and fall back to `node-fetch`
+   * in node.js otherwise.
+   */
+  fetchImplementation?: typeof window.fetch | typeof fetch;
 }
 
 /**

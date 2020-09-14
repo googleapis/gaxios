@@ -16,6 +16,7 @@ import nock from 'nock';
 import sinon from 'sinon';
 import stream from 'stream';
 import {describe, it, afterEach} from 'mocha';
+import fetch from 'node-fetch';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const HttpsProxyAgent = require('https-proxy-agent');
 import {
@@ -266,6 +267,13 @@ describe('🥁 configuration options', () => {
     const res = await request({url, method: 'POST', data: body});
     scope.done();
     assert.deepStrictEqual(res.config.data, body);
+  });
+
+  it('should allow explicitly setting the fetch implementation to node-fetch', async () => {
+    const scope = nock(url).get('/').reply(200);
+    const res = await request({url, fetchImplementation: fetch});
+    scope.done();
+    assert.deepStrictEqual(res.status, 200);
   });
 });
 

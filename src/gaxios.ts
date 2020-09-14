@@ -28,7 +28,6 @@ import {
 import {getRetryConfig} from './retry';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable node/no-unsupported-features/node-builtins */
 
 const fetch = hasFetch() ? window.fetch : nodeFetch;
 
@@ -88,7 +87,8 @@ export class Gaxios {
   private async _defaultAdapter<T>(
     opts: GaxiosOptions
   ): Promise<GaxiosResponse<T>> {
-    const res = await fetch(opts.url!, opts);
+    const fetchImpl = opts.fetchImplementation || fetch;
+    const res = await fetchImpl(opts.url!, opts);
     const data = await this.getResponseData(opts, res);
     return this.translateResponse<T>(opts, res, data);
   }
