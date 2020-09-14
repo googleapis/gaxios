@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.0](https://www.github.com/googleapis/gaxios/compare/v3.1.0...v3.2.0) (2020-09-14)
+
+
+### Features
+
+* add initial retry delay, and set default to 100ms ([#336](https://www.github.com/googleapis/gaxios/issues/336)) ([870326b](https://www.github.com/googleapis/gaxios/commit/870326b8245f16fafde0b0c32cfd2f277946e3a1))
+
 ## [3.1.0](https://www.github.com/googleapis/gaxios/compare/v3.0.4...v3.1.0) (2020-07-30)
 
 
