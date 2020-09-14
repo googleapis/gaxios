@@ -169,13 +169,24 @@ describe('🥁 configuration options', () => {
     scope.done();
   });
 
-  it('should encode parameters from the params option', async () => {
-    const opts = {url, params: {james: 'kirk', montgomery: 'scott'}};
-    const path = '/?james=kirk&montgomery=scott';
+  it('should preserve the original querystring', async () => {
+    const path = '/?robot';
+    const opts = {url: `${url}${path}`};
     const scope = nock(url).get(path).reply(200, {});
     const res = await request(opts);
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.config.url, url + path);
+    scope.done();
+  });
+
+  it('should encode parameters from the params option', async () => {
+    const opts = {url, params: {james: 'kirk', montgomery: 'scott'}};
+    const qs = '?james=kirk&montgomery=scott';
+    const path = `/${qs}`;
+    const scope = nock(url).get(path).reply(200, {});
+    const res = await request(opts);
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.config.url, url + qs);
     scope.done();
   });
 
@@ -184,7 +195,7 @@ describe('🥁 configuration options', () => {
       url: `${url}/?james=beckwith&montgomery=scott`,
       params: {james: 'kirk'},
     };
-    const path = '/?james=kirk&montgomery=scott';
+    const path = '/?james=beckwith&montgomery=scott&james=kirk';
     const scope = nock(url).get(path).reply(200, {});
     const res = await request(opts);
     assert.strictEqual(res.status, 200);
@@ -206,7 +217,7 @@ describe('🥁 configuration options', () => {
     const scope = nock(url).get(`/${qs}`).reply(200, {});
     const res = await request(opts);
     assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.config.url, `${url}/${qs}`);
+    assert.strictEqual(res.config.url, url + qs);
     scope.done();
   });
 
