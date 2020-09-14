@@ -56,7 +56,7 @@ gaxios.request({url: '/data'}).then(...);
   // Note: if you would like to provide a Content-Type header other than
   // application/json you you must provide a string or readable stream, rather
   // than an object:
-  // data: JSON.strintify({some: 'data'})
+  // data: JSON.stringify({some: 'data'})
   // data: fs.readFile('./some-data.jpeg')
   data: {
     some: 'data'
