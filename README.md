@@ -126,6 +126,9 @@ gaxios.request({url: '/data'}).then(...);
 
     // When there is no response, the number of retries to attempt. Defaults to 2.
     noResponseRetries?: number;
+
+    // The amount of time to initially delay the retry, in ms.  Defaults to 100ms.
+    retryDelay?: number;
   },
 
   // Enables default configuration for retries.
