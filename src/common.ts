@@ -116,7 +116,7 @@ export interface RetryConfig {
   currentRetryAttempt?: number;
 
   /**
-   * The amount of time to initially delay the retry.  Defaults to 100.
+   * The amount of time to initially delay the retry, in ms.  Defaults to 100ms.
    */
   retryDelay?: number;
 
