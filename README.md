@@ -50,7 +50,14 @@ gaxios.request({url: '/data'}).then(...);
   // The HTTP methods to be sent with the request.
   headers: { 'some': 'header' },
 
-  // The data to send in the body of the request. Data objects will be serialized as JSON.
+  // The data to send in the body of the request. Data objects will be
+  // serialized as JSON.
+  //
+  // Note: if you would like to provide a Content-Type header other than
+  // application/json you you must provide a string or readable stream, rather
+  // than an object:
+  // data: JSON.stringify({some: 'data'})
+  // data: fs.readFile('./some-data.jpeg')
   data: {
     some: 'data'
   },
