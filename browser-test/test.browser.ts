@@ -35,7 +35,7 @@ describe('💻 browser tests', () => {
 
   it('should allow passing browser fetch explicitly', async () => {
     const result = await request({
-      url: `http://localhost:${port}`,
+      url: `http://localhost:${port}/path`,
       fetchImplementation: window.fetch,
     });
     assert.strictEqual(result.status, 200);
