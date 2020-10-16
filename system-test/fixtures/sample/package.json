@@ -22,6 +22,6 @@
     "null-loader": "^4.0.0",
     "ts-loader": "^8.0.0",
     "webpack": "^4.29.3",
-    "webpack-cli": "^3.2.3"
+    "webpack-cli": "^4.0.0"
   }
 }
