@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.0.1](https://www.github.com/googleapis/gaxios/compare/v4.0.0...v4.0.1) (2020-10-27)
+
+
+### Bug Fixes
+
+* prevent bonus ? with empty qs params ([#357](https://www.github.com/googleapis/gaxios/issues/357)) ([b155f76](https://www.github.com/googleapis/gaxios/commit/b155f76cbc4c234da1d99c26691296702342c205))
+
 ## [4.0.0](https://www.github.com/googleapis/gaxios/compare/v3.2.0...v4.0.0) (2020-10-21)
 
 
