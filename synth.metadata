@@ -4,14 +4,14 @@
       "git": {
         "name": ".",
         "remote": "https://github.com/googleapis/gaxios.git",
-        "sha": "bf9fc652da64ea73e361402209530e530d6d3a95"
+        "sha": "82217f54cc7700f08f3546e4f507650c9f063a0c"
       }
     },
     {
       "git": {
         "name": "synthtool",
         "remote": "https://github.com/googleapis/synthtool.git",
-        "sha": "fdd03c161003ab97657cc0218f25c82c89ddf4b6"
+        "sha": "89c849ba5013e45e8fb688b138f33c2ec6083dc5"
       }
     }
   ],
@@ -54,16 +54,16 @@
     ".kokoro/test.bat",
     ".kokoro/test.sh",
     ".kokoro/trampoline.sh",
+    ".kokoro/trampoline_v2.sh",
     ".mocharc.js",
     ".nycrc",
     ".prettierignore",
     ".prettierrc.js",
+    ".trampolinerc",
     "CODE_OF_CONDUCT.md",
     "CONTRIBUTING.md",
     "LICENSE",
     "api-extractor.json",
-    "package-lock.json.2884699295",
-    "renovate.json",
-    "samples/package-lock.json.3832649480"
+    "renovate.json"
   ]
 }

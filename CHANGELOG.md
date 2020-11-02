@@ -1,5 +1,23 @@
 # Changelog
 
+### [4.0.1](https://www.github.com/googleapis/gaxios/compare/v4.0.0...v4.0.1) (2020-10-27)
+
+
+### Bug Fixes
+
+* prevent bonus ? with empty qs params ([#357](https://www.github.com/googleapis/gaxios/issues/357)) ([b155f76](https://www.github.com/googleapis/gaxios/commit/b155f76cbc4c234da1d99c26691296702342c205))
+
+## [4.0.0](https://www.github.com/googleapis/gaxios/compare/v3.2.0...v4.0.0) (2020-10-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* parameters in `url` and parameters provided via params will now be combined.
+
+### Bug Fixes
+
+* drop requirement on URL/combine url and params ([#338](https://www.github.com/googleapis/gaxios/issues/338)) ([e166bc6](https://www.github.com/googleapis/gaxios/commit/e166bc6721fd979070ab3d9c69b71ffe9ee061c7))
+
 ## [3.2.0](https://www.github.com/googleapis/gaxios/compare/v3.1.0...v3.2.0) (2020-09-14)
 
 

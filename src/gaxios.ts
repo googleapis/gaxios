@@ -170,7 +170,7 @@ export class Gaxios {
     }
 
     opts.paramsSerializer = opts.paramsSerializer || this.paramsSerializer;
-    if (opts.params) {
+    if (opts.params && Object.keys(opts.params).length > 0) {
       let additionalQueryParams = opts.paramsSerializer(opts.params);
       if (additionalQueryParams.startsWith('?')) {
         additionalQueryParams = additionalQueryParams.slice(1);

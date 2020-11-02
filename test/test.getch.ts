@@ -180,6 +180,16 @@ describe('🥁 configuration options', () => {
     scope.done();
   });
 
+  it('should handle empty querystring params', async () => {
+    const scope = nock(url).get('/').reply(200, {});
+    const res = await request({
+      url,
+      params: {},
+    });
+    assert.strictEqual(res.status, 200);
+    scope.done();
+  });
+
   it('should encode parameters from the params option', async () => {
     const opts = {url, params: {james: 'kirk', montgomery: 'scott'}};
     const qs = '?james=kirk&montgomery=scott';
