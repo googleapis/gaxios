@@ -13,12 +13,13 @@
 
 import extend from 'extend';
 import {Agent} from 'http';
-import nodeFetch, {Response as NodeFetchResponse} from 'node-fetch';
+import nodeFetch from 'node-fetch';
 import qs from 'querystring';
 import isStream from 'is-stream';
 import url from 'url';
 
 import {
+  FetchResponse,
   GaxiosError,
   GaxiosOptions,
   GaxiosPromise,
@@ -88,7 +89,7 @@ export class Gaxios {
     opts: GaxiosOptions
   ): Promise<GaxiosResponse<T>> {
     const fetchImpl = opts.fetchImplementation || fetch;
-    const res = await fetchImpl(opts.url!, opts);
+    const res = (await fetchImpl(opts.url!, opts)) as FetchResponse;
     const data = await this.getResponseData(opts, res);
     return this.translateResponse<T>(opts, res, data);
   }
@@ -130,7 +131,7 @@ export class Gaxios {
 
   private async getResponseData(
     opts: GaxiosOptions,
-    res: Response | NodeFetchResponse
+    res: FetchResponse
   ): Promise<any> {
     switch (opts.responseType) {
       case 'stream':
@@ -250,7 +251,7 @@ export class Gaxios {
 
   private translateResponse<T>(
     opts: GaxiosOptions,
-    res: Response | NodeFetchResponse,
+    res: FetchResponse,
     data?: T
   ): GaxiosResponse<T> {
     // headers need to be converted from a map to an obj

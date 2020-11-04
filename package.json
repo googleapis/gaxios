@@ -51,6 +51,7 @@
     "@types/mv": "^2.1.0",
     "@types/ncp": "^2.0.1",
     "@types/node": "^11.9.5",
+    "@types/node-fetch": "^2.5.7",
     "@types/sinon": "^9.0.0",
     "@types/tmp": "0.2.0",
     "@types/uuid": "^8.0.0",
@@ -85,7 +86,6 @@
     "webpack-cli": "^4.0.0"
   },
   "dependencies": {
-    "@types/node-fetch": "^2.5.7",
     "abort-controller": "^3.0.0",
     "extend": "^3.0.2",
     "https-proxy-agent": "^5.0.0",
