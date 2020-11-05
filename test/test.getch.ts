@@ -259,6 +259,36 @@ describe('🥁 configuration options', () => {
     assert.ok(res.config.agent instanceof HttpsProxyAgent);
   });
 
+  describe('no_proxy', () => {
+    it('should not proxy when url matches no_proxy', async () => {
+      const url = 'https://example.com';
+      sandbox.stub(process, 'env').value({
+        https_proxy: 'https://fake.proxy',
+        no_proxy: 'https://example.com',
+      });
+      const body = {hello: '🌎'};
+      const scope = nock(url).get('/').reply(200, body);
+      const res = await request({url});
+      scope.done();
+      assert.deepStrictEqual(res.data, body);
+      assert.strictEqual(res.config.agent, undefined);
+    });
+
+    it('should still proxy if url does not match no_proxy', async () => {
+      const url = 'https://example2.com';
+      sandbox.stub(process, 'env').value({
+        https_proxy: 'https://fake.proxy',
+        no_proxy: 'https://example.com',
+      });
+      const body = {hello: '🌎'};
+      const scope = nock(url).get('/').reply(200, body);
+      const res = await request({url});
+      scope.done();
+      assert.deepStrictEqual(res.data, body);
+      assert.ok(res.config.agent instanceof HttpsProxyAgent);
+    });
+  });
+
   it('should load the proxy from the cache', async () => {
     sandbox.stub(process, 'env').value({HTTPS_PROXY: 'https://fake.proxy'});
     const body = {hello: '🌎'};

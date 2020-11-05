@@ -44,7 +44,11 @@ let HttpsProxyAgent: any;
 
 // Figure out if we should be using a proxy. Only if it's required, load
 // the https-proxy-agent module as it adds startup cost.
-function loadProxy() {
+function loadProxy(url: string) {
+  const noProxy = process.env.no_proxy ?? process.env.NO_PROXY;
+  if (noProxy && url === noProxy) {
+    return;
+  }
   const proxy =
     process.env.HTTPS_PROXY ||
     process.env.https_proxy ||
@@ -55,7 +59,6 @@ function loadProxy() {
   }
   return proxy;
 }
-loadProxy();
 
 export class Gaxios {
   private agentCache = new Map<
@@ -219,7 +222,7 @@ export class Gaxios {
     }
     opts.method = opts.method || 'GET';
 
-    const proxy = loadProxy();
+    const proxy = loadProxy(opts.url);
     if (proxy) {
       if (this.agentCache.has(proxy)) {
         opts.agent = this.agentCache.get(proxy);
