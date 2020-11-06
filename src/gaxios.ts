@@ -45,10 +45,25 @@ let HttpsProxyAgent: any;
 // Figure out if we should be using a proxy. Only if it's required, load
 // the https-proxy-agent module as it adds startup cost.
 function loadProxy(url: string) {
-  const noProxy = process.env.no_proxy ?? process.env.NO_PROXY;
-  if (noProxy && url === noProxy) {
-    return;
+  const noProxy = (process.env.no_proxy ?? process.env.NO_PROXY)?.split(',');
+  if (noProxy) {
+    const parsedURL = new URL(url);
+    const isMatch = noProxy.find(noProxyURL => {
+      if (noProxyURL.startsWith('*.') || noProxyURL.startsWith('.')) {
+        noProxyURL = noProxyURL.replace('*', '');
+        return parsedURL.hostname.endsWith(noProxyURL);
+      } else {
+        return (
+          noProxyURL === parsedURL.origin || noProxyURL === parsedURL.hostname
+        );
+      }
+    });
+
+    if (isMatch) {
+      return;
+    }
   }
+
   const proxy =
     process.env.HTTPS_PROXY ||
     process.env.https_proxy ||
