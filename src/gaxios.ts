@@ -42,28 +42,7 @@ function hasFetch() {
 
 let HttpsProxyAgent: any;
 
-// Figure out if we should be using a proxy. Only if it's required, load
-// the https-proxy-agent module as it adds startup cost.
-function loadProxy(url: string) {
-  const noProxy = (process.env.no_proxy || process.env.NO_PROXY)?.split(',');
-  if (noProxy && noProxy.length > 0) {
-    const parsedURL = new URL(url);
-    const isMatch = noProxy.find(noProxyURL => {
-      if (noProxyURL.startsWith('*.') || noProxyURL.startsWith('.')) {
-        noProxyURL = noProxyURL.replace('*', '');
-        return parsedURL.hostname.endsWith(noProxyURL);
-      } else {
-        return (
-          noProxyURL === parsedURL.origin || noProxyURL === parsedURL.hostname
-        );
-      }
-    });
-
-    if (isMatch) {
-      return;
-    }
-  }
-
+function loadProxy() {
   const proxy =
     process.env.HTTPS_PROXY ||
     process.env.https_proxy ||
@@ -72,8 +51,64 @@ function loadProxy(url: string) {
   if (proxy) {
     HttpsProxyAgent = require('https-proxy-agent');
   }
-  return proxy;
+  console.log('calling load proxy?')
 }
+loadProxy();
+
+function matchingProxyStrings(
+  envVarHTTPS: string | undefined,
+  envVarHTTP: string | undefined,
+  envVarhttps: string | undefined,
+  envVarhttp: string | undefined,
+  url: string
+) {
+  const arrayOfEnvVariables = (
+    envVarHTTPS ||
+    envVarHTTP ||
+    envVarhttps ||
+    envVarhttp
+  )?.split(',');
+
+  let isMatch;
+  if (arrayOfEnvVariables && arrayOfEnvVariables.length > 0) {
+    const parsedURL = new URL(url);
+    isMatch = arrayOfEnvVariables.find(url => {
+      if (url.startsWith('*.') || url.startsWith('.')) {
+        url = url.replace('*', '');
+        return parsedURL.hostname.endsWith(url);
+      } else {
+        return url === parsedURL.origin || url === parsedURL.hostname;
+      }
+    });
+  }
+  return isMatch;
+}
+
+// Figure out if we should be using a proxy. Only if it's required, load
+// the https-proxy-agent module as it adds startup cost.
+function getProxy(url: string) {
+  const shouldThisBeNoProxy = matchingProxyStrings(
+    process.env.no_proxy,
+    process.env.no_proxy,
+    undefined,
+    undefined,
+    url
+  );
+  // If there is a match between the no_proxy env variables and the url, then do not proxy
+  if (shouldThisBeNoProxy) {
+    return undefined;
+    // If there is not a match between the no_proxy env variables and the url, check to see if there should be a proxy
+  } else {
+    return matchingProxyStrings(
+      process.env.HTTPS_PROXY,
+      process.env.https_proxy,
+      process.env.HTTP_PROXY,
+      process.env.http_proxy,
+      url
+    );
+  }
+}
+
 
 export class Gaxios {
   private agentCache = new Map<
@@ -237,13 +272,14 @@ export class Gaxios {
     }
     opts.method = opts.method || 'GET';
 
-    const proxy = loadProxy(opts.url);
+    const proxy = getProxy(opts.url);
     if (proxy) {
+      loadProxy();
       if (this.agentCache.has(proxy)) {
-        opts.agent = this.agentCache.get(proxy);
+        opts.agent = this.agentCache.get(opts.url);
       } else {
-        opts.agent = new HttpsProxyAgent(proxy);
-        this.agentCache.set(proxy, opts.agent!);
+        opts.agent = new HttpsProxyAgent(opts.url);
+        this.agentCache.set(opts.url, opts.agent!);
       }
     }
 
