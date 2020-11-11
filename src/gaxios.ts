@@ -51,7 +51,6 @@ function loadProxy() {
   if (proxy) {
     HttpsProxyAgent = require('https-proxy-agent');
   }
-  console.log('calling load proxy?')
 }
 loadProxy();
 
