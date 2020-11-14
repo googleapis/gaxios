@@ -108,7 +108,6 @@ function getProxy(url: string) {
   }
 }
 
-
 export class Gaxios {
   private agentCache = new Map<
     string,
