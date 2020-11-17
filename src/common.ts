@@ -99,6 +99,12 @@ export interface GaxiosOptions {
   retry?: boolean;
   signal?: AbortSignal;
   size?: number;
+  /**
+   * Implementation of `fetch` to use when making the API call. By default,
+   * will use the browser context if available, and fall back to `node-fetch`
+   * in node.js otherwise.
+   */
+  fetchImplementation?: FetchImplementation;
 }
 
 /**
@@ -146,4 +152,39 @@ export interface RetryConfig {
    * When there is no response, the number of retries to attempt. Defaults to 2.
    */
   noResponseRetries?: number;
+}
+
+export type FetchImplementation = (
+  input: FetchRequestInfo,
+  init?: FetchRequestInit
+) => Promise<FetchResponse>;
+
+export type FetchRequestInfo = any;
+
+export interface FetchResponse {
+  readonly status: number;
+  readonly statusText: string;
+  readonly url: string;
+  readonly body: unknown | null;
+  arrayBuffer(): Promise<unknown>;
+  blob(): Promise<unknown>;
+  readonly headers: FetchHeaders;
+  json(): Promise<any>;
+  text(): Promise<string>;
+}
+
+export interface FetchRequestInit {
+  method?: string;
+}
+
+export interface FetchHeaders {
+  append(name: string, value: string): void;
+  delete(name: string): void;
+  get(name: string): string | null;
+  has(name: string): boolean;
+  set(name: string, value: string): void;
+  forEach(
+    callbackfn: (value: string, key: string) => void,
+    thisArg?: any
+  ): void;
 }
