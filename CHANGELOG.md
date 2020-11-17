@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.0](https://www.github.com/googleapis/gaxios/compare/v4.0.1...v4.1.0) (2020-11-17)
+
+
+### Features
+
+* add an option to configure the fetch impl ([#342](https://www.github.com/googleapis/gaxios/issues/342)) ([2e081ef](https://www.github.com/googleapis/gaxios/commit/2e081ef161d84aa435788e8d525d393dc7964117))
+
 ### [4.0.1](https://www.github.com/googleapis/gaxios/compare/v4.0.0...v4.0.1) (2020-10-27)
 
 
