@@ -52,7 +52,6 @@ function loadProxy() {
     HttpsProxyAgent = require('https-proxy-agent');
   }
 }
-loadProxy();
 
 function matchingProxyStrings(
   envVarHTTPS: string | undefined,
@@ -86,6 +85,7 @@ function matchingProxyStrings(
 // Figure out if we should be using a proxy. Only if it's required, load
 // the https-proxy-agent module as it adds startup cost.
 function getProxy(url: string) {
+  loadProxy();
   const shouldThisBeNoProxy = matchingProxyStrings(
     process.env.no_proxy,
     process.env.no_proxy,
@@ -272,7 +272,6 @@ export class Gaxios {
 
     const proxy = getProxy(opts.url);
     if (proxy) {
-      loadProxy();
       if (this.agentCache.has(proxy)) {
         opts.agent = this.agentCache.get(opts.url);
       } else {
