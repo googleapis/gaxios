@@ -433,7 +433,7 @@ describe('🥁 configuration options', () => {
     const res1 = await request({url});
     const agent = res1.config.agent;
     const res2 = await request({url});
-    assert.strictEqual(agent, res2.config.agent);
+    assert.deepStrictEqual(agent, res2.config.agent);
     scope.done();
   });
 
