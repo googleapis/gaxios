@@ -98,12 +98,11 @@ function getProxy(url: string) {
     return undefined;
     // If there is not a match between the no_proxy env variables and the url, check to see if there should be a proxy
   } else {
-    return matchingProxyStrings(
-      process.env.HTTPS_PROXY,
-      process.env.https_proxy,
-      process.env.HTTP_PROXY,
-      process.env.http_proxy,
-      url
+    return (
+      process.env.HTTPS_PROXY ||
+      process.env.https_proxy ||
+      process.env.HTTP_PROXY ||
+      process.env.http_proxy
     );
   }
 }
