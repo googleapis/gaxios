@@ -109,6 +109,11 @@ gaxios.request({url: '/data'}).then(...);
   // status code.  Defaults to (>= 200 && < 300)
   validateStatus: (status: number) => true,
 
+  // Implementation of `fetch` to use when making the API call. By default,
+  // will use the browser context if available, and fall back to `node-fetch`
+  // in node.js otherwise.
+  fetchImplementation?: typeof fetch;
+
   // Configuration for retrying of requests.
   retryConfig: {
     // The number of times to retry the request.  Defaults to 3.
