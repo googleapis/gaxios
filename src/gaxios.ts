@@ -51,6 +51,7 @@ function loadProxy() {
   if (proxy) {
     HttpsProxyAgent = require('https-proxy-agent');
   }
+  return proxy;
 }
 
 function matchingProxyStrings(
@@ -85,7 +86,6 @@ function matchingProxyStrings(
 // Figure out if we should be using a proxy. Only if it's required, load
 // the https-proxy-agent module as it adds startup cost.
 function getProxy(url: string) {
-  loadProxy();
   const shouldThisBeNoProxy = matchingProxyStrings(
     process.env.no_proxy,
     process.env.no_proxy,
@@ -98,12 +98,7 @@ function getProxy(url: string) {
     return undefined;
     // If there is not a match between the no_proxy env variables and the url, check to see if there should be a proxy
   } else {
-    return (
-      process.env.HTTPS_PROXY ||
-      process.env.https_proxy ||
-      process.env.HTTP_PROXY ||
-      process.env.http_proxy
-    );
+    return loadProxy();
   }
 }
 
