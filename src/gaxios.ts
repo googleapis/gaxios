@@ -53,7 +53,7 @@ function loadProxy() {
   }
   return proxy;
 }
-
+loadProxy();
 function matchingProxyStrings(
   envVarHTTPS: string | undefined,
   envVarHTTP: string | undefined,
