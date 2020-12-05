@@ -268,10 +268,10 @@ export class Gaxios {
     const proxy = getProxy(opts.url);
     if (proxy) {
       if (this.agentCache.has(proxy)) {
-        opts.agent = this.agentCache.get(opts.url);
+        opts.agent = this.agentCache.get(proxy);
       } else {
-        opts.agent = new HttpsProxyAgent(opts.url);
-        this.agentCache.set(opts.url, opts.agent!);
+        opts.agent = new HttpsProxyAgent(proxy);
+        this.agentCache.set(proxy, opts.agent!);
       }
     }
 
