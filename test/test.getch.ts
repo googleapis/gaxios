@@ -304,7 +304,7 @@ describe('🥁 configuration options', () => {
       assert.strictEqual(res.config.agent, undefined);
     });
 
-    it('should not proxy if no_proxy env variable has asterisk', async () => {
+    it('should not proxy if no_proxy env variable has asterisk, and URL partially matches', async () => {
       const url = 'https://domain.example.com';
       sandbox.stub(process, 'env').value({
         https_proxy: 'https://fake.proxy',
@@ -318,7 +318,21 @@ describe('🥁 configuration options', () => {
       assert.strictEqual(res.config.agent, undefined);
     });
 
-    it('should not proxy if no_proxy env variable starts with a dot', async () => {
+    it('should proxy if no_proxy env variable has asterisk, but URL is not matching', async () => {
+      const url = 'https://domain.example2.com';
+      sandbox.stub(process, 'env').value({
+        https_proxy: 'https://fake.proxy',
+        no_proxy: '*.example.com',
+      });
+      const body = {hello: '🌎'};
+      const scope = nock(url).get('/').reply(200, body);
+      const res = await request({url});
+      scope.done();
+      assert.deepStrictEqual(res.data, body);
+      assert.ok(res.config.agent instanceof HttpsProxyAgent);
+    });
+
+    it('should not proxy if no_proxy env variable starts with a dot, and URL partially matches', async () => {
       const url = 'https://domain.example.com';
       sandbox.stub(process, 'env').value({
         https_proxy: 'https://fake.proxy',

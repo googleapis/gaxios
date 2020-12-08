@@ -54,47 +54,29 @@ function loadProxy() {
   return proxy;
 }
 loadProxy();
-function matchingProxyStrings(
-  envVarHTTPS: string | undefined,
-  envVarHTTP: string | undefined,
-  envVarhttps: string | undefined,
-  envVarhttp: string | undefined,
-  url: string
-) {
-  const arrayOfEnvVariables = (
-    envVarHTTPS ||
-    envVarHTTP ||
-    envVarhttps ||
-    envVarhttp
-  )?.split(',');
 
-  let isMatch;
-  if (arrayOfEnvVariables && arrayOfEnvVariables.length > 0) {
-    const parsedURL = new URL(url);
-    isMatch = arrayOfEnvVariables.find(url => {
-      if (url.startsWith('*.') || url.startsWith('.')) {
-        url = url.replace('*', '');
-        return parsedURL.hostname.endsWith(url);
-      } else {
-        return url === parsedURL.origin || url === parsedURL.hostname;
-      }
-    });
+function skipProxy(url: string) {
+  const noProxyEnv = process.env.NO_PROXY ?? process.env.no_proxy;
+  if (!noProxyEnv) {
+    return false;
   }
-  return isMatch;
+  const noProxyUrls = noProxyEnv.split(',');
+  const parsedURL = new URL(url);
+  return !!noProxyUrls.find(url => {
+    if (url.startsWith('*.') || url.startsWith('.')) {
+      url = url.replace('*', '');
+      return parsedURL.hostname.endsWith(url);
+    } else {
+      return url === parsedURL.origin || url === parsedURL.hostname;
+    }
+  });
 }
 
 // Figure out if we should be using a proxy. Only if it's required, load
 // the https-proxy-agent module as it adds startup cost.
 function getProxy(url: string) {
-  const shouldThisBeNoProxy = matchingProxyStrings(
-    process.env.no_proxy,
-    process.env.no_proxy,
-    undefined,
-    undefined,
-    url
-  );
   // If there is a match between the no_proxy env variables and the url, then do not proxy
-  if (shouldThisBeNoProxy) {
+  if (skipProxy(url)) {
     return undefined;
     // If there is not a match between the no_proxy env variables and the url, check to see if there should be a proxy
   } else {
