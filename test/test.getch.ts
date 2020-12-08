@@ -250,14 +250,115 @@ describe('🥁 configuration options', () => {
     assert.deepStrictEqual(res.data, {});
   });
 
-  it('should use an https proxy if asked nicely', async () => {
-    sandbox.stub(process, 'env').value({https_proxy: 'https://fake.proxy'});
-    const body = {hello: '🌎'};
-    const scope = nock(url).get('/').reply(200, body);
-    const res = await request({url});
-    scope.done();
-    assert.deepStrictEqual(res.data, body);
-    assert.ok(res.config.agent instanceof HttpsProxyAgent);
+  describe('proxying', () => {
+    it('should use an https proxy if asked nicely', async () => {
+      const url = 'https://fake.proxy';
+      sandbox.stub(process, 'env').value({https_proxy: 'https://fake.proxy'});
+      const body = {hello: '🌎'};
+      const scope = nock(url).get('/').reply(200, body);
+      const res = await request({url});
+      scope.done();
+      assert.deepStrictEqual(res.data, body);
+      assert.ok(res.config.agent instanceof HttpsProxyAgent);
+    });
+
+    it('should not proxy when url matches no_proxy', async () => {
+      const url = 'https://example.com';
+      sandbox.stub(process, 'env').value({
+        https_proxy: 'https://fake.proxy',
+        no_proxy: 'https://example.com',
+      });
+      const body = {hello: '🌎'};
+      const scope = nock(url).get('/').reply(200, body);
+      const res = await request({url});
+      scope.done();
+      assert.deepStrictEqual(res.data, body);
+      assert.strictEqual(res.config.agent, undefined);
+    });
+
+    it('should proxy if url does not match no_proxy env variable', async () => {
+      const url = 'https://example2.com';
+      sandbox.stub(process, 'env').value({
+        https_proxy: 'https://fake.proxy',
+        no_proxy: 'https://example.com',
+      });
+      const body = {hello: '🌎'};
+      const scope = nock(url).get('/').reply(200, body);
+      const res = await request({url});
+      scope.done();
+      assert.deepStrictEqual(res.data, body);
+      assert.ok(res.config.agent instanceof HttpsProxyAgent);
+    });
+
+    it('should not proxy if no_proxy env var matches the origin or hostname of the URL', async () => {
+      const url = 'https://example2.com';
+      sandbox.stub(process, 'env').value({
+        https_proxy: 'https://fake.proxy',
+        no_proxy: 'example2.com',
+      });
+      const body = {hello: '🌎'};
+      const scope = nock(url).get('/').reply(200, body);
+      const res = await request({url});
+      scope.done();
+      assert.deepStrictEqual(res.data, body);
+      assert.strictEqual(res.config.agent, undefined);
+    });
+
+    it('should not proxy if no_proxy env variable has asterisk, and URL partially matches', async () => {
+      const url = 'https://domain.example.com';
+      sandbox.stub(process, 'env').value({
+        https_proxy: 'https://fake.proxy',
+        no_proxy: '*.example.com',
+      });
+      const body = {hello: '🌎'};
+      const scope = nock(url).get('/').reply(200, body);
+      const res = await request({url});
+      scope.done();
+      assert.deepStrictEqual(res.data, body);
+      assert.strictEqual(res.config.agent, undefined);
+    });
+
+    it('should proxy if no_proxy env variable has asterisk, but URL is not matching', async () => {
+      const url = 'https://domain.example2.com';
+      sandbox.stub(process, 'env').value({
+        https_proxy: 'https://fake.proxy',
+        no_proxy: '*.example.com',
+      });
+      const body = {hello: '🌎'};
+      const scope = nock(url).get('/').reply(200, body);
+      const res = await request({url});
+      scope.done();
+      assert.deepStrictEqual(res.data, body);
+      assert.ok(res.config.agent instanceof HttpsProxyAgent);
+    });
+
+    it('should not proxy if no_proxy env variable starts with a dot, and URL partially matches', async () => {
+      const url = 'https://domain.example.com';
+      sandbox.stub(process, 'env').value({
+        https_proxy: 'https://fake.proxy',
+        no_proxy: '.example.com',
+      });
+      const body = {hello: '🌎'};
+      const scope = nock(url).get('/').reply(200, body);
+      const res = await request({url});
+      scope.done();
+      assert.deepStrictEqual(res.data, body);
+      assert.strictEqual(res.config.agent, undefined);
+    });
+
+    it('should allow comma-separated lists for no_proxy env variables', async () => {
+      const url = 'https://api.google.com';
+      sandbox.stub(process, 'env').value({
+        https_proxy: 'https://fake.proxy',
+        no_proxy: 'example.com,*.google.com,hello.com',
+      });
+      const body = {hello: '🌎'};
+      const scope = nock(url).get('/').reply(200, body);
+      const res = await request({url});
+      scope.done();
+      assert.deepStrictEqual(res.data, body);
+      assert.strictEqual(res.config.agent, undefined);
+    });
   });
 
   it('should load the proxy from the cache', async () => {
@@ -267,7 +368,7 @@ describe('🥁 configuration options', () => {
     const res1 = await request({url});
     const agent = res1.config.agent;
     const res2 = await request({url});
-    assert.strictEqual(agent, res2.config.agent);
+    assert.deepStrictEqual(agent, res2.config.agent);
     scope.done();
   });
 

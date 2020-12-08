@@ -42,8 +42,6 @@ function hasFetch() {
 
 let HttpsProxyAgent: any;
 
-// Figure out if we should be using a proxy. Only if it's required, load
-// the https-proxy-agent module as it adds startup cost.
 function loadProxy() {
   const proxy =
     process.env.HTTPS_PROXY ||
@@ -56,6 +54,35 @@ function loadProxy() {
   return proxy;
 }
 loadProxy();
+
+function skipProxy(url: string) {
+  const noProxyEnv = process.env.NO_PROXY ?? process.env.no_proxy;
+  if (!noProxyEnv) {
+    return false;
+  }
+  const noProxyUrls = noProxyEnv.split(',');
+  const parsedURL = new URL(url);
+  return !!noProxyUrls.find(url => {
+    if (url.startsWith('*.') || url.startsWith('.')) {
+      url = url.replace('*', '');
+      return parsedURL.hostname.endsWith(url);
+    } else {
+      return url === parsedURL.origin || url === parsedURL.hostname;
+    }
+  });
+}
+
+// Figure out if we should be using a proxy. Only if it's required, load
+// the https-proxy-agent module as it adds startup cost.
+function getProxy(url: string) {
+  // If there is a match between the no_proxy env variables and the url, then do not proxy
+  if (skipProxy(url)) {
+    return undefined;
+    // If there is not a match between the no_proxy env variables and the url, check to see if there should be a proxy
+  } else {
+    return loadProxy();
+  }
+}
 
 export class Gaxios {
   private agentCache = new Map<
@@ -220,7 +247,7 @@ export class Gaxios {
     }
     opts.method = opts.method || 'GET';
 
-    const proxy = loadProxy();
+    const proxy = getProxy(opts.url);
     if (proxy) {
       if (this.agentCache.has(proxy)) {
         opts.agent = this.agentCache.get(proxy);
