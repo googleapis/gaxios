@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.1.0](https://www.github.com/googleapis/gaxios/compare/v4.0.1...v4.1.0) (2020-12-08)
+
+
+### Features
+
+* add an option to configure the fetch impl ([#342](https://www.github.com/googleapis/gaxios/issues/342)) ([2e081ef](https://www.github.com/googleapis/gaxios/commit/2e081ef161d84aa435788e8d525d393dc7964117))
+* add no_proxy env variable ([#361](https://www.github.com/googleapis/gaxios/issues/361)) ([efe72a7](https://www.github.com/googleapis/gaxios/commit/efe72a71de81d466160dde5da551f7a41acc3ac4))
+
 ### [4.0.1](https://www.github.com/googleapis/gaxios/compare/v4.0.0...v4.0.1) (2020-10-27)
 
 
