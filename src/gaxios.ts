@@ -44,13 +44,18 @@ function hasBuffer() {
   return typeof Buffer !== 'undefined';
 }
 
-function hasHeader(options: GaxiosOptions, headerCheck: string) {
-  headerCheck = headerCheck.toLowerCase();
-  for (let header of Object.keys(options?.headers || {})) {
-    header = header.toLowerCase();
-    if (header === headerCheck) return true;
+function hasHeader(options: GaxiosOptions, header: string) {
+  return !!getHeader(options, header);
+}
+
+function getHeader(options: GaxiosOptions, header: string): string | undefined {
+  header = header.toLowerCase();
+  for (const key of Object.keys(options?.headers || {})) {
+    if (header === key.toLowerCase()) {
+      return options.headers![key];
+    }
   }
-  return false;
+  return undefined;
 }
 
 let HttpsProxyAgent: any;
@@ -242,8 +247,8 @@ export class Gaxios {
         // If www-form-urlencoded content type has been set, but data is
         // provided as an object, serialize the content using querystring:
         if (
-          opts.headers['Content-Type'] &&
-          opts.headers['Content-Type'] === 'application/x-www-form-urlencoded'
+          getHeader(opts, 'content-type') ===
+          'application/x-www-form-urlencoded'
         ) {
           opts.body = opts.paramsSerializer(opts.data);
         } else {

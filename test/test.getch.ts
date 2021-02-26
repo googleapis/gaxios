@@ -449,7 +449,7 @@ describe('🎏 data handling', () => {
     assert.deepStrictEqual(res.data, {});
   });
 
-  it('application/x-www-form-urlencoded with object data should stringify with qs', async () => {
+  it('it should stringify with qs when content-type is set to application/x-www-form-urlencoded', async () => {
     const body = {hello: '🌎'};
     const scope = nock(url)
       .matchHeader('Content-Type', 'application/x-www-form-urlencoded')
