@@ -40,6 +40,19 @@ function hasFetch() {
   return hasWindow() && !!window.fetch;
 }
 
+function hasBuffer() {
+  return typeof Buffer !== 'undefined';
+}
+
+function hasHeader(options: GaxiosOptions, headerCheck: string) {
+  headerCheck = headerCheck.toLowerCase();
+  for (let header of Object.keys(options?.headers || {})) {
+    header = header.toLowerCase();
+    if (header === headerCheck) return true;
+  }
+  return false;
+}
+
 let HttpsProxyAgent: any;
 
 function loadProxy() {
@@ -219,21 +232,25 @@ export class Gaxios {
     if (opts.data) {
       if (isStream.readable(opts.data)) {
         opts.body = opts.data;
-      } else if (typeof opts.data === 'object') {
-        opts.body = JSON.stringify(opts.data);
-        // Allow the user to specifiy their own content type,
-        // such as application/json-patch+json; for historical reasons this
-        // content type must currently be a json type, as we are relying on
-        // application/x-www-form-urlencoded (which is incompatible with
-        // upstream GCP APIs) being rewritten to application/json.
-        //
-        // TODO: refactor upstream dependencies to stop relying on this
-        // side-effect.
-        if (
-          !opts.headers['Content-Type'] ||
-          !opts.headers['Content-Type'].includes('json')
-        ) {
+      } else if (hasBuffer() && Buffer.isBuffer(opts.data)) {
+        // Do not attempt to JSON.stringify() a Buffer:
+        opts.body = opts.data;
+        if (!hasHeader(opts, 'Content-Type')) {
           opts.headers['Content-Type'] = 'application/json';
+        }
+      } else if (typeof opts.data === 'object') {
+        // If www-form-urlencoded content type has been set, but data is
+        // provided as an object, serialize the content using querystring:
+        if (
+          opts.headers['Content-Type'] &&
+          opts.headers['Content-Type'] === 'application/x-www-form-urlencoded'
+        ) {
+          opts.body = opts.paramsSerializer(opts.data);
+        } else {
+          if (!hasHeader(opts, 'Content-Type')) {
+            opts.headers['Content-Type'] = 'application/json';
+          }
+          opts.body = JSON.stringify(opts.data);
         }
       } else {
         opts.body = opts.data;
