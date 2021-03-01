@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.2.0](https://www.github.com/googleapis/gaxios/compare/v4.1.0...v4.2.0) (2021-03-01)
+
+
+### Features
+
+* handle application/x-www-form-urlencoded/Buffer ([#374](https://www.github.com/googleapis/gaxios/issues/374)) ([ce21e9c](https://www.github.com/googleapis/gaxios/commit/ce21e9ccd228578a9f90bb2fddff797cec4a9402))
+
 ## [4.1.0](https://www.github.com/googleapis/gaxios/compare/v4.0.1...v4.1.0) (2020-12-08)
 
 
