@@ -449,11 +449,11 @@ describe('🎏 data handling', () => {
     assert.deepStrictEqual(res.data, {});
   });
 
-  it('replaces application/x-www-form-urlencoded with application/json', async () => {
+  it('should stringify with qs when content-type is set to application/x-www-form-urlencoded', async () => {
     const body = {hello: '🌎'};
     const scope = nock(url)
-      .matchHeader('Content-Type', 'application/json')
-      .post('/', JSON.stringify(body))
+      .matchHeader('Content-Type', 'application/x-www-form-urlencoded')
+      .post('/', qs.stringify(body))
       .reply(200, {});
     const res = await request({
       url,
@@ -529,5 +529,38 @@ describe('🍂 defaults & instances', () => {
     const res = await gax.request();
     scope.done();
     assert.deepStrictEqual(res.data, body);
+  });
+
+  it('should allow buffer to be posted', async () => {
+    const pkg = fs.readFileSync('./package.json');
+    const pkgJson = JSON.parse(pkg.toString('utf8'));
+    const scope = nock(url)
+      .matchHeader('content-type', 'application/dicom')
+      .post('/', pkgJson)
+      .reply(200, {});
+    const res = await request({
+      url,
+      method: 'POST',
+      data: pkg,
+      headers: {'content-type': 'application/dicom'},
+    });
+    scope.done();
+    assert.deepStrictEqual(res.data, {});
+  });
+
+  it('should set content-type to application/json by default, for buffer', async () => {
+    const pkg = fs.readFileSync('./package.json');
+    const pkgJson = JSON.parse(pkg.toString('utf8'));
+    const scope = nock(url)
+      .matchHeader('content-type', 'application/json')
+      .post('/', pkgJson)
+      .reply(200, {});
+    const res = await request({
+      url,
+      method: 'POST',
+      data: pkg,
+    });
+    scope.done();
+    assert.deepStrictEqual(res.data, {});
   });
 });
