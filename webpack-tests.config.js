@@ -22,13 +22,21 @@ module.exports = {
     alias: {
       '../../package.json': path.resolve(__dirname, 'package.json'),
     },
-  },
-  node: {
-    child_process: 'empty',
-    fs: 'empty',
-    crypto: 'empty',
-    net: 'empty',
-    tls: 'empty',
+    fallback: {
+      crypto: false,
+      child_process: false,
+      fs: false,
+      http2: false,
+      buffer: 'browserify',
+      process: false,
+      os: false,
+      querystring: false,
+      path: false,
+      stream: 'stream-browserify',
+      url: false,
+      util: false,
+      zlib: false,
+    },
   },
   module: {
     rules: [
