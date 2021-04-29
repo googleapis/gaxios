@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.2.1](https://www.github.com/googleapis/gaxios/compare/v4.2.0...v4.2.1) (2021-04-20)
+
+
+### Bug Fixes
+
+* **deps:** upgrade webpack and karma-webpack ([#379](https://www.github.com/googleapis/gaxios/issues/379)) ([75c9013](https://www.github.com/googleapis/gaxios/commit/75c90132e99c2f960c01e0faf0f8e947c920aa73))
+
 ## [4.2.0](https://www.github.com/googleapis/gaxios/compare/v4.1.0...v4.2.0) (2021-03-01)
 
 
