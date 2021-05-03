@@ -75,6 +75,7 @@
     "mv": "^2.1.1",
     "ncp": "^2.0.0",
     "nock": "^13.0.0",
+    "node-polyfill-webpack-plugin": "^1.1.0",
     "null-loader": "^4.0.0",
     "puppeteer": "^8.0.0",
     "sinon": "^10.0.0",

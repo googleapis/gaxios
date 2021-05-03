@@ -13,8 +13,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "gaxios": "file:./gaxios.tgz",
-    "karma-webpack": "^5.0.0"
+    "gaxios": "file:./gaxios.tgz"
   },
   "devDependencies": {
     "@types/node": "^10.3.0",
