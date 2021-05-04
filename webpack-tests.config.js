@@ -25,10 +25,11 @@ module.exports = {
     },
     fallback: {
       crypto: false,
+      Buffer: true,
       child_process: false,
       fs: false,
       http2: false,
-      Buffer: 'browserify',
+      buffer: 'buffer',
       process: false,
       os: false,
       querystring: false,
@@ -56,7 +57,6 @@ module.exports = {
   plugins: [
     new webpack.ProvidePlugin({
       process: 'process/browser',
-      buffer: 'browserify',
     }),
   ],
 };
