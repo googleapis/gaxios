@@ -12,7 +12,6 @@
     "gaxios": "^4.2.1"
   },
   "devDependencies": {
-    "mocha": "^8.0.0",
-    "node-polyfill-webpack-plugin": "^1.1.0"
+    "mocha": "^8.0.0"
   }
 }
