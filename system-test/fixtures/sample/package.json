@@ -17,7 +17,6 @@
   },
   "devDependencies": {
     "@types/node": "^10.3.0",
-    "buffer": "^6.0.3",
     "gts": "^3.0.0",
     "null-loader": "^4.0.0",
     "ts-loader": "^8.0.0",
