@@ -18,9 +18,9 @@ const fs = require('fs');
 const isDocker = require('is-docker')();
 
 const webpackConfig = require('./webpack-tests.config.js');
-// process.env.CHROME_BIN = fs.existsSync('/usr/bin/chromium-browser')
-//   ? '/usr/bin/chromium-browser'
-//   : require('puppeteer').executablePath();
+process.env.CHROME_BIN = fs.existsSync('/usr/bin/chromium-browser')
+  ? '/usr/bin/chromium-browser'
+  : require('puppeteer').executablePath();
 
 module.exports = function (config) {
   config.set({
