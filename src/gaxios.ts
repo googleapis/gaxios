@@ -167,7 +167,8 @@ export class Gaxios {
       err.config = opts;
       const {shouldRetry, config} = await getRetryConfig(e);
       if (shouldRetry && config) {
-        err.config.retryConfig!.currentRetryAttempt = config.retryConfig!.currentRetryAttempt;
+        err.config.retryConfig!.currentRetryAttempt =
+          config.retryConfig!.currentRetryAttempt;
         return this._request<T>(err.config);
       }
       throw err;
