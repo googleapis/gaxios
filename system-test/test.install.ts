@@ -23,7 +23,7 @@ import {promisify} from 'util';
 import {describe, it, before, after} from 'mocha';
 
 const keep = false;
-const mvp = (promisify(mv) as {}) as (...args: string[]) => Promise<void>;
+const mvp = promisify(mv) as {} as (...args: string[]) => Promise<void>;
 const ncpp = promisify(ncp);
 const stagingDir = tmp.dirSync({keep, unsafeCleanup: true});
 const stagingPath = stagingDir.name;
