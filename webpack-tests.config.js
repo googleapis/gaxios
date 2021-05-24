@@ -15,6 +15,7 @@
 // Use `npm run webpack` to produce Webpack bundle for this library.
 
 const path = require('path');
+const webpack = require('webpack');
 
 module.exports = {
   resolve: {
@@ -52,5 +53,10 @@ module.exports = {
     ],
   },
   mode: 'production',
-  plugins: [],
+  plugins: [
+    new webpack.ProvidePlugin({
+      process: 'process/browser',
+      Buffer: ['buffer', 'Buffer'],
+    }),
+  ],
 };
