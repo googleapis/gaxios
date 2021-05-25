@@ -13,6 +13,7 @@
 
 import extend from 'extend';
 import {Agent} from 'http';
+import {Agent as HTTPSAgent} from 'https';
 import nodeFetch from 'node-fetch';
 import qs from 'querystring';
 import isStream from 'is-stream';
@@ -275,8 +276,30 @@ export class Gaxios {
       if (this.agentCache.has(proxy)) {
         opts.agent = this.agentCache.get(proxy);
       } else {
-        opts.agent = new HttpsProxyAgent(proxy);
+        // Proxy is being used in conjunction with mTLS.
+        if (opts.cert && opts.key) {
+          const parsedURL = new URL(proxy);
+          opts.agent = new HttpsProxyAgent({
+            port: parsedURL.port,
+            host: parsedURL.host,
+            protocol: parsedURL.protocol,
+            cert: opts.cert,
+            key: opts.key,
+          });
+        } else {
+          opts.agent = new HttpsProxyAgent(proxy);
+        }
         this.agentCache.set(proxy, opts.agent!);
+      }
+    } else if (opts.cert && opts.key) {
+      // Configure client for mTLS:
+      if (this.agentCache.has(opts.cert)) {
+        opts.agent = this.agentCache.get(opts.cert);
+      } else {
+        opts.agent = new HTTPSAgent({
+          cert: opts.cert,
+          key: opts.key,
+        });
       }
     }
 
