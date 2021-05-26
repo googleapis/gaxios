@@ -104,10 +104,7 @@ function getProxy(url: string) {
 }
 
 export class Gaxios {
-  protected agentCache = new Map<
-    string,
-    Agent | ((parsedUrl: URL) => Agent)
-  >();
+  protected agentCache = new Map<string, Agent | ((parsedUrl: URL) => Agent)>();
 
   /**
    * Default HTTP options that will be used for every HTTP request.
