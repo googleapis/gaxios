@@ -105,6 +105,9 @@ export interface GaxiosOptions {
    * in node.js otherwise.
    */
   fetchImplementation?: FetchImplementation;
+  // Configure client to use mTLS:
+  cert?: string;
+  key?: string;
 }
 
 /**

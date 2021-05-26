@@ -25,6 +25,7 @@ import {
   request,
   GaxiosOptions,
   GaxiosResponse,
+  GaxiosPromise,
 } from '../src';
 import qs from 'querystring';
 import fs from 'fs';
@@ -562,5 +563,49 @@ describe('🍂 defaults & instances', () => {
     });
     scope.done();
     assert.deepStrictEqual(res.data, {});
+  });
+
+  describe('mtls', () => {
+    class GaxiosAssertAgentCache extends Gaxios {
+      getAgentCache() {
+        return this.agentCache;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      protected async _request<T = any>(
+        opts: GaxiosOptions = {}
+      ): GaxiosPromise<T> {
+        assert(opts.agent);
+        return super._request(opts);
+      }
+    }
+    it('uses HTTPS agent if cert and key provided, on first request', async () => {
+      const key = fs.readFileSync('./test/fixtures/fake.key', 'utf8');
+      const scope = nock(url).get('/').reply(200);
+      const inst = new GaxiosAssertAgentCache({
+        headers: {apple: 'juice'},
+        cert: fs.readFileSync('./test/fixtures/fake.cert', 'utf8'),
+        key,
+      });
+      const res = await inst.request({url, headers: {figgy: 'pudding'}});
+      scope.done();
+      assert.strictEqual(res.config.headers!.apple, 'juice');
+      assert.strictEqual(res.config.headers!.figgy, 'pudding');
+      const agentCache = inst.getAgentCache();
+      assert(agentCache.get(key));
+    });
+    it('uses HTTPS agent if cert and key provided, on subsequent requests', async () => {
+      const key = fs.readFileSync('./test/fixtures/fake.key', 'utf8');
+      const scope = nock(url).get('/').reply(200).get('/').reply(200);
+      const inst = new GaxiosAssertAgentCache({
+        headers: {apple: 'juice'},
+        cert: fs.readFileSync('./test/fixtures/fake.cert', 'utf8'),
+        key,
+      });
+      await inst.request({url, headers: {figgy: 'pudding'}});
+      await inst.request({url, headers: {figgy: 'pudding'}});
+      scope.done();
+      const agentCache = inst.getAgentCache();
+      assert(agentCache.get(key));
+    });
   });
 });

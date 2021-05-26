@@ -13,10 +13,11 @@
 
 import extend from 'extend';
 import {Agent} from 'http';
+import {Agent as HTTPSAgent} from 'https';
 import nodeFetch from 'node-fetch';
 import qs from 'querystring';
 import isStream from 'is-stream';
-import url from 'url';
+import {URL} from 'url';
 
 import {
   FetchResponse,
@@ -103,10 +104,7 @@ function getProxy(url: string) {
 }
 
 export class Gaxios {
-  private agentCache = new Map<
-    string,
-    Agent | ((parsedUrl: url.URL) => Agent)
-  >();
+  protected agentCache = new Map<string, Agent | ((parsedUrl: URL) => Agent)>();
 
   /**
    * Default HTTP options that will be used for every HTTP request.
@@ -143,7 +141,9 @@ export class Gaxios {
    * Internal, retryable version of the `request` method.
    * @param opts Set of HTTP options that will be used for this HTTP request.
    */
-  private async _request<T = any>(opts: GaxiosOptions = {}): GaxiosPromise<T> {
+  protected async _request<T = any>(
+    opts: GaxiosOptions = {}
+  ): GaxiosPromise<T> {
     try {
       let translatedResponse: GaxiosResponse<T>;
       if (opts.adapter) {
@@ -275,8 +275,31 @@ export class Gaxios {
       if (this.agentCache.has(proxy)) {
         opts.agent = this.agentCache.get(proxy);
       } else {
-        opts.agent = new HttpsProxyAgent(proxy);
+        // Proxy is being used in conjunction with mTLS.
+        if (opts.cert && opts.key) {
+          const parsedURL = new URL(proxy);
+          opts.agent = new HttpsProxyAgent({
+            port: parsedURL.port,
+            host: parsedURL.host,
+            protocol: parsedURL.protocol,
+            cert: opts.cert,
+            key: opts.key,
+          });
+        } else {
+          opts.agent = new HttpsProxyAgent(proxy);
+        }
         this.agentCache.set(proxy, opts.agent!);
+      }
+    } else if (opts.cert && opts.key) {
+      // Configure client for mTLS:
+      if (this.agentCache.has(opts.key)) {
+        opts.agent = this.agentCache.get(opts.key);
+      } else {
+        opts.agent = new HTTPSAgent({
+          cert: opts.cert,
+          key: opts.key,
+        });
+        this.agentCache.set(opts.key, opts.agent!);
       }
     }
 
