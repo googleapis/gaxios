@@ -17,7 +17,7 @@ import {Agent as HTTPSAgent} from 'https';
 import nodeFetch from 'node-fetch';
 import qs from 'querystring';
 import isStream from 'is-stream';
-import url from 'url';
+import {URL} from 'url';
 
 import {
   FetchResponse,
@@ -106,7 +106,7 @@ function getProxy(url: string) {
 export class Gaxios {
   protected agentCache = new Map<
     string,
-    Agent | ((parsedUrl: url.URL) => Agent)
+    Agent | ((parsedUrl: URL) => Agent)
   >();
 
   /**

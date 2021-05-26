@@ -570,6 +570,7 @@ describe('🍂 defaults & instances', () => {
       getAgentCache() {
         return this.agentCache;
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       protected async _request<T = any>(
         opts: GaxiosOptions = {}
       ): GaxiosPromise<T> {
