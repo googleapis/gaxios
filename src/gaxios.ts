@@ -104,7 +104,7 @@ function getProxy(url: string) {
 }
 
 export class Gaxios {
-  private agentCache = new Map<
+  protected agentCache = new Map<
     string,
     Agent | ((parsedUrl: url.URL) => Agent)
   >();
@@ -144,7 +144,9 @@ export class Gaxios {
    * Internal, retryable version of the `request` method.
    * @param opts Set of HTTP options that will be used for this HTTP request.
    */
-  private async _request<T = any>(opts: GaxiosOptions = {}): GaxiosPromise<T> {
+  protected async _request<T = any>(
+    opts: GaxiosOptions = {}
+  ): GaxiosPromise<T> {
     try {
       let translatedResponse: GaxiosResponse<T>;
       if (opts.adapter) {
@@ -293,13 +295,14 @@ export class Gaxios {
       }
     } else if (opts.cert && opts.key) {
       // Configure client for mTLS:
-      if (this.agentCache.has(opts.cert)) {
-        opts.agent = this.agentCache.get(opts.cert);
+      if (this.agentCache.has(opts.key)) {
+        opts.agent = this.agentCache.get(opts.key);
       } else {
         opts.agent = new HTTPSAgent({
           cert: opts.cert,
           key: opts.key,
         });
+        this.agentCache.set(opts.key, opts.agent!);
       }
     }
 
