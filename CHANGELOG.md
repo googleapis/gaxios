@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.3.0](https://www.github.com/googleapis/gaxios/compare/v4.2.1...v4.3.0) (2021-05-26)
+
+
+### Features
+
+* allow cert and key to be provided for mTLS ([#399](https://www.github.com/googleapis/gaxios/issues/399)) ([d74ab91](https://www.github.com/googleapis/gaxios/commit/d74ab9125d581e46d655614729872e79317c740d))
+
 ### [4.2.1](https://www.github.com/googleapis/gaxios/compare/v4.2.0...v4.2.1) (2021-04-20)
 
 
