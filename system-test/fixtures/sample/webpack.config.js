@@ -28,6 +28,7 @@ module.exports = {
       child_process: false,
       fs: false,
       http2: false,
+      https: false,
       buffer: 'browserify',
       process: false,
       os: false,
