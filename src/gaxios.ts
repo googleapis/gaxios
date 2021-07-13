@@ -83,7 +83,7 @@ function skipProxy(url: string) {
   const parsedURL = new URL(url);
   return !!noProxyUrls.find(url => {
     if (url.startsWith('*.') || url.startsWith('.')) {
-      url = url.replace('*', '');
+      url = url.replace(/^\*\./, '.');
       return parsedURL.hostname.endsWith(url);
     } else {
       return url === parsedURL.origin || url === parsedURL.hostname;
