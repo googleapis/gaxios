@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.3.1](https://www.github.com/googleapis/gaxios/compare/v4.3.0...v4.3.1) (2021-09-02)
+
+
+### Bug Fixes
+
+* **build:** switch primary branch to main ([#427](https://www.github.com/googleapis/gaxios/issues/427)) ([819219e](https://www.github.com/googleapis/gaxios/commit/819219ed742814259c525bdf5721b28234019c08))
+
 ## [4.3.0](https://www.github.com/googleapis/gaxios/compare/v4.2.1...v4.3.0) (2021-05-26)
 
 
