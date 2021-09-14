@@ -1,6 +1,6 @@
 {
   "name": "gaxios",
-  "version": "4.3.0",
+  "version": "4.3.1",
   "description": "A simple common HTTP client specifically for Google APIs and services.",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
@@ -89,6 +89,6 @@
     "extend": "^3.0.2",
     "https-proxy-agent": "^5.0.0",
     "is-stream": "^2.0.0",
-    "node-fetch": "^2.3.0"
+    "node-fetch": "^2.6.1"
   }
 }
