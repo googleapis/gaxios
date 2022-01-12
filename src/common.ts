@@ -91,6 +91,9 @@ export interface GaxiosOptions {
   params?: any;
   paramsSerializer?: (params: {[index: string]: string | number}) => string;
   timeout?: number;
+  /**
+   * @deprecated ignored
+   */
   onUploadProgress?: (progressEvent: any) => void;
   responseType?: 'arraybuffer' | 'blob' | 'json' | 'text' | 'stream';
   agent?: Agent | ((parsedUrl: URL) => Agent);
