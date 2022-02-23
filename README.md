@@ -36,6 +36,7 @@ gaxios.request({url: '/data'}).then(...);
 
 Note that setting default values will take precedence
 over other authentication methods, i.e., application default credentials.
+
 ## Request Options
 
 ```js
