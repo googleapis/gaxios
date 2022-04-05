@@ -18,6 +18,7 @@ import nodeFetch from 'node-fetch';
 import qs from 'querystring';
 import isStream from 'is-stream';
 import {URL} from 'url';
+import FormData from 'form-data';
 
 import {
   FetchResponse,
@@ -245,19 +246,24 @@ export class Gaxios {
           opts.headers['Content-Type'] = 'application/json';
         }
       } else if (typeof opts.data === 'object') {
+        console.log('is an object?');
         // If www-form-urlencoded content type has been set, but data is
         // provided as an object, serialize the content using querystring:
         if (
           getHeader(opts, 'content-type') ===
           'application/x-www-form-urlencoded'
         ) {
+          console.log('a');
           opts.body = opts.paramsSerializer(opts.data);
-        } else {
+        } else if (!(opts.data instanceof FormData)) {
+          console.log('b');
           if (!hasHeader(opts, 'Content-Type')) {
             opts.headers['Content-Type'] = 'application/json';
+            console.log('c');
           }
           opts.body = JSON.stringify(opts.data);
         }
+        console.log(opts.data instanceof FormData);
       } else {
         opts.body = opts.data;
       }
