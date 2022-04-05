@@ -1,5 +1,19 @@
 # Changelog
 
+### [4.3.2](https://www.github.com/googleapis/gaxios/compare/v4.3.1...v4.3.2) (2021-09-14)
+
+
+### Bug Fixes
+
+* address codeql warning with hostname matches ([#415](https://www.github.com/googleapis/gaxios/issues/415)) ([5a4d060](https://www.github.com/googleapis/gaxios/commit/5a4d06019343aa08e1bcf8e05108e22ac3b12636))
+
+### [4.3.1](https://www.github.com/googleapis/gaxios/compare/v4.3.0...v4.3.1) (2021-09-02)
+
+
+### Bug Fixes
+
+* **build:** switch primary branch to main ([#427](https://www.github.com/googleapis/gaxios/issues/427)) ([819219e](https://www.github.com/googleapis/gaxios/commit/819219ed742814259c525bdf5721b28234019c08))
+
 ## [4.3.0](https://www.github.com/googleapis/gaxios/compare/v4.2.1...v4.3.0) (2021-05-26)
 
 

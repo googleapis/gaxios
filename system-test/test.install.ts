@@ -36,11 +36,11 @@ describe('📦 pack and install', () => {
    * application.
    */
   before('pack and install', async () => {
-    await execa('npm', ['pack', '--unsafe-perm']);
+    await execa('npm', ['pack']);
     const tarball = `${pkg.name}-${pkg.version}.tgz`;
     await mvp(tarball, `${stagingPath}/gaxios.tgz`);
     await ncpp('system-test/fixtures/sample', `${stagingPath}/`);
-    await execa('npm', ['install', '--unsafe-perm'], {
+    await execa('npm', ['install'], {
       cwd: `${stagingPath}/`,
       stdio: 'inherit',
     });
