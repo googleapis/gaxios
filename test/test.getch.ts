@@ -26,13 +26,11 @@ import {
   GaxiosOptions,
   GaxiosResponse,
   GaxiosPromise,
-  instance,
 } from '../src';
 import qs from 'querystring';
 import fs from 'fs';
 import {Blob} from 'node-fetch';
 import FormData from 'form-data';
-import {fileURLToPath} from 'url';
 
 nock.disableNetConnect();
 
