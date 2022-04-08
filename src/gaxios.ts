@@ -236,6 +236,10 @@ export class Gaxios {
 
     opts.headers = opts.headers || {};
     if (opts.data) {
+      const isFormData =
+        typeof FormData === 'undefined'
+          ? false
+          : opts?.data instanceof FormData;
       if (isStream.readable(opts.data)) {
         opts.body = opts.data;
       } else if (hasBuffer() && Buffer.isBuffer(opts.data)) {
@@ -247,16 +251,19 @@ export class Gaxios {
       } else if (typeof opts.data === 'object') {
         // If www-form-urlencoded content type has been set, but data is
         // provided as an object, serialize the content using querystring:
-        if (
-          getHeader(opts, 'content-type') ===
-          'application/x-www-form-urlencoded'
-        ) {
-          opts.body = opts.paramsSerializer(opts.data);
-        } else {
-          if (!hasHeader(opts, 'Content-Type')) {
-            opts.headers['Content-Type'] = 'application/json';
+        if (!isFormData) {
+          if (
+            getHeader(opts, 'content-type') ===
+            'application/x-www-form-urlencoded'
+          ) {
+            opts.body = opts.paramsSerializer(opts.data);
+          } else {
+            // } else if (!(opts.data instanceof FormData)) {
+            if (!hasHeader(opts, 'Content-Type')) {
+              opts.headers['Content-Type'] = 'application/json';
+            }
+            opts.body = JSON.stringify(opts.data);
           }
-          opts.body = JSON.stringify(opts.data);
         }
       } else {
         opts.body = opts.data;

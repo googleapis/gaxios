@@ -30,6 +30,7 @@ import {
 import qs from 'querystring';
 import fs from 'fs';
 import {Blob} from 'node-fetch';
+global.FormData = require('form-data');
 
 nock.disableNetConnect();
 
@@ -379,6 +380,22 @@ describe('🥁 configuration options', () => {
     const res = await request({url, method: 'POST', data: body});
     scope.done();
     assert.deepStrictEqual(res.config.data, body);
+  });
+
+  it('should not stringify the data if it is appended by a form', async () => {
+    const formData = new FormData();
+    formData.append('test', '123');
+    // I don't think matching formdata is supported in nock, so skipping: https://github.com/nock/nock/issues/887
+    const scope = nock(url).post('/').reply(200);
+    const res = await request({
+      url,
+      method: 'POST',
+      data: formData,
+    });
+    scope.done();
+    assert.deepStrictEqual(res.config.data, formData);
+    assert.ok(res.config.data instanceof FormData);
+    assert.deepEqual(res.config.body, undefined);
   });
 
   it('should allow explicitly setting the fetch implementation to node-fetch', async () => {
