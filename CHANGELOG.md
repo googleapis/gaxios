@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.3.3](https://github.com/googleapis/gaxios/compare/v4.3.2...v4.3.3) (2022-04-08)
+
+
+### Bug Fixes
+
+* do not stringify form data ([#475](https://github.com/googleapis/gaxios/issues/475)) ([17370dc](https://github.com/googleapis/gaxios/commit/17370dcdfd4568d7f3f0855961030d238166836a))
+
 ### [4.3.2](https://www.github.com/googleapis/gaxios/compare/v4.3.1...v4.3.2) (2021-09-14)
 
 
