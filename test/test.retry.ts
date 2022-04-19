@@ -104,7 +104,8 @@ describe('🛸 retry & exponential backoff', () => {
     try {
       await req;
       throw Error('unreachable');
-    } catch (err) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
       assert(err.config);
       assert.strictEqual(err.config.retryConfig.currentRetryAttempt, 0);
     }
