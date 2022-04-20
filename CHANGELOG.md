@@ -1,5 +1,21 @@
 # Changelog
 
+## [5.0.0](https://github.com/googleapis/gaxios/compare/v4.3.3...v5.0.0) (2022-04-20)
+
+
+### ⚠ BREAKING CHANGES
+
+* drop node 10 from engines list, update typescript to 4.6.3 (#477)
+
+### Features
+
+* handling missing process global ([c30395b](https://github.com/googleapis/gaxios/commit/c30395bbf34d889e75c7c72a7dff701dc7a98244))
+
+
+### Build System
+
+* drop node 10 from engines list, update typescript to 4.6.3 ([#477](https://github.com/googleapis/gaxios/issues/477)) ([a926962](https://github.com/googleapis/gaxios/commit/a9269624a70aa6305599cc0af079d0225ed6af50))
+
 ### [4.3.3](https://github.com/googleapis/gaxios/compare/v4.3.2...v4.3.3) (2022-04-08)
 
 
