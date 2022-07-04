@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.0.1](https://github.com/googleapis/gaxios/compare/v5.0.0...v5.0.1) (2022-07-04)
+
+
+### Bug Fixes
+
+* **types:** loosen AbortSignal type ([5a379ca](https://github.com/googleapis/gaxios/commit/5a379ca123f08f286c4774711a7a3293bffc1ea6))
+
 ## [5.0.0](https://github.com/googleapis/gaxios/compare/v4.3.3...v5.0.0) (2022-04-20)
 
 
