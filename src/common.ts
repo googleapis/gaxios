@@ -11,7 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {AbortSignal} from 'abort-controller';
 import {Agent} from 'http';
 import {URL} from 'url';
 
@@ -100,7 +99,9 @@ export interface GaxiosOptions {
   validateStatus?: (status: number) => boolean;
   retryConfig?: RetryConfig;
   retry?: boolean;
-  signal?: AbortSignal;
+  // Should be instance of https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal
+  // interface. Left as 'any' due to incompatibility between spec and abort-controller.
+  signal?: any;
   size?: number;
   /**
    * Implementation of `fetch` to use when making the API call. By default,
