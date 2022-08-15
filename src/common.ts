@@ -159,6 +159,11 @@ export interface RetryConfig {
    * When there is no response, the number of retries to attempt. Defaults to 2.
    */
   noResponseRetries?: number;
+  
+  /**
+   * Function to invoke which determines how long to delay the next retry.
+   */
+   retryBackoff?: (err: GaxiosError, defaultBackoffMs: number) => Promise<void>;
 }
 
 export type FetchImplementation = (
