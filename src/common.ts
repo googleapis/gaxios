@@ -161,7 +161,9 @@ export interface RetryConfig {
   noResponseRetries?: number;
   
   /**
-   * Function to invoke which determines how long to delay the next retry.
+   * Function to invoke which returns a promise. After the promise resolves,
+   * the retry will be triggered. If provided, this will be used in-place of
+   * the `retryDelay`
    */
    retryBackoff?: (err: GaxiosError, defaultBackoffMs: number) => Promise<void>;
 }

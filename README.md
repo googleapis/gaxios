@@ -144,6 +144,11 @@ over other authentication methods, i.e., application default credentials.
 
     // The amount of time to initially delay the retry, in ms.  Defaults to 100ms.
     retryDelay?: number;
+
+    // Function to invoke which returns a promise. After the promise resolves,
+    // the retry will be triggered. If provided, this will be used in-place of
+    // the `retryDelay`
+    retryBackoff?: (err: GaxiosError, defaultBackoffMs: number) => Promise<void>; 
   },
 
   // Enables default configuration for retries.
