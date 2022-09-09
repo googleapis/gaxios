@@ -285,6 +285,7 @@ describe('🛸 retry & exponential backoff', () => {
       retry: true,
     });
     const delay = Date.now() - start;
+    console.log(delay);
     assert.ok(delay > 100 && delay < 150);
     scope.done();
   });
@@ -299,6 +300,7 @@ describe('🛸 retry & exponential backoff', () => {
       },
     });
     const delay = Date.now() - start;
+    console.log(delay);
     assert.ok(delay > 500 && delay < 550);
     scope.done();
   });
