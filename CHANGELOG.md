@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.0.2](https://github.com/googleapis/gaxios/compare/v5.0.1...v5.0.2) (2022-09-09)
+
+
+### Bug Fixes
+
+* Do not import the whole google-gax from proto JS ([#1553](https://github.com/googleapis/gaxios/issues/1553)) ([#501](https://github.com/googleapis/gaxios/issues/501)) ([6f58d1e](https://github.com/googleapis/gaxios/commit/6f58d1e80ce6b196d17fbc75dc47d8d20804920a))
+* use google-gax v3.3.0 ([6f58d1e](https://github.com/googleapis/gaxios/commit/6f58d1e80ce6b196d17fbc75dc47d8d20804920a))
+
 ## [5.0.1](https://github.com/googleapis/gaxios/compare/v5.0.0...v5.0.1) (2022-07-04)
 
 
