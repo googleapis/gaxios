@@ -76,7 +76,7 @@
     "ncp": "^2.0.0",
     "nock": "^13.0.0",
     "null-loader": "^4.0.0",
-    "puppeteer": "^17.0.0",
+    "puppeteer": "^19.0.0",
     "sinon": "^14.0.0",
     "stream-browserify": "^3.0.0",
     "tmp": "0.2.1",
