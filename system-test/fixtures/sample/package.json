@@ -16,7 +16,7 @@
     "gaxios": "file:./gaxios.tgz"
   },
   "devDependencies": {
-    "@types/node": "^16.11.3",
+    "@types/node": "^18.0.0",
     "browserify": "^17.0.0",
     "gts": "^3.0.0",
     "null-loader": "^4.0.0",
