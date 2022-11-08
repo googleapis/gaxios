@@ -6,5 +6,6 @@
   "library_type": "GAPIC_MANUAL",
   "language": "nodejs",
   "repo": "googleapis/gaxios",
-  "distribution_name": "gaxios"
+  "distribution_name": "gaxios",
+  "api_shortname": "gaxios"
 }
