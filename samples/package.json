@@ -9,7 +9,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "gaxios": "^5.0.2"
+    "gaxios": "^5.1.0"
   },
   "devDependencies": {
     "mocha": "^8.0.0"

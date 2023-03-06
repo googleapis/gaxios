@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.1.0](https://github.com/googleapis/gaxios/compare/v5.0.2...v5.1.0) (2023-03-06)
+
+
+### Features
+
+* Add support for custom backoff ([#498](https://github.com/googleapis/gaxios/issues/498)) ([4a34467](https://github.com/googleapis/gaxios/commit/4a344678110864d97818a8272ebcc5e1c4921b52))
+
 ## [5.0.2](https://github.com/googleapis/gaxios/compare/v5.0.1...v5.0.2) (2022-09-09)
 
 
