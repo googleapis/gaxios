@@ -72,10 +72,10 @@ export async function getRetryConfig(err: GaxiosError) {
   // Create a promise that invokes the retry after the backOffDelay
   const backoff = config.retryBackoff
     ? config.retryBackoff(err, delay)
-    : new Promise((resolve) => {
+    : new Promise(resolve => {
         setTimeout(resolve, delay);
       });
-      
+
   // Notify the user if they added an `onRetryAttempt` handler
   if (config.onRetryAttempt) {
     config.onRetryAttempt(err);
