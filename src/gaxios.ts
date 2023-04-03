@@ -75,7 +75,7 @@ function loadProxy() {
 loadProxy();
 
 function skipProxy(url: string) {
-  const noProxyEnv = process.env.NO_PROXY ?? process.env.no_proxy;
+  const noProxyEnv = process?.env?.NO_PROXY ?? process?.env?.no_proxy;
   if (!noProxyEnv) {
     return false;
   }
