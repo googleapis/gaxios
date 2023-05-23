@@ -247,7 +247,7 @@ describe('🥁 configuration options', () => {
       .matchHeader('accept', 'application/json')
       .get('/')
       .reply(200, {});
-    const res = await request({url});
+    const res = await request({url, responseType: 'json'});
     scope.done();
     assert.deepStrictEqual(res.data, {});
   });
@@ -531,6 +531,39 @@ describe('🎏 data handling', () => {
     scope.done();
     assert.ok(res.data);
     assert.strictEqual(res.statusText, 'OK');
+  });
+
+  it('should return JSON when response Content-Type=application/json', async () => {
+    const body = {hello: 'world'};
+    const scope = nock(url)
+      .get('/')
+      .reply(200, body, {'Content-Type': 'application/json'});
+    const res = await request({url});
+    scope.done();
+    assert.ok(res.data);
+    assert.deepStrictEqual(res.data, body);
+  });
+
+  it('should return text when response Content-Type=text/plain', async () => {
+    const body = 'hello world';
+    const scope = nock(url)
+      .get('/')
+      .reply(200, body, {'Content-Type': 'text/plain'});
+    const res = await request({url});
+    scope.done();
+    assert.ok(res.data);
+    assert.deepStrictEqual(res.data, body);
+  });
+
+  it('should return raw data when Content-Type is unable to be parsed', async () => {
+    const body = Buffer.from('hello world', 'utf-8');
+    const scope = nock(url)
+      .get('/')
+      .reply(200, body, {'Content-Type': 'image/gif'});
+    const res = await request({url});
+    scope.done();
+    assert.ok(res.data);
+    assert.notEqual(res.data, body);
   });
 });
 

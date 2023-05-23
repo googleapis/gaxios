@@ -196,7 +196,7 @@ export class Gaxios {
       case 'blob':
         return res.blob();
       default:
-        return res.text();
+        return this.getResponseDataFromContentType(res);
     }
   }
 
@@ -271,7 +271,7 @@ export class Gaxios {
     }
 
     opts.validateStatus = opts.validateStatus || this.validateStatus;
-    opts.responseType = opts.responseType || 'json';
+    opts.responseType = opts.responseType || 'unknown';
     if (!opts.headers['Accept'] && opts.responseType === 'json') {
       opts.headers['Accept'] = 'application/json';
     }
@@ -352,5 +352,32 @@ export class Gaxios {
         responseURL: res.url,
       },
     };
+  }
+
+  /**
+   * Attempts to parse a response by looking at the Content-Type header.
+   * @param {FetchResponse} response the HTTP response.
+   * @returns {Promise<any>} a promise that resolves to the response data.
+   */
+  private getResponseDataFromContentType(
+    response: FetchResponse
+  ): Promise<any> {
+    let contentType = response.headers.get('Content-Type');
+    if (contentType === null) {
+      // Maintain existing functionality by calling text()
+      return response.text();
+    }
+    contentType = contentType.toLowerCase();
+    if (contentType.includes('application/json')) {
+      return response.json();
+    } else if (
+      contentType.includes('text/plain') ||
+      contentType.includes('text/html')
+    ) {
+      return response.text();
+    } else {
+      // If the content type is something not easily handled, just return the raw data (blob)
+      return response.blob();
+    }
   }
 }
