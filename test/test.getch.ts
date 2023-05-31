@@ -56,6 +56,53 @@ describe('🚙 error handling', () => {
       return err.code === '500';
     });
   });
+
+  it('should throw the error as a GaxiosError object, regardless of Content-Type header', async () => {
+    const scope = nock(url)
+      .get('/')
+      .reply(404, {
+        config: {
+          responseType: 'json',
+        },
+        error: {
+          code: 404,
+          message: 'File not found',
+        },
+      });
+    await assert.rejects(
+      request({url, responseType: 'json'}),
+      (err: GaxiosError) => {
+        scope.done();
+        return (
+          err.code === '404' &&
+          err.message === 'Request failed with status code 404' &&
+          err.response?.data.error.message === 'File not found'
+        );
+      }
+    );
+  });
+
+  it('should throw the error as a GaxiosError object (with the message as a string), even if the request type is requested as an arraybuffer', async () => {
+    const body = {
+      error: {
+        code: 404,
+        message: 'File not found',
+      },
+    };
+    const scope = nock(url).get('/').reply(404, body);
+
+    await assert.rejects(
+      request<ArrayBuffer>({url, responseType: 'arraybuffer'}),
+      (err: GaxiosError) => {
+        scope.done();
+        return (
+          err.code === '404' &&
+          err.message === 'Request failed with status code 404' &&
+          err.response?.data.error.message === 'File not found'
+        );
+      }
+    );
+  });
 });
 
 describe('🥁 configuration options', () => {
