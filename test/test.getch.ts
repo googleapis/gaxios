@@ -58,19 +58,15 @@ describe('🚙 error handling', () => {
   });
 
   it('should throw the error as a GaxiosError object, regardless of Content-Type header', async () => {
-    const scope = nock(url)
-      .get('/')
-      .reply(404, {
-        config: {
-          responseType: 'json',
-        },
-        error: {
-          code: 404,
-          message: 'File not found',
-        },
-      });
+    const body = {
+      error: {
+        code: 404,
+        message: 'File not found',
+      },
+    };
+    const scope = nock(url).get('/').reply(404, body);
     await assert.rejects(
-      request({url, responseType: 'json'}),
+      request<JSON>({url, responseType: 'json'}),
       (err: GaxiosError) => {
         scope.done();
         return (
