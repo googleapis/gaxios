@@ -101,9 +101,9 @@ over other authentication methods, i.e., application default credentials.
   };
 
   // The expected return type of the request.  Options are:
-  // json | stream | blob | arraybuffer | text
-  // Defaults to `json`.
-  responseType: 'json',
+  // json | stream | blob | arraybuffer | text | unknown
+  // Defaults to `unknown`.
+  responseType: 'unknown',
 
   // The node.js http agent to use for the request.
   agent: someHttpsAgent,
