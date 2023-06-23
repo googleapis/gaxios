@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.1.1](https://github.com/googleapis/gaxios/compare/v5.1.0...v5.1.1) (2023-06-23)
+
+
+### Bug Fixes
+
+* Translate GaxiosError message to object regardless of return type ([#537](https://github.com/googleapis/gaxios/issues/537)) ([563c653](https://github.com/googleapis/gaxios/commit/563c6537a06bc64d5c6e918090c00ec7a586cecb))
+
 ## [5.1.0](https://github.com/googleapis/gaxios/compare/v5.0.2...v5.1.0) (2023-03-06)
 
 
