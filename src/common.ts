@@ -28,7 +28,6 @@ export class GaxiosError<T = any> extends Error {
     super(message);
     this.response = response;
     this.config = options;
-    this.response.data = translateData(options.responseType, response.data);
     this.code = response.status.toString();
   }
 }
@@ -202,19 +201,4 @@ export interface FetchHeaders {
     callbackfn: (value: string, key: string) => void,
     thisArg?: any
   ): void;
-}
-
-function translateData(responseType: string | undefined, data: any) {
-  switch (responseType) {
-    case 'stream':
-      return data;
-    case 'json':
-      return JSON.parse(JSON.stringify(data));
-    case 'arraybuffer':
-      return JSON.parse(Buffer.from(data).toString('utf8'));
-    case 'blob':
-      return JSON.parse(data.text());
-    default:
-      return JSON.parse(data.text());
-  }
 }
