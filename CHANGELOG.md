@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.1.2](https://github.com/googleapis/gaxios/compare/v5.1.1...v5.1.2) (2023-06-25)
+
+
+### Bug Fixes
+
+* Revert changes to error handling due to downstream breakage ([#544](https://github.com/googleapis/gaxios/issues/544)) ([64fbf07](https://github.com/googleapis/gaxios/commit/64fbf07f3697f40b75a9e7dbe8bff7f6243a9e12))
+
 ## [5.1.1](https://github.com/googleapis/gaxios/compare/v5.1.0...v5.1.1) (2023-06-23)
 
 
