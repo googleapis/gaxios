@@ -215,6 +215,6 @@ function translateData(responseType: string | undefined, data: any) {
     case 'blob':
       return JSON.parse(data.text());
     default:
-      return JSON.parse(data.text());
+      return data;
   }
 }
