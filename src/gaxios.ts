@@ -28,6 +28,7 @@ import {
   Headers,
 } from './common';
 import {getRetryConfig} from './retry';
+import {Stream} from 'stream';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -155,6 +156,16 @@ export class Gaxios {
         translatedResponse = await this._defaultAdapter(opts);
       }
       if (!opts.validateStatus!(translatedResponse.status)) {
+        if (opts.responseType === 'stream') {
+          let response = '';
+          await new Promise(resolve => {
+            (translatedResponse.data as Stream).on('data', chunk => {
+              response += chunk;
+            });
+            (translatedResponse.data as Stream).on('end', resolve);
+          });
+          translatedResponse.data = response as T;
+        }
         throw new GaxiosError<T>(
           `Request failed with status code ${translatedResponse.status}`,
           opts,

@@ -1,6 +1,6 @@
 {
   "name": "gaxios",
-  "version": "5.1.0",
+  "version": "5.1.3",
   "description": "A simple common HTTP client specifically for Google APIs and services.",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
@@ -37,7 +37,8 @@
   "author": "Google, LLC",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@compodoc/compodoc": "1.1.19",
+    "@babel/plugin-proposal-private-methods": "^7.18.6",
+    "@compodoc/compodoc": "^1.1.9",
     "@types/cors": "^2.8.6",
     "@types/express": "^4.16.1",
     "@types/extend": "^3.0.1",
@@ -53,7 +54,7 @@
     "abort-controller": "^3.0.0",
     "assert": "^2.0.0",
     "browserify": "^17.0.0",
-    "c8": "^7.0.0",
+    "c8": "^8.0.0",
     "cors": "^2.8.5",
     "execa": "^5.0.0",
     "express": "^4.16.4",
@@ -89,6 +90,6 @@
     "extend": "^3.0.2",
     "https-proxy-agent": "^5.0.0",
     "is-stream": "^2.0.0",
-    "node-fetch": "^2.6.7"
+    "node-fetch": "^2.6.9"
   }
 }
