@@ -17,19 +17,24 @@ import {URL} from 'url';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export class GaxiosError<T = any> extends Error {
-  code?: string;
+  code?: Number;
   response?: GaxiosResponse<T>;
   config: GaxiosOptions;
+  status: string;
   constructor(
     message: string,
     options: GaxiosOptions,
-    response: GaxiosResponse<T>
+    response: GaxiosResponse<T>,
+    error?: Error | NodeJS.ErrnoException
   ) {
     super(message);
     this.response = response;
     this.config = options;
     this.response.data = translateData(options.responseType, response.data);
-    this.code = response.status.toString();
+    if (error && 'code' in error && error.code) {
+      this.code = Number(error.code);
+    }
+    this.status = response.status.toString();
   }
 }
 
