@@ -95,7 +95,13 @@ export interface GaxiosOptions {
    * @deprecated ignored
    */
   onUploadProgress?: (progressEvent: any) => void;
-  responseType?: 'arraybuffer' | 'blob' | 'json' | 'text' | 'stream';
+  responseType?:
+    | 'arraybuffer'
+    | 'blob'
+    | 'json'
+    | 'text'
+    | 'stream'
+    | 'unknown';
   agent?: Agent | ((parsedUrl: URL) => Agent);
   validateStatus?: (status: number) => boolean;
   retryConfig?: RetryConfig;
