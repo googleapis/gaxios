@@ -17,24 +17,38 @@ import {URL} from 'url';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export class GaxiosError<T = any> extends Error {
+  /**
+   * An Error code.
+   * See {@link https://nodejs.org/api/errors.html#errorcode error.code}
+   *
+   * @example
+   * 'ECONNRESET'
+   */
   code?: string;
   response?: GaxiosResponse<T>;
   config: GaxiosOptions;
-  status: Number;
+  /**
+   * An HTTP Status code.
+   * See {@link https://developer.mozilla.org/en-US/docs/Web/API/Response/status Response: status property}
+   *
+   * @example
+   * 500
+   */
+  status: number;
   constructor(
     message: string,
     options: GaxiosOptions,
     response: GaxiosResponse<T>,
-    error?: Error | NodeJS.ErrnoException
+    public error?: Error | NodeJS.ErrnoException
   ) {
     super(message);
     this.response = response;
     this.config = options;
     this.response.data = translateData(options.responseType, response.data);
     if (error && 'code' in error && error.code) {
-      this.code = error.code.toString();
+      this.code = error.code;
     }
-    this.status = Number(response.status);
+    this.status = response.status;
   }
 }
 
