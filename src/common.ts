@@ -17,10 +17,10 @@ import {URL} from 'url';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export class GaxiosError<T = any> extends Error {
-  code?: Number;
+  code?: string;
   response?: GaxiosResponse<T>;
   config: GaxiosOptions;
-  status: string;
+  status: Number;
   constructor(
     message: string,
     options: GaxiosOptions,
@@ -32,9 +32,9 @@ export class GaxiosError<T = any> extends Error {
     this.config = options;
     this.response.data = translateData(options.responseType, response.data);
     if (error && 'code' in error && error.code) {
-      this.code = Number(error.code);
+      this.code = error.code.toString();
     }
-    this.status = response.status.toString();
+    this.status = Number(response.status);
   }
 }
 
