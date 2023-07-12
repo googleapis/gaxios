@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.0.0](https://github.com/googleapis/gaxios/compare/v5.1.3...v6.0.0) (2023-07-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* add status as a number to GaxiosError, change code to error code as a string ([#552](https://github.com/googleapis/gaxios/issues/552))
+* migrate to Node 14 ([#548](https://github.com/googleapis/gaxios/issues/548))
+* examine response content-type if no contentType is set ([#535](https://github.com/googleapis/gaxios/issues/535))
+
+### Bug Fixes
+
+* Add status as a number to GaxiosError, change code to error code as a string ([#552](https://github.com/googleapis/gaxios/issues/552)) ([88ba2e9](https://github.com/googleapis/gaxios/commit/88ba2e99e32b66d84725c9ea9ad95152bd1dc653))
+* Examine response content-type if no contentType is set ([#535](https://github.com/googleapis/gaxios/issues/535)) ([cd8ca7b](https://github.com/googleapis/gaxios/commit/cd8ca7b209f0ba932082a80ace8fec608a71facf))
+
+
+### Miscellaneous Chores
+
+* Migrate to Node 14 ([#548](https://github.com/googleapis/gaxios/issues/548)) ([b9b26eb](https://github.com/googleapis/gaxios/commit/b9b26eb2c4af35633efd91770aa24c4b5d9019b4))
+
 ## [5.1.3](https://github.com/googleapis/gaxios/compare/v5.1.2...v5.1.3) (2023-07-05)
 
 
