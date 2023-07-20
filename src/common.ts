@@ -240,7 +240,7 @@ function translateData(responseType: string | undefined, data: any) {
     case 'blob':
       return JSON.parse(data.text());
     case 'text':
-        return JSON.parse(data.text());
+      return JSON.parse(data.text());
     default:
       return data;
   }
