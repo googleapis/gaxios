@@ -206,6 +206,8 @@ export class Gaxios {
         return res.arrayBuffer();
       case 'blob':
         return res.blob();
+      case 'text':
+        return res.text();
       default:
         return this.getResponseDataFromContentType(res);
     }
