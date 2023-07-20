@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.0.1](https://github.com/googleapis/gaxios/compare/v6.0.0...v6.0.1) (2023-07-20)
+
+
+### Bug Fixes
+
+* Add text to responseType switch statement ([#554](https://github.com/googleapis/gaxios/issues/554)) ([899cf1f](https://github.com/googleapis/gaxios/commit/899cf1fb088f49927624d526f6de212837a31b9d))
+
 ## [6.0.0](https://github.com/googleapis/gaxios/compare/v5.1.3...v6.0.0) (2023-07-12)
 
 
