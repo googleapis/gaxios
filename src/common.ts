@@ -239,6 +239,8 @@ function translateData(responseType: string | undefined, data: any) {
       return JSON.parse(Buffer.from(data).toString('utf8'));
     case 'blob':
       return JSON.parse(data.text());
+    case 'text':
+      return JSON.parse(data.text());
     default:
       return data;
   }
