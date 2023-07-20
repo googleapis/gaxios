@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.0.2](https://github.com/googleapis/gaxios/compare/v6.0.1...v6.0.2) (2023-07-20)
+
+
+### Bug Fixes
+
+* Revert attempting to convert 'text/plain', leave as data in GaxiosError ([#556](https://github.com/googleapis/gaxios/issues/556)) ([d603bde](https://github.com/googleapis/gaxios/commit/d603bde35f698564c028108d24c6891cec3b8ea1))
+
 ## [6.0.1](https://github.com/googleapis/gaxios/compare/v6.0.0...v6.0.1) (2023-07-20)
 
 
