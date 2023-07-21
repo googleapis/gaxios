@@ -372,7 +372,7 @@ export class Gaxios {
    * @param {FetchResponse} response the HTTP response.
    * @returns {Promise<any>} a promise that resolves to the response data.
    */
-  private getResponseDataFromContentType(
+  private async getResponseDataFromContentType(
     response: FetchResponse
   ): Promise<any> {
     let contentType = response.headers.get('Content-Type');
@@ -382,7 +382,13 @@ export class Gaxios {
     }
     contentType = contentType.toLowerCase();
     if (contentType.includes('application/json')) {
-      return response.json();
+      let data = await response.text();
+      try {
+        data = JSON.parse(data);
+      } catch {
+        // continue
+      }
+      return data as {};
     } else if (
       contentType.includes('text/plain') ||
       contentType.includes('text/html')
