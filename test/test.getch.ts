@@ -587,6 +587,17 @@ describe('🎏 data handling', () => {
     assert.deepStrictEqual(res.data, body);
   });
 
+  it('should return invalid JSON as text when response Content-Type=application/json', async () => {
+    const body = 'hello world';
+    const scope = nock(url)
+      .get('/')
+      .reply(200, body, {'Content-Type': 'application/json'});
+    const res = await request({url});
+    scope.done();
+    assert.ok(res.data);
+    assert.deepStrictEqual(res.data, body);
+  });
+
   it('should return text when response Content-Type=text/plain', async () => {
     const body = 'hello world';
     const scope = nock(url)
