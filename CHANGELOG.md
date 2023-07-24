@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.0.3](https://github.com/googleapis/gaxios/compare/v6.0.2...v6.0.3) (2023-07-24)
+
+
+### Bug Fixes
+
+* Handle invalid json when Content-Type=application/json ([#558](https://github.com/googleapis/gaxios/issues/558)) ([71602eb](https://github.com/googleapis/gaxios/commit/71602ebc2ab18d5af904b152723756f57fb13bce))
+
 ## [6.0.2](https://github.com/googleapis/gaxios/compare/v6.0.1...v6.0.2) (2023-07-20)
 
 
