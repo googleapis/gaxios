@@ -29,6 +29,7 @@ import {
 } from './common';
 import {getRetryConfig} from './retry';
 import {Stream} from 'stream';
+import {HttpsProxyAgent as httpsProxyAgent} from 'https-proxy-agent';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -69,7 +70,7 @@ function loadProxy() {
     process?.env?.HTTP_PROXY ||
     process?.env?.http_proxy;
   if (proxy) {
-    HttpsProxyAgent = require('https-proxy-agent');
+    HttpsProxyAgent = httpsProxyAgent;
   }
   return proxy;
 }
