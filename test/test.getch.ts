@@ -17,8 +17,7 @@ import sinon from 'sinon';
 import stream from 'stream';
 import {describe, it, afterEach} from 'mocha';
 import fetch from 'node-fetch';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const HttpsProxyAgent = require('https-proxy-agent');
+import {HttpsProxyAgent} from 'https-proxy-agent';
 import {
   Gaxios,
   GaxiosError,
