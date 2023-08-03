@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.0.4](https://github.com/googleapis/gaxios/compare/v6.0.3...v6.0.4) (2023-08-03)
+
+
+### Bug Fixes
+
+* **deps:** Update https-proxy-agent to 7.0.1 and fix imports and tests ([#560](https://github.com/googleapis/gaxios/issues/560)) ([5c877e2](https://github.com/googleapis/gaxios/commit/5c877e28c3c9336a87b50536c074cb215b779d8e))
+
 ## [6.0.3](https://github.com/googleapis/gaxios/compare/v6.0.2...v6.0.3) (2023-07-24)
 
 
