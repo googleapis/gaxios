@@ -95,7 +95,7 @@ function shouldRetryRequest(err: GaxiosError) {
 
   // node-fetch raises an AbortError if signaled:
   // https://github.com/bitinn/node-fetch#request-cancellation-with-abortsignal
-  if (err.name === 'AbortError') {
+  if (err.name === 'AbortError' || err.error?.name === 'AbortError') {
     return false;
   }
 
