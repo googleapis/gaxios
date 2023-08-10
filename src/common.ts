@@ -52,7 +52,17 @@ export class GaxiosError<T = any> extends Error {
     }
 
     if (config.errorRedactor) {
-      config.errorRedactor({config, response});
+      const errorRedactor = config.errorRedactor;
+
+      // shallow-copy config for redaction as we do not want
+      // future requests to have redacted information
+      config = {...config};
+      if (response) {
+        // copy response's config, as it may be recursively redacted
+        response = {...response, config: {...response.config}};
+      }
+
+      errorRedactor({config, response});
     }
   }
 }
@@ -150,6 +160,24 @@ export interface GaxiosOptions {
    */
   errorRedactor?: typeof defaultErrorRedactor | false;
 }
+/**
+ * A partial object of `GaxiosResponse` with only redactable keys
+ *
+ * @experimental
+ */
+export type RedactableGaxiosOptions = Pick<
+  GaxiosOptions,
+  'headers' | 'data' | 'body'
+>;
+/**
+ * A partial object of `GaxiosResponse` with only redactable keys
+ *
+ * @experimental
+ */
+export type RedactableGaxiosResponse = Pick<
+  GaxiosResponse<unknown>,
+  'headers' | 'data' | 'config'
+>;
 
 /**
  * Configuration for the Gaxios `request` method.
@@ -264,8 +292,8 @@ function translateData(responseType: string | undefined, data: any) {
  * @experimental
  */
 export function defaultErrorRedactor(data: {
-  config?: GaxiosOptions;
-  response?: GaxiosResponse;
+  config?: RedactableGaxiosOptions;
+  response?: RedactableGaxiosResponse;
 }) {
   const REDACT =
     '<<REDACTED> - See `errorRedactor` option in `gaxios` for configuration>.';
