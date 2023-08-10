@@ -147,9 +147,8 @@ export class Gaxios {
   protected async _request<T = any>(
     opts: GaxiosOptions = {}
   ): GaxiosPromise<T> {
-    let translatedResponse: GaxiosResponse<T> | undefined = undefined;
-
     try {
+      let translatedResponse: GaxiosResponse<T>;
       if (opts.adapter) {
         translatedResponse = await opts.adapter<T>(
           opts,
@@ -178,7 +177,7 @@ export class Gaxios {
       }
       return translatedResponse;
     } catch (e) {
-      const err = new GaxiosError((e as Error).message, opts, translatedResponse, e as Error);
+      const err = e instanceof GaxiosError ? e : new GaxiosError((e as Error).message, opts, undefined, e as Error);
 
       const {shouldRetry, config} = await getRetryConfig(err);
       if (shouldRetry && config) {
