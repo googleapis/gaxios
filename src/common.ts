@@ -52,7 +52,7 @@ export class GaxiosError<T = any> extends Error {
     }
 
     if (config.errorRedactor) {
-      config.errorRedactor({config, response})
+      config.errorRedactor({config, response});
     }
   }
 }
@@ -263,17 +263,25 @@ function translateData(responseType: string | undefined, data: any) {
  *
  * @experimental
  */
-export function defaultErrorRedactor (data: {config?: GaxiosOptions, response?: GaxiosResponse}) {
-  const REDACT = `<<REDACTED> - See \`errorRedactor\` option in \`gaxios\` for configuration>.`;
+export function defaultErrorRedactor(data: {
+  config?: GaxiosOptions;
+  response?: GaxiosResponse;
+}) {
+  const REDACT =
+    '<<REDACTED> - See `errorRedactor` option in `gaxios` for configuration>.';
 
-  function redactHeaders (headers?: Headers) {
+  function redactHeaders(headers?: Headers) {
     if (headers && 'Authentication' in headers) {
       headers['Authentication'] = REDACT;
     }
   }
 
-  function redactString (obj: GaxiosOptions, key: keyof GaxiosOptions) {
-    if (typeof obj === 'object' && obj !== null && typeof obj[key] === 'string') {
+  function redactString(obj: GaxiosOptions, key: keyof GaxiosOptions) {
+    if (
+      typeof obj === 'object' &&
+      obj !== null &&
+      typeof obj[key] === 'string'
+    ) {
       const text = obj[key];
 
       if (/grant_type=/.test(text) || /assertion=/.test(text)) {
@@ -282,7 +290,7 @@ export function defaultErrorRedactor (data: {config?: GaxiosOptions, response?: 
     }
   }
 
-  function redactObject <T extends GaxiosOptions['data']>(obj: T) {
+  function redactObject<T extends GaxiosOptions['data']>(obj: T) {
     if (typeof obj === 'object' && obj !== null) {
       if ('grant_type' in obj) {
         obj['grant_type'] = REDACT;

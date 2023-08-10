@@ -177,7 +177,10 @@ export class Gaxios {
       }
       return translatedResponse;
     } catch (e) {
-      const err = e instanceof GaxiosError ? e : new GaxiosError((e as Error).message, opts, undefined, e as Error);
+      const err =
+        e instanceof GaxiosError
+          ? e
+          : new GaxiosError((e as Error).message, opts, undefined, e as Error);
 
       const {shouldRetry, config} = await getRetryConfig(err);
       if (shouldRetry && config) {
@@ -326,7 +329,10 @@ export class Gaxios {
       }
     }
 
-    if (typeof opts.errorRedactor !== 'function' && opts.errorRedactor !== false) {
+    if (
+      typeof opts.errorRedactor !== 'function' &&
+      opts.errorRedactor !== false
+    ) {
       opts.errorRedactor = defaultErrorRedactor;
     }
 
