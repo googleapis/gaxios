@@ -154,6 +154,15 @@ over other authentication methods, i.e., application default credentials.
   // Cancelling a request requires the `abort-controller` library.
   // See https://github.com/bitinn/node-fetch#request-cancellation-with-abortsignal
   signal?: AbortSignal
+
+  /**
+   * An experimental, customizable error redactor.
+   *
+   * Set `false` to disable.
+   *
+   * @experimental
+   */
+  errorRedactor?: typeof defaultErrorRedactor | false;
 }
 ```
 

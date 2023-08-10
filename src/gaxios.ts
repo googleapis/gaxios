@@ -26,6 +26,7 @@ import {
   GaxiosPromise,
   GaxiosResponse,
   Headers,
+  defaultErrorRedactor,
 } from './common';
 import {getRetryConfig} from './retry';
 import {Stream} from 'stream';
@@ -146,8 +147,9 @@ export class Gaxios {
   protected async _request<T = any>(
     opts: GaxiosOptions = {}
   ): GaxiosPromise<T> {
+    let translatedResponse: GaxiosResponse<T> | undefined = undefined;
+
     try {
-      let translatedResponse: GaxiosResponse<T>;
       if (opts.adapter) {
         translatedResponse = await opts.adapter<T>(
           opts,
@@ -156,14 +158,15 @@ export class Gaxios {
       } else {
         translatedResponse = await this._defaultAdapter(opts);
       }
+
       if (!opts.validateStatus!(translatedResponse.status)) {
         if (opts.responseType === 'stream') {
           let response = '';
           await new Promise(resolve => {
-            (translatedResponse.data as Stream).on('data', chunk => {
+            (translatedResponse?.data as Stream).on('data', chunk => {
               response += chunk;
             });
-            (translatedResponse.data as Stream).on('end', resolve);
+            (translatedResponse?.data as Stream).on('end', resolve);
           });
           translatedResponse.data = response as T;
         }
@@ -175,8 +178,8 @@ export class Gaxios {
       }
       return translatedResponse;
     } catch (e) {
-      const err = e as GaxiosError;
-      err.config = opts;
+      const err = new GaxiosError((e as Error).message, opts, translatedResponse, e as Error);
+
       const {shouldRetry, config} = await getRetryConfig(err);
       if (shouldRetry && config) {
         err.config.retryConfig!.currentRetryAttempt =
@@ -322,6 +325,10 @@ export class Gaxios {
         });
         this.agentCache.set(opts.key, opts.agent!);
       }
+    }
+
+    if (typeof opts.errorRedactor !== 'function' && opts.errorRedactor !== false) {
+      opts.errorRedactor = defaultErrorRedactor;
     }
 
     return opts;

@@ -25,8 +25,6 @@ export class GaxiosError<T = any> extends Error {
    * 'ECONNRESET'
    */
   code?: string;
-  response?: GaxiosResponse<T>;
-  config: GaxiosOptions;
   /**
    * An HTTP Status code.
    * See {@link https://developer.mozilla.org/en-US/docs/Web/API/Response/status Response: status property}
@@ -34,21 +32,28 @@ export class GaxiosError<T = any> extends Error {
    * @example
    * 500
    */
-  status: number;
+  status?: number;
+
   constructor(
     message: string,
-    options: GaxiosOptions,
-    response: GaxiosResponse<T>,
+    public config: GaxiosOptions,
+    public response?: GaxiosResponse<T>,
     public error?: Error | NodeJS.ErrnoException
   ) {
     super(message);
-    this.response = response;
-    this.config = options;
-    this.response.data = translateData(options.responseType, response.data);
+
+    if (this.response) {
+      this.response.data = translateData(config.responseType, response?.data);
+      this.status = this.response.status;
+    }
+
     if (error && 'code' in error && error.code) {
       this.code = error.code;
     }
-    this.status = response.status;
+
+    if (config.errorRedactor) {
+      config.errorRedactor({config, response})
+    }
   }
 }
 
@@ -138,6 +143,12 @@ export interface GaxiosOptions {
   // Configure client to use mTLS:
   cert?: string;
   key?: string;
+  /**
+   * An experimental error redactor.
+   *
+   * @experimental
+   */
+  errorRedactor?: typeof defaultErrorRedactor | false;
 }
 
 /**
@@ -241,5 +252,63 @@ function translateData(responseType: string | undefined, data: any) {
       return JSON.parse(data.text());
     default:
       return data;
+  }
+}
+
+/**
+ * An experimental error redactor.
+ *
+ * @param config Config to potentially redact properties of
+ * @param response Config to potentially redact properties of
+ *
+ * @experimental
+ */
+export function defaultErrorRedactor (data: {config?: GaxiosOptions, response?: GaxiosResponse}) {
+  const REDACT = `<<REDACTED> - See \`errorRedactor\` option in \`gaxios\` for configuration>.`;
+
+  function redactHeaders (headers?: Headers) {
+    if (headers && 'Authentication' in headers) {
+      headers['Authentication'] = REDACT;
+    }
+  }
+
+  function redactString (obj: GaxiosOptions, key: keyof GaxiosOptions) {
+    if (typeof obj === 'object' && obj !== null && typeof obj[key] === 'string') {
+      const text = obj[key];
+
+      if (/grant_type=/.test(text) || /assertion=/.test(text)) {
+        obj[key] = REDACT;
+      }
+    }
+  }
+
+  function redactObject <T extends GaxiosOptions['data']>(obj: T) {
+    if (typeof obj === 'object' && obj !== null) {
+      if ('grant_type' in obj) {
+        obj['grant_type'] = REDACT;
+      }
+
+      if ('assertion' in obj) {
+        obj['assertion'] = REDACT;
+      }
+    }
+  }
+
+  if (data.config) {
+    redactHeaders(data.config.headers);
+
+    redactString(data.config, 'data');
+    redactObject(data.config.data);
+
+    redactString(data.config, 'body');
+    redactObject(data.config.body);
+  }
+
+  if (data.response) {
+    defaultErrorRedactor({config: data.response.config});
+    redactHeaders(data.response.headers);
+
+    redactString(data.response, 'data');
+    redactObject(data.response.data);
   }
 }
