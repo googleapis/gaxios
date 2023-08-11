@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.1.0](https://github.com/googleapis/gaxios/compare/v6.0.4...v6.1.0) (2023-08-11)
+
+
+### Features
+
+* Prevent Auth Logging by Default ([#565](https://github.com/googleapis/gaxios/issues/565)) ([b28e562](https://github.com/googleapis/gaxios/commit/b28e5628f5964e2ecc04cc1df8a54948567a4b48))
+
 ## [6.0.4](https://github.com/googleapis/gaxios/compare/v6.0.3...v6.0.4) (2023-08-03)
 
 
