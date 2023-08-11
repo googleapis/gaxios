@@ -446,6 +446,32 @@ describe('🥁 configuration options', () => {
     scope.done();
     assert.deepStrictEqual(res.status, 200);
   });
+
+  it('should be able to disable the `errorRedactor`', async () => {
+    const scope = nock(url).get('/').reply(200);
+    const instance = new Gaxios({url, errorRedactor: false});
+
+    assert.equal(instance.defaults.errorRedactor, false);
+
+    await instance.request({url});
+    scope.done();
+
+    assert.equal(instance.defaults.errorRedactor, false);
+  });
+
+  it('should be able to set a custom `errorRedactor`', async () => {
+    const scope = nock(url).get('/').reply(200);
+    const errorRedactor = (t: {}) => t;
+
+    const instance = new Gaxios({url, errorRedactor});
+
+    assert.equal(instance.defaults.errorRedactor, errorRedactor);
+
+    await instance.request({url});
+    scope.done();
+
+    assert.equal(instance.defaults.errorRedactor, errorRedactor);
+  });
 });
 
 describe('🎏 data handling', () => {
@@ -617,6 +643,93 @@ describe('🎏 data handling', () => {
     scope.done();
     assert.ok(res.data);
     assert.notEqual(res.data, body);
+  });
+
+  it('should redact sensitive props via the `errorRedactor` by default', async () => {
+    const REDACT =
+      '<<REDACTED> - See `errorRedactor` option in `gaxios` for configuration>.';
+
+    const customURL = new URL(url);
+    customURL.searchParams.append('token', 'sensitive');
+    customURL.searchParams.append('random', 'non-sensitive');
+
+    const config: GaxiosOptions = {
+      headers: {
+        authentication: 'My Auth',
+        'content-type': 'application/x-www-form-urlencoded',
+        random: 'data',
+      },
+      data: {
+        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        assertion: 'somesensitivedata',
+        unrelated: 'data',
+      },
+      body: 'grant_type=somesensitivedata&assertion=somesensitivedata',
+    };
+
+    const responseHeaders = {
+      ...config.headers,
+      'content-type': 'application/json',
+    };
+    const response = {...config.data};
+
+    const scope = nock(url)
+      .post('/')
+      .query(() => true)
+      .reply(404, response, responseHeaders);
+
+    const instance = new Gaxios(JSON.parse(JSON.stringify(config)));
+
+    try {
+      await instance.request({url: customURL.toString(), method: 'POST'});
+
+      throw new Error('Expected a GaxiosError');
+    } catch (e) {
+      assert(e instanceof GaxiosError);
+
+      // config should not be mutated
+      assert.deepStrictEqual(instance.defaults, config);
+      assert.notStrictEqual(e.config, config);
+
+      // config redactions - headers
+      assert(e.config.headers);
+      assert.deepStrictEqual(e.config.headers, {
+        ...config.headers, // non-redactables should be present
+        authentication: REDACT,
+      });
+
+      // config redactions - data
+      assert.deepStrictEqual(e.config.data, {
+        ...config.data, // non-redactables should be present
+        grant_type: REDACT,
+        assertion: REDACT,
+      });
+
+      // config redactions - body
+      assert.deepStrictEqual(e.config.body, REDACT);
+
+      // config redactions - url
+      assert(e.config.url);
+      const resultURL = new URL(e.config.url);
+      assert.notDeepStrictEqual(resultURL.toString(), customURL.toString());
+      customURL.searchParams.set('token', REDACT);
+      assert.deepStrictEqual(resultURL.toString(), customURL.toString());
+
+      // response redactions
+      assert(e.response);
+      assert.deepStrictEqual(e.response.config, e.config);
+      assert.deepStrictEqual(e.response.headers, {
+        ...responseHeaders, // non-redactables should be present
+        authentication: REDACT,
+      });
+      assert.deepStrictEqual(e.response.data, {
+        ...response, // non-redactables should be present
+        grant_type: REDACT,
+        assertion: REDACT,
+      });
+    } finally {
+      scope.done();
+    }
   });
 });
 
