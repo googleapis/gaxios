@@ -7,6 +7,7 @@
 > An HTTP request client that provides an `axios` like interface over top of `node-fetch`.
 
 ## Install
+
 ```sh
 $ npm install gaxios
 ```
@@ -16,12 +17,13 @@ $ npm install gaxios
 ```js
 const {request} = require('gaxios');
 const res = await request({
-  url: 'https://www.googleapis.com/discovery/v1/apis/'
+  url: 'https://www.googleapis.com/discovery/v1/apis/',
 });
 ```
 
 ## Setting Defaults
-Gaxios supports setting default properties both on the default instance, and on additional instances. This is often useful when making many requests to the same domain with the same base settings.  For example:
+
+Gaxios supports setting default properties both on the default instance, and on additional instances. This is often useful when making many requests to the same domain with the same base settings. For example:
 
 ```js
 const gaxios = require('gaxios');
@@ -86,7 +88,7 @@ over other authentication methods, i.e., application default credentials.
     return qs.stringify(params);
   },
 
-  // The timeout for the HTTP request. Defaults to 0.
+  // The timeout for the HTTP request in milliseconds. Defaults to 0.
   timeout: 1000,
 
   // Optional method to override making the actual HTTP request. Useful
@@ -152,8 +154,18 @@ over other authentication methods, i.e., application default credentials.
   // Cancelling a request requires the `abort-controller` library.
   // See https://github.com/bitinn/node-fetch#request-cancellation-with-abortsignal
   signal?: AbortSignal
+
+  /**
+   * An experimental, customizable error redactor.
+   *
+   * Set `false` to disable.
+   *
+   * @experimental
+   */
+  errorRedactor?: typeof defaultErrorRedactor | false;
 }
 ```
 
 ## License
+
 [Apache-2.0](https://github.com/googleapis/gaxios/blob/master/LICENSE)

@@ -25,8 +25,6 @@ export class GaxiosError<T = any> extends Error {
    * 'ECONNRESET'
    */
   code?: string;
-  response?: GaxiosResponse<T>;
-  config: GaxiosOptions;
   /**
    * An HTTP Status code.
    * See {@link https://developer.mozilla.org/en-US/docs/Web/API/Response/status Response: status property}
@@ -34,21 +32,43 @@ export class GaxiosError<T = any> extends Error {
    * @example
    * 500
    */
-  status: number;
+  status?: number;
+
   constructor(
     message: string,
-    options: GaxiosOptions,
-    response: GaxiosResponse<T>,
+    public config: GaxiosOptions,
+    public response?: GaxiosResponse<T>,
     public error?: Error | NodeJS.ErrnoException
   ) {
     super(message);
-    this.response = response;
-    this.config = options;
-    this.response.data = translateData(options.responseType, response.data);
+
+    if (this.response) {
+      this.response.data = translateData(config.responseType, response?.data);
+      this.status = this.response.status;
+    }
+
     if (error && 'code' in error && error.code) {
       this.code = error.code;
     }
-    this.status = response.status;
+
+    if (config.errorRedactor) {
+      const errorRedactor = config.errorRedactor<T>;
+
+      // shallow-copy config for redaction as we do not want
+      // future requests to have redacted information
+      this.config = {...config};
+      if (this.response) {
+        // copy response's config, as it may be recursively redacted
+        this.response = {...this.response, config: {...this.response.config}};
+      }
+
+      const results = errorRedactor({config, response});
+      this.config = {...config, ...results.config};
+
+      if (this.response) {
+        this.response = {...this.response, ...results.response, config};
+      }
+    }
   }
 }
 
@@ -138,7 +158,31 @@ export interface GaxiosOptions {
   // Configure client to use mTLS:
   cert?: string;
   key?: string;
+  /**
+   * An experimental error redactor.
+   *
+   * @experimental
+   */
+  errorRedactor?: typeof defaultErrorRedactor | false;
 }
+/**
+ * A partial object of `GaxiosResponse` with only redactable keys
+ *
+ * @experimental
+ */
+export type RedactableGaxiosOptions = Pick<
+  GaxiosOptions,
+  'body' | 'data' | 'headers' | 'url'
+>;
+/**
+ * A partial object of `GaxiosResponse` with only redactable keys
+ *
+ * @experimental
+ */
+export type RedactableGaxiosResponse<T = any> = Pick<
+  GaxiosResponse<T>,
+  'config' | 'data' | 'headers'
+>;
 
 /**
  * Configuration for the Gaxios `request` method.
@@ -242,4 +286,88 @@ function translateData(responseType: string | undefined, data: any) {
     default:
       return data;
   }
+}
+
+/**
+ * An experimental error redactor.
+ *
+ * @param config Config to potentially redact properties of
+ * @param response Config to potentially redact properties of
+ *
+ * @experimental
+ */
+export function defaultErrorRedactor<T = any>(data: {
+  config?: RedactableGaxiosOptions;
+  response?: RedactableGaxiosResponse<T>;
+}) {
+  const REDACT =
+    '<<REDACTED> - See `errorRedactor` option in `gaxios` for configuration>.';
+
+  function redactHeaders(headers?: Headers) {
+    if (!headers) return;
+
+    for (const key of Object.keys(headers)) {
+      // any casing of `Authentication`
+      if (/^authentication$/.test(key)) {
+        headers[key] = REDACT;
+      }
+    }
+  }
+
+  function redactString(obj: GaxiosOptions, key: keyof GaxiosOptions) {
+    if (
+      typeof obj === 'object' &&
+      obj !== null &&
+      typeof obj[key] === 'string'
+    ) {
+      const text = obj[key];
+
+      if (/grant_type=/.test(text) || /assertion=/.test(text)) {
+        obj[key] = REDACT;
+      }
+    }
+  }
+
+  function redactObject<T extends GaxiosOptions['data']>(obj: T) {
+    if (typeof obj === 'object' && obj !== null) {
+      if ('grant_type' in obj) {
+        obj['grant_type'] = REDACT;
+      }
+
+      if ('assertion' in obj) {
+        obj['assertion'] = REDACT;
+      }
+    }
+  }
+
+  if (data.config) {
+    redactHeaders(data.config.headers);
+
+    redactString(data.config, 'data');
+    redactObject(data.config.data);
+
+    redactString(data.config, 'body');
+    redactObject(data.config.body);
+
+    try {
+      const url = new URL(data.config.url || '');
+      if (url.searchParams.has('token')) {
+        url.searchParams.set('token', REDACT);
+      }
+
+      data.config.url = url.toString();
+    } catch {
+      // ignore error
+    }
+  }
+
+  if (data.response) {
+    defaultErrorRedactor({config: data.response.config});
+    redactHeaders(data.response.headers);
+
+    redactString(data.response, 'data');
+    redactObject(data.response.data);
+  }
+
+  return data;
 }
