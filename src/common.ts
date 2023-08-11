@@ -52,17 +52,22 @@ export class GaxiosError<T = any> extends Error {
     }
 
     if (config.errorRedactor) {
-      const errorRedactor = config.errorRedactor;
+      const errorRedactor = config.errorRedactor<T>;
 
       // shallow-copy config for redaction as we do not want
       // future requests to have redacted information
-      config = {...config};
-      if (response) {
+      this.config = {...config};
+      if (this.response) {
         // copy response's config, as it may be recursively redacted
-        response = {...response, config: {...response.config}};
+        this.response = {...this.response, config: {...this.response.config}};
       }
 
-      errorRedactor({config, response});
+      const results = errorRedactor({config, response});
+      this.config = {...config, ...results.config};
+
+      if (this.response) {
+        this.response = {...this.response, ...results.response, config};
+      }
     }
   }
 }
@@ -174,8 +179,8 @@ export type RedactableGaxiosOptions = Pick<
  *
  * @experimental
  */
-export type RedactableGaxiosResponse = Pick<
-  GaxiosResponse<unknown>,
+export type RedactableGaxiosResponse<T = any> = Pick<
+  GaxiosResponse<T>,
   'config' | 'data' | 'headers'
 >;
 
@@ -291,16 +296,21 @@ function translateData(responseType: string | undefined, data: any) {
  *
  * @experimental
  */
-export function defaultErrorRedactor(data: {
+export function defaultErrorRedactor<T = any>(data: {
   config?: RedactableGaxiosOptions;
-  response?: RedactableGaxiosResponse;
+  response?: RedactableGaxiosResponse<T>;
 }) {
   const REDACT =
     '<<REDACTED> - See `errorRedactor` option in `gaxios` for configuration>.';
 
   function redactHeaders(headers?: Headers) {
-    if (headers && 'Authentication' in headers) {
-      headers['Authentication'] = REDACT;
+    if (!headers) return;
+
+    for (const key of Object.keys(headers)) {
+      // any casing of `Authentication`
+      if (/^authentication$/.test(key)) {
+        headers[key] = REDACT;
+      }
     }
   }
 
@@ -340,8 +350,8 @@ export function defaultErrorRedactor(data: {
     redactObject(data.config.body);
 
     try {
-      const url = new URL(data.config.url || '', 'https://');
-      if ('token' in url.searchParams) {
+      const url = new URL(data.config.url || '');
+      if (url.searchParams.has('token')) {
         url.searchParams.set('token', REDACT);
       }
 
@@ -358,4 +368,6 @@ export function defaultErrorRedactor(data: {
     redactString(data.response, 'data');
     redactObject(data.response.data);
   }
+
+  return data;
 }
