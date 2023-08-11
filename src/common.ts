@@ -167,7 +167,7 @@ export interface GaxiosOptions {
  */
 export type RedactableGaxiosOptions = Pick<
   GaxiosOptions,
-  'headers' | 'data' | 'body'
+  'body' | 'data' | 'headers' | 'url'
 >;
 /**
  * A partial object of `GaxiosResponse` with only redactable keys
@@ -176,7 +176,7 @@ export type RedactableGaxiosOptions = Pick<
  */
 export type RedactableGaxiosResponse = Pick<
   GaxiosResponse<unknown>,
-  'headers' | 'data' | 'config'
+  'config' | 'data' | 'headers'
 >;
 
 /**
@@ -338,6 +338,17 @@ export function defaultErrorRedactor(data: {
 
     redactString(data.config, 'body');
     redactObject(data.config.body);
+
+    try {
+      const url = new URL(data.config.url || '', 'https://');
+      if ('token' in url.searchParams) {
+        url.searchParams.set('token', REDACT);
+      }
+
+      data.config.url = url.toString();
+    } catch {
+      // ignore error
+    }
   }
 
   if (data.response) {
