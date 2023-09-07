@@ -43,7 +43,14 @@ export class GaxiosError<T = any> extends Error {
     super(message);
 
     if (this.response) {
-      this.response.data = translateData(config.responseType, response?.data);
+      try {
+        this.response.data = translateData(config.responseType, response?.data);
+      } catch {
+        // best effort - don't throw an error within an error
+        // we could set `this.response.config.responseType = 'unknown'`, but
+        // that would mutate future calls with this config object.
+      }
+
       this.status = this.response.status;
     }
 
@@ -357,7 +364,7 @@ export function defaultErrorRedactor<T = any>(data: {
 
       data.config.url = url.toString();
     } catch {
-      // ignore error
+      // ignore error - no need to parse an invalid URL
     }
   }
 

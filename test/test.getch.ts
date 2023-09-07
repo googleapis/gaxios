@@ -98,6 +98,27 @@ describe('🚙 error handling', () => {
       }
     );
   });
+
+  it('should not throw an error during a translation error', () => {
+    const notJSON = '.';
+    const response: GaxiosResponse = {
+      config: {
+        responseType: 'json',
+      },
+      data: notJSON,
+      status: 500,
+      statusText: '',
+      headers: {},
+      request: {
+        responseURL: url,
+      },
+    };
+
+    const error = new GaxiosError('translation test', {}, response);
+
+    assert(error.response, undefined);
+    assert.equal(error.response.data, notJSON);
+  });
 });
 
 describe('🥁 configuration options', () => {
