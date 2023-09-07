@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.1.1](https://github.com/googleapis/gaxios/compare/v6.1.0...v6.1.1) (2023-09-07)
+
+
+### Bug Fixes
+
+* Don't throw an error within a `GaxiosError` ([#569](https://github.com/googleapis/gaxios/issues/569)) ([035d9dd](https://github.com/googleapis/gaxios/commit/035d9dd833c3ad63148bc50facaee421f4792192))
+
 ## [6.1.0](https://github.com/googleapis/gaxios/compare/v6.0.4...v6.1.0) (2023-08-11)
 
 
