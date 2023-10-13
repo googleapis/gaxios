@@ -655,6 +655,17 @@ describe('🎏 data handling', () => {
     assert.deepStrictEqual(res.data, body);
   });
 
+  it('should return text when response Content-Type=text/csv', async () => {
+    const body = '"col1","col2"\n"hello","world"';
+    const scope = nock(url)
+      .get('/')
+      .reply(200, body, {'Content-Type': 'text/csv'});
+    const res = await request({url});
+    scope.done();
+    assert.ok(res.data);
+    assert.deepStrictEqual(res.data, body);
+  });
+
   it('should return raw data when Content-Type is unable to be parsed', async () => {
     const body = Buffer.from('hello world', 'utf-8');
     const scope = nock(url)
