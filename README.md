@@ -132,7 +132,7 @@ over other authentication methods, i.e., application default credentials.
     httpMethodsToRetry?: string[];
 
     // The HTTP response status codes that will automatically be retried.
-    // Defaults to: [[100, 199], [429, 429], [500, 599]]
+    // Defaults to: [[100, 199], [400, 429], [500, 599]]
     statusCodesToRetry?: number[][];
 
     // Function to invoke when a retry attempt is made.
