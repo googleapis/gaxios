@@ -26,6 +26,8 @@ import {
   GaxiosResponse,
   GaxiosPromise,
 } from '../src';
+import {GAXIOS_ERROR_SYMBOL} from '../src/common';
+import {pkg} from '../src/util';
 import qs from 'querystring';
 import fs from 'fs';
 import {Blob} from 'node-fetch';
@@ -118,6 +120,18 @@ describe('🚙 error handling', () => {
 
     assert(error.response, undefined);
     assert.equal(error.response.data, notJSON);
+  });
+
+  it('should support `instanceof` for GaxiosErrors of the same version', () => {
+    class A extends GaxiosError {}
+
+    const wrongVersion = {[GAXIOS_ERROR_SYMBOL]: '0.0.0'};
+    const correctVersion = {[GAXIOS_ERROR_SYMBOL]: pkg.version};
+    const child = new A('', {});
+
+    assert.equal(wrongVersion instanceof GaxiosError, false);
+    assert.equal(correctVersion instanceof GaxiosError, true);
+    assert.equal(child instanceof GaxiosError, true);
   });
 });
 

@@ -14,8 +14,16 @@
 import {Agent} from 'http';
 import {URL} from 'url';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import {pkg} from './util';
 
+/**
+ * Support `instanceof` operator for `GaxiosError`s in different versions of this library.
+ *
+ * @see {@link GaxiosError[Symbol.hasInstance]}
+ */
+export const GAXIOS_ERROR_SYMBOL = Symbol.for(`${pkg.name}-gaxios-error`);
+
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 export class GaxiosError<T = any> extends Error {
   /**
    * An Error code.
@@ -33,6 +41,37 @@ export class GaxiosError<T = any> extends Error {
    * 500
    */
   status?: number;
+
+  /**
+   * Support `instanceof` operator for `GaxiosError` across builds/duplicated files.
+   *
+   * @see {@link GAXIOS_ERROR_SYMBOL}
+   * @see {@link GaxiosError[Symbol.hasInstance]}
+   * @see {@link https://github.com/microsoft/TypeScript/issues/13965#issuecomment-278570200}
+   * @see {@link https://stackoverflow.com/questions/46618852/require-and-instanceof}
+   * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/@@hasInstance#reverting_to_default_instanceof_behavior}
+   */
+  [GAXIOS_ERROR_SYMBOL] = pkg.version;
+
+  /**
+   * Support `instanceof` operator for `GaxiosError` across builds/duplicated files.
+   *
+   * @see {@link GAXIOS_ERROR_SYMBOL}
+   * @see {@link GaxiosError[GAXIOS_ERROR_SYMBOL]}
+   */
+  static [Symbol.hasInstance](instance: unknown) {
+    if (
+      instance &&
+      typeof instance === 'object' &&
+      GAXIOS_ERROR_SYMBOL in instance &&
+      instance[GAXIOS_ERROR_SYMBOL] === pkg.version
+    ) {
+      return true;
+    }
+
+    // fallback to native
+    return Function.prototype[Symbol.hasInstance].call(GaxiosError, instance);
+  }
 
   constructor(
     message: string,
