@@ -402,10 +402,7 @@ export class Gaxios {
         // continue
       }
       return data as {};
-    } else if (
-      contentType.includes('text/plain') ||
-      contentType.includes('text/html')
-    ) {
+    } else if (contentType.match(/^text\//)) {
       return response.text();
     } else {
       // If the content type is something not easily handled, just return the raw data (blob)
