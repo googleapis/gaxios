@@ -15,6 +15,7 @@ import {Agent} from 'http';
 import {URL} from 'url';
 
 import {pkg} from './util';
+import extend from 'extend';
 
 /**
  * Support `instanceof` operator for `GaxiosError`s in different versions of this library.
@@ -81,9 +82,19 @@ export class GaxiosError<T = any> extends Error {
   ) {
     super(message);
 
+    // deep-copy config as we do not want to mutate
+    // the existing config for future retries/use
+    this.config = extend(true, {}, config);
+    if (this.response) {
+      this.response.config = extend(true, {}, this.response.config);
+    }
+
     if (this.response) {
       try {
-        this.response.data = translateData(config.responseType, response?.data);
+        this.response.data = translateData(
+          this.config.responseType,
+          this.response?.data
+        );
       } catch {
         // best effort - don't throw an error within an error
         // we could set `this.response.config.responseType = 'unknown'`, but
@@ -98,22 +109,10 @@ export class GaxiosError<T = any> extends Error {
     }
 
     if (config.errorRedactor) {
-      const errorRedactor = config.errorRedactor<T>;
-
-      // shallow-copy config for redaction as we do not want
-      // future requests to have redacted information
-      this.config = {...config};
-      if (this.response) {
-        // copy response's config, as it may be recursively redacted
-        this.response = {...this.response, config: {...this.response.config}};
-      }
-
-      const results = errorRedactor({config, response});
-      this.config = {...config, ...results.config};
-
-      if (this.response) {
-        this.response = {...this.response, ...results.response, config};
-      }
+      config.errorRedactor<T>({
+        config: this.config,
+        response: this.response,
+      });
     }
   }
 }
