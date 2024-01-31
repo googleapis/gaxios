@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.2.0](https://github.com/googleapis/gaxios/compare/v6.1.1...v6.2.0) (2024-01-31)
+
+
+### Features
+
+* Extend `instanceof` Support for GaxiosError ([#593](https://github.com/googleapis/gaxios/issues/593)) ([4fd1fe2](https://github.com/googleapis/gaxios/commit/4fd1fe2c91b9888c4f976cf91e752d407b99ec75))
+
+
+### Bug Fixes
+
+* Do Not Mutate Config for Redacted Retries ([#597](https://github.com/googleapis/gaxios/issues/597)) ([4d1a551](https://github.com/googleapis/gaxios/commit/4d1a55134940031a1e0ff2392ab0b08c186166f0))
+* Return text when content type is text/* ([#579](https://github.com/googleapis/gaxios/issues/579)) ([3cc1c76](https://github.com/googleapis/gaxios/commit/3cc1c76a08d98daac01c83bed6f9480320ec0a37))
+
 ## [6.1.1](https://github.com/googleapis/gaxios/compare/v6.1.0...v6.1.1) (2023-09-07)
 
 
