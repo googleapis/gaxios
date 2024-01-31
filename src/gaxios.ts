@@ -187,7 +187,12 @@ export class Gaxios {
       if (shouldRetry && config) {
         err.config.retryConfig!.currentRetryAttempt =
           config.retryConfig!.currentRetryAttempt;
-        return this._request<T>(err.config);
+
+        // The error's config could be redacted - therefore we only want to
+        // copy the retry state over to the existing config
+        opts.retryConfig = err.config?.retryConfig;
+
+        return this._request<T>(opts);
       }
       throw err;
     }
