@@ -147,7 +147,7 @@ export interface GaxiosOptions {
     options: GaxiosOptions,
     defaultAdapter: (options: GaxiosOptions) => GaxiosPromise<T>
   ) => GaxiosPromise<T>;
-  url?: string; // TODO: | URL
+  url?: string;
   baseUrl?: string; // deprecated
   baseURL?: string;
   method?:
