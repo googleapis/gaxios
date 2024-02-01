@@ -720,6 +720,7 @@ describe('🎏 data handling', () => {
       body: 'grant_type=somesensitivedata&assertion=somesensitivedata',
     };
 
+    // simulate JSON response
     const responseHeaders = {
       ...config.headers,
       'content-type': 'application/json',
@@ -732,9 +733,14 @@ describe('🎏 data handling', () => {
       .reply(404, response, responseHeaders);
 
     const instance = new Gaxios(JSON.parse(JSON.stringify(config)));
+    const requestConfig: GaxiosOptions = {
+      url: customURL.toString(),
+      method: 'POST',
+    };
+    const requestConfigCopy = JSON.parse(JSON.stringify({...requestConfig}));
 
     try {
-      await instance.request({url: customURL.toString(), method: 'POST'});
+      await instance.request(requestConfig);
 
       throw new Error('Expected a GaxiosError');
     } catch (e) {
@@ -742,6 +748,7 @@ describe('🎏 data handling', () => {
 
       // config should not be mutated
       assert.deepStrictEqual(instance.defaults, config);
+      assert.deepStrictEqual(requestConfig, requestConfigCopy);
       assert.notStrictEqual(e.config, config);
 
       // config redactions - headers
