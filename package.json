@@ -1,6 +1,6 @@
 {
   "name": "gaxios",
-  "version": "6.2.0",
+  "version": "6.3.0",
   "description": "A simple common HTTP client specifically for Google APIs and services.",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
