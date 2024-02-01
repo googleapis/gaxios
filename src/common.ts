@@ -147,9 +147,12 @@ export interface GaxiosOptions {
     options: GaxiosOptions,
     defaultAdapter: (options: GaxiosOptions) => GaxiosPromise<T>
   ) => GaxiosPromise<T>;
-  url?: string;
-  baseUrl?: string; // deprecated
-  baseURL?: string;
+  url?: string | URL;
+  /**
+   * @deprecated
+   */
+  baseUrl?: string;
+  baseURL?: string | URL;
   method?:
     | 'GET'
     | 'HEAD'
@@ -395,7 +398,8 @@ export function defaultErrorRedactor<T = any>(data: {
     redactObject(data.config.body);
 
     try {
-      const url = new URL(data.config.url || '');
+      const url = new URL('', data.config.url);
+
       if (url.searchParams.has('token')) {
         url.searchParams.set('token', REDACT);
       }
