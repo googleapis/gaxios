@@ -136,6 +136,13 @@ describe('🚙 error handling', () => {
 });
 
 describe('🥁 configuration options', () => {
+  it('should accept URL objects', async () => {
+    const scope = nock(url).get('/').reply(204);
+    const res = await request({url: new URL(url)});
+    scope.done();
+    assert.strictEqual(res.config.method, 'GET');
+  });
+
   it('should use options passed into the constructor', async () => {
     const scope = nock(url).head('/').reply(200);
     const inst = new Gaxios({method: 'HEAD'});

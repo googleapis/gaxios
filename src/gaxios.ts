@@ -77,13 +77,13 @@ function loadProxy() {
 }
 loadProxy();
 
-function skipProxy(url: string) {
+function skipProxy(url: string | URL) {
   const noProxyEnv = process.env.NO_PROXY ?? process.env.no_proxy;
   if (!noProxyEnv) {
     return false;
   }
   const noProxyUrls = noProxyEnv.split(',');
-  const parsedURL = new URL(url);
+  const parsedURL = url instanceof URL ? url : new URL(url);
   return !!noProxyUrls.find(url => {
     if (url.startsWith('*.') || url.startsWith('.')) {
       url = url.replace(/^\*\./, '.');
@@ -96,7 +96,7 @@ function skipProxy(url: string) {
 
 // Figure out if we should be using a proxy. Only if it's required, load
 // the https-proxy-agent module as it adds startup cost.
-function getProxy(url: string) {
+function getProxy(url: string | URL) {
   // If there is a match between the no_proxy env variables and the url, then do not proxy
   if (skipProxy(url)) {
     return undefined;
@@ -232,7 +232,7 @@ export class Gaxios {
     // baseUrl has been deprecated, remove in 2.0
     const baseUrl = opts.baseUrl || opts.baseURL;
     if (baseUrl) {
-      opts.url = baseUrl + opts.url;
+      opts.url = baseUrl.toString() + opts.url;
     }
 
     opts.paramsSerializer = opts.paramsSerializer || this.paramsSerializer;
@@ -241,7 +241,7 @@ export class Gaxios {
       if (additionalQueryParams.startsWith('?')) {
         additionalQueryParams = additionalQueryParams.slice(1);
       }
-      const prefix = opts.url.includes('?') ? '&' : '?';
+      const prefix = opts.url.toString().includes('?') ? '&' : '?';
       opts.url = opts.url + prefix + additionalQueryParams;
     }
 
