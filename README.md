@@ -44,13 +44,14 @@ over other authentication methods, i.e., application default credentials.
 ```js
 {
   // The url to which the request should be sent.  Required.
-  url: string,
+  url: string | URL,
 
   // The HTTP method to use for the request.  Defaults to `GET`.
   method: 'GET',
 
-  // The base Url to use for the request. Prepended to the `url` property above.
-  baseURL: 'https://example.com';
+  // The base Url to use for the request.
+  // Resolved as `new URL(url, baseURL)`
+  baseURL: 'https://example.com/v1/' | URL;
 
   // The HTTP methods to be sent with the request.
   headers: { 'some': 'header' },

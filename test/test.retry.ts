@@ -141,14 +141,12 @@ describe('🛸 retry & exponential backoff', () => {
     scope.done();
   });
 
-  it('should retain the baseUrl on retry', async () => {
+  it('should retain the baseURL on retry', async () => {
     const body = {pumpkin: '🥧'};
     const url = '/path';
-    const baseUrl = 'http://example.com';
-    const scope = nock(baseUrl).get(url).reply(500).get(url).reply(200, body);
-    const gaxios = new Gaxios({
-      baseUrl,
-    });
+    const baseURL = 'http://example.com';
+    const scope = nock(baseURL).get(url).reply(500).get(url).reply(200, body);
+    const gaxios = new Gaxios({baseURL});
     const res = await gaxios.request({
       url,
       retry: true,

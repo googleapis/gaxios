@@ -236,10 +236,10 @@ export class Gaxios {
       throw new Error('URL is required.');
     }
 
-    // baseUrl has been deprecated, remove in 2.0
-    const baseUrl = opts.baseUrl || opts.baseURL;
-    if (baseUrl) {
-      opts.url = baseUrl.toString() + opts.url;
+    if (opts.baseURL) {
+      const base =
+        opts.baseURL instanceof URL ? opts.baseURL : new URL(opts.baseURL);
+      opts.url = new URL(opts.url.toString(), base);
     }
 
     opts.paramsSerializer = opts.paramsSerializer || this.paramsSerializer;
