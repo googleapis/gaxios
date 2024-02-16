@@ -85,7 +85,7 @@ function skipProxy(url: string | URL) {
     return false;
   }
   const noProxyUrls = noProxyEnv.split(',');
-  const parsedURL = url instanceof URL ? url : new URL(url);
+  const parsedURL = new URL(url);
   return !!noProxyUrls.find(url => {
     if (url.startsWith('*.') || url.startsWith('.')) {
       url = url.replace(/^\*\./, '.');
@@ -237,9 +237,7 @@ export class Gaxios {
     }
 
     if (opts.baseURL) {
-      const base =
-        opts.baseURL instanceof URL ? opts.baseURL : new URL(opts.baseURL);
-      opts.url = new URL(opts.url.toString(), base);
+      opts.url = new URL(opts.url, opts.baseURL);
     }
 
     opts.paramsSerializer = opts.paramsSerializer || this.paramsSerializer;
