@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.3.0](https://github.com/googleapis/gaxios/compare/v6.2.0...v6.3.0) (2024-02-01)
+
+
+### Features
+
+* Support URL objects ([#598](https://github.com/googleapis/gaxios/issues/598)) ([ef40c61](https://github.com/googleapis/gaxios/commit/ef40c61fabf0a48b2f08be085ee0c56dc32cf78c))
+
 ## [6.2.0](https://github.com/googleapis/gaxios/compare/v6.1.1...v6.2.0) (2024-01-31)
 
 
