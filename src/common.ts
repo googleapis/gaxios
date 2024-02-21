@@ -148,10 +148,6 @@ export interface GaxiosOptions {
     defaultAdapter: (options: GaxiosOptions) => GaxiosPromise<T>
   ) => GaxiosPromise<T>;
   url?: string | URL;
-  /**
-   * @deprecated
-   */
-  baseUrl?: string;
   baseURL?: string | URL;
   method?:
     | 'GET'
