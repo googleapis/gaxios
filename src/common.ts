@@ -209,6 +209,12 @@ export interface GaxiosOptions {
   /**
    * An experimental error redactor.
    *
+   * @remarks
+   *
+   * This does not replace the requirement for an active Data Loss Prevention (DLP) provider. For DLP suggestions, see:
+   * - https://cloud.google.com/sensitive-data-protection/docs/redacting-sensitive-data#dlp_deidentify_replace_infotype-nodejs
+   * - https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference#credentials_and_secrets
+   *
    * @experimental
    */
   errorRedactor?: typeof defaultErrorRedactor | false;
