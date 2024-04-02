@@ -209,6 +209,12 @@ export interface GaxiosOptions {
   /**
    * An experimental error redactor.
    *
+   * @remarks
+   *
+   * This does not replace the requirement for an active Data Loss Prevention (DLP) provider. For DLP suggestions, see:
+   * - https://cloud.google.com/sensitive-data-protection/docs/redacting-sensitive-data#dlp_deidentify_replace_infotype-nodejs
+   * - https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference#credentials_and_secrets
+   *
    * @experimental
    */
   errorRedactor?: typeof defaultErrorRedactor | false;
@@ -359,6 +365,16 @@ export function defaultErrorRedactor<T = any>(data: {
       if (/^authentication$/.test(key)) {
         headers[key] = REDACT;
       }
+
+      // any casing of `Authorization`
+      if (/^authorization$/.test(key)) {
+        headers[key] = REDACT;
+      }
+
+      // anything containing secret, such as 'client secret'
+      if (/secret/.test(key)) {
+        headers[key] = REDACT;
+      }
     }
   }
 
@@ -370,7 +386,11 @@ export function defaultErrorRedactor<T = any>(data: {
     ) {
       const text = obj[key];
 
-      if (/grant_type=/.test(text) || /assertion=/.test(text)) {
+      if (
+        /grant_type=/.test(text) ||
+        /assertion=/.test(text) ||
+        /secret/.test(text)
+      ) {
         obj[key] = REDACT;
       }
     }
@@ -384,6 +404,10 @@ export function defaultErrorRedactor<T = any>(data: {
 
       if ('assertion' in obj) {
         obj['assertion'] = REDACT;
+      }
+
+      if ('client_secret' in obj) {
+        obj['client_secret'] = REDACT;
       }
     }
   }
@@ -402,6 +426,10 @@ export function defaultErrorRedactor<T = any>(data: {
 
       if (url.searchParams.has('token')) {
         url.searchParams.set('token', REDACT);
+      }
+
+      if (url.searchParams.has('client_secret')) {
+        url.searchParams.set('client_secret', REDACT);
       }
 
       data.config.url = url.toString();
