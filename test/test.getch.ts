@@ -704,11 +704,13 @@ describe('🎏 data handling', () => {
 
     const customURL = new URL(url);
     customURL.searchParams.append('token', 'sensitive');
+    customURL.searchParams.append('client_secret', 'data');
     customURL.searchParams.append('random', 'non-sensitive');
 
     const config: GaxiosOptions = {
       headers: {
         authentication: 'My Auth',
+        authorization: 'My Auth',
         'content-type': 'application/x-www-form-urlencoded',
         random: 'data',
       },
@@ -716,8 +718,9 @@ describe('🎏 data handling', () => {
         grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
         assertion: 'somesensitivedata',
         unrelated: 'data',
+        client_secret: 'data',
       },
-      body: 'grant_type=somesensitivedata&assertion=somesensitivedata',
+      body: 'grant_type=somesensitivedata&assertion=somesensitivedata&client_secret=data',
     };
 
     // simulate JSON response
@@ -756,6 +759,7 @@ describe('🎏 data handling', () => {
       assert.deepStrictEqual(e.config.headers, {
         ...config.headers, // non-redactables should be present
         authentication: REDACT,
+        authorization: REDACT,
       });
 
       // config redactions - data
@@ -763,6 +767,7 @@ describe('🎏 data handling', () => {
         ...config.data, // non-redactables should be present
         grant_type: REDACT,
         assertion: REDACT,
+        client_secret: REDACT,
       });
 
       // config redactions - body
@@ -773,6 +778,7 @@ describe('🎏 data handling', () => {
       const resultURL = new URL(e.config.url);
       assert.notDeepStrictEqual(resultURL.toString(), customURL.toString());
       customURL.searchParams.set('token', REDACT);
+      customURL.searchParams.set('client_secret', REDACT);
       assert.deepStrictEqual(resultURL.toString(), customURL.toString());
 
       // response redactions
@@ -781,11 +787,13 @@ describe('🎏 data handling', () => {
       assert.deepStrictEqual(e.response.headers, {
         ...responseHeaders, // non-redactables should be present
         authentication: REDACT,
+        authorization: REDACT,
       });
       assert.deepStrictEqual(e.response.data, {
         ...response, // non-redactables should be present
-        grant_type: REDACT,
         assertion: REDACT,
+        client_secret: REDACT,
+        grant_type: REDACT,
       });
     } finally {
       scope.done();
