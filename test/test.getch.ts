@@ -14,7 +14,7 @@
 import assert from 'assert';
 import nock from 'nock';
 import sinon from 'sinon';
-import stream from 'stream';
+import stream, {Readable} from 'stream';
 import {describe, it, afterEach} from 'mocha';
 import fetch from 'node-fetch';
 import {HttpsProxyAgent} from 'https-proxy-agent';
@@ -696,6 +696,69 @@ describe('🎏 data handling', () => {
     scope.done();
     assert.ok(res.data);
     assert.notEqual(res.data, body);
+  });
+
+  it('should handle multipart/related when options.multipart is set and a single part', async () => {
+    const bodyContent = {hello: '🌎'};
+    const body = new Readable();
+    body.push(JSON.stringify(bodyContent));
+    body.push(null);
+    const scope = nock(url)
+      .matchHeader(
+        'Content-Type',
+        /multipart\/related; boundary=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/
+      )
+      .post(
+        '/',
+        /^(--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}[\r\n]+Content-Type: application\/json[\r\n\r\n]+{"hello":"🌎"}[\r\n]+--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}--)$/
+      )
+      .reply(200, {});
+    const res = await request({
+      url,
+      method: 'POST',
+      multipart: [
+        {
+          headers: {'Content-Type': 'application/json'},
+          content: body,
+        },
+      ],
+    });
+    scope.done();
+    assert.ok(res.data);
+  });
+
+  it('should handle multipart/related when options.multipart is set and a multiple parts', async () => {
+    const jsonContent = {hello: '🌎'};
+    const textContent = 'hello world';
+    const body = new Readable();
+    body.push(JSON.stringify(jsonContent));
+    body.push(null);
+    const scope = nock(url)
+      .matchHeader(
+        'Content-Type',
+        /multipart\/related; boundary=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/
+      )
+      .post(
+        '/',
+        /^(--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}[\r\n]+Content-Type: application\/json[\r\n\r\n]+{"hello":"🌎"}[\r\n]+--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}[\r\n]+Content-Type: text\/plain[\r\n\r\n]+hello world[\r\n]+--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}--)$/
+      )
+      .reply(200, {});
+    const res = await request({
+      url,
+      method: 'POST',
+      multipart: [
+        {
+          headers: {'Content-Type': 'application/json'},
+          content: body,
+        },
+        {
+          headers: {'Content-Type': 'text/plain'},
+          content: textContent,
+        },
+      ],
+    });
+    scope.done();
+    assert.ok(res.data);
   });
 
   it('should redact sensitive props via the `errorRedactor` by default', async () => {

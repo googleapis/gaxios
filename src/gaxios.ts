@@ -21,6 +21,7 @@ import {URL} from 'url';
 
 import {
   FetchResponse,
+  GaxioMultipartOptions,
   GaxiosError,
   GaxiosOptions,
   GaxiosPromise,
@@ -29,8 +30,9 @@ import {
   defaultErrorRedactor,
 } from './common';
 import {getRetryConfig} from './retry';
-import {Stream} from 'stream';
+import {PassThrough, Stream, pipeline} from 'stream';
 import {HttpsProxyAgent as httpsProxyAgent} from 'https-proxy-agent';
+import {v4} from 'uuid';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -261,7 +263,7 @@ export class Gaxios {
     }
 
     opts.headers = opts.headers || {};
-    if (opts.data) {
+    if (opts.multipart === undefined && opts.data) {
       const isFormData =
         typeof FormData === 'undefined'
           ? false
@@ -294,6 +296,19 @@ export class Gaxios {
       } else {
         opts.body = opts.data;
       }
+    } else if (opts.multipart && opts.multipart.length > 0) {
+      // note: once the minimum version reaches Node 16,
+      // this can be replaced with randomUUID() function from crypto
+      // and the dependency on UUID removed
+      const boundary = v4();
+      opts.headers['Content-Type'] = `multipart/related; boundary=${boundary}`;
+      const bodyStream = new PassThrough();
+      opts.body = bodyStream;
+      pipeline(
+        this.getMultipartRequest(opts.multipart, boundary),
+        bodyStream,
+        () => {}
+      );
     }
 
     opts.validateStatus = opts.validateStatus || this.validateStatus;
@@ -415,5 +430,31 @@ export class Gaxios {
       // If the content type is something not easily handled, just return the raw data (blob)
       return response.blob();
     }
+  }
+
+  /**
+   * Creates an async generator that yields the pieces of a multipart/related request body.
+   *
+   * @param {GaxioMultipartOptions[]} multipartOptions the pieces to turn into a multipart/related body.
+   * @param {string} boundary the boundary string to be placed between each part.
+   */
+  private async *getMultipartRequest(
+    multipartOptions: GaxioMultipartOptions[],
+    boundary: string
+  ) {
+    const finale = `--${boundary}--`;
+    for (const currentPart of multipartOptions) {
+      const partContentType =
+        currentPart.headers['Content-Type'] || 'application/octet-stream';
+      const preamble = `--${boundary}\r\nContent-Type: ${partContentType}\r\n\r\n`;
+      yield preamble;
+      if (typeof currentPart.content === 'string') {
+        yield currentPart.content;
+      } else {
+        yield* currentPart.content;
+      }
+      yield '\r\n';
+    }
+    yield finale;
   }
 }
