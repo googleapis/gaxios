@@ -21,7 +21,7 @@ import {URL} from 'url';
 
 import {
   FetchResponse,
-  GaxioMultipartOptions,
+  GaxiosMultipartOptions,
   GaxiosError,
   GaxiosOptions,
   GaxiosPromise,
@@ -439,7 +439,7 @@ export class Gaxios {
    * @param {string} boundary the boundary string to be placed between each part.
    */
   private async *getMultipartRequest(
-    multipartOptions: GaxioMultipartOptions[],
+    multipartOptions: GaxiosMultipartOptions[],
     boundary: string
   ) {
     const finale = `--${boundary}--`;

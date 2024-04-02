@@ -136,7 +136,7 @@ export interface GaxiosResponse<T = any> {
   request: GaxiosXMLHttpRequest;
 }
 
-export interface GaxioMultipartOptions {
+export interface GaxiosMultipartOptions {
   headers: Headers;
   content: string | Readable;
 }
@@ -181,7 +181,7 @@ export interface GaxiosOptions {
    */
   maxRedirects?: number;
   follow?: number;
-  multipart?: GaxioMultipartOptions[];
+  multipart?: GaxiosMultipartOptions[];
   params?: any;
   paramsSerializer?: (params: {[index: string]: string | number}) => string;
   timeout?: number;
