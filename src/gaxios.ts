@@ -434,6 +434,8 @@ export class Gaxios {
 
   /**
    * Creates an async generator that yields the pieces of a multipart/related request body.
+   * This implementation follows the spec: https://www.ietf.org/rfc/rfc2387.txt. However, recursive
+   * multipart/related requests are not currently supported.
    *
    * @param {GaxioMultipartOptions[]} multipartOptions the pieces to turn into a multipart/related body.
    * @param {string} boundary the boundary string to be placed between each part.
