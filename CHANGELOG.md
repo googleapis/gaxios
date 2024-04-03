@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.4.0](https://github.com/googleapis/gaxios/compare/v6.3.0...v6.4.0) (2024-04-03)
+
+
+### Features
+
+* Enhance Error Redaction ([#609](https://github.com/googleapis/gaxios/issues/609)) ([b1d2875](https://github.com/googleapis/gaxios/commit/b1d28759110f91b37746f9b88aba92bf52df2fcc))
+* Support multipart/related requests ([#610](https://github.com/googleapis/gaxios/issues/610)) ([086c824](https://github.com/googleapis/gaxios/commit/086c8240652bd893dff0dd4c097ef00f5777564e))
+
+
+### Bug Fixes
+
+* Error Redactor Case-Insensitive Matching ([#613](https://github.com/googleapis/gaxios/issues/613)) ([05e65ef](https://github.com/googleapis/gaxios/commit/05e65efda6d13e760d4f7f87be7d6cebeba3cc64))
+
 ## [6.3.0](https://github.com/googleapis/gaxios/compare/v6.2.0...v6.3.0) (2024-02-01)
 
 
