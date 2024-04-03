@@ -26,7 +26,7 @@ import {
   GaxiosResponse,
   GaxiosPromise,
 } from '../src';
-import {GAXIOS_ERROR_SYMBOL} from '../src/common';
+import {GAXIOS_ERROR_SYMBOL, Headers} from '../src/common';
 import {pkg} from '../src/util';
 import qs from 'querystring';
 import fs from 'fs';
@@ -709,8 +709,11 @@ describe('🎏 data handling', () => {
 
     const config: GaxiosOptions = {
       headers: {
-        authentication: 'My Auth',
-        authorization: 'My Auth',
+        Authentication: 'My Auth',
+        /**
+         * Ensure casing is properly handled
+         */
+        AUTHORIZATION: 'My Auth',
         'content-type': 'application/x-www-form-urlencoded',
         random: 'data',
       },
@@ -758,8 +761,8 @@ describe('🎏 data handling', () => {
       assert(e.config.headers);
       assert.deepStrictEqual(e.config.headers, {
         ...config.headers, // non-redactables should be present
-        authentication: REDACT,
-        authorization: REDACT,
+        Authentication: REDACT,
+        AUTHORIZATION: REDACT,
       });
 
       // config redactions - data
@@ -784,11 +787,17 @@ describe('🎏 data handling', () => {
       // response redactions
       assert(e.response);
       assert.deepStrictEqual(e.response.config, e.config);
-      assert.deepStrictEqual(e.response.headers, {
+
+      const expectedHeaders: Headers = {
         ...responseHeaders, // non-redactables should be present
         authentication: REDACT,
         authorization: REDACT,
-      });
+      };
+
+      delete expectedHeaders['AUTHORIZATION'];
+      delete expectedHeaders['Authentication'];
+
+      assert.deepStrictEqual(e.response.headers, expectedHeaders);
       assert.deepStrictEqual(e.response.data, {
         ...response, // non-redactables should be present
         assertion: REDACT,
