@@ -369,17 +369,17 @@ export function defaultErrorRedactor<T = any>(data: {
 
     for (const key of Object.keys(headers)) {
       // any casing of `Authentication`
-      if (/^authentication$/.test(key)) {
+      if (/^authentication$/i.test(key)) {
         headers[key] = REDACT;
       }
 
       // any casing of `Authorization`
-      if (/^authorization$/.test(key)) {
+      if (/^authorization$/i.test(key)) {
         headers[key] = REDACT;
       }
 
       // anything containing secret, such as 'client secret'
-      if (/secret/.test(key)) {
+      if (/secret/i.test(key)) {
         headers[key] = REDACT;
       }
     }
@@ -394,9 +394,9 @@ export function defaultErrorRedactor<T = any>(data: {
       const text = obj[key];
 
       if (
-        /grant_type=/.test(text) ||
-        /assertion=/.test(text) ||
-        /secret/.test(text)
+        /grant_type=/i.test(text) ||
+        /assertion=/i.test(text) ||
+        /secret/i.test(text)
       ) {
         obj[key] = REDACT;
       }
