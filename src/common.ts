@@ -16,6 +16,7 @@ import {URL} from 'url';
 
 import {pkg} from './util';
 import extend from 'extend';
+import {Readable} from 'stream';
 
 /**
  * Support `instanceof` operator for `GaxiosError`s in different versions of this library.
@@ -135,6 +136,11 @@ export interface GaxiosResponse<T = any> {
   request: GaxiosXMLHttpRequest;
 }
 
+export interface GaxiosMultipartOptions {
+  headers: Headers;
+  content: string | Readable;
+}
+
 /**
  * Request options that are used to form the request.
  */
@@ -175,6 +181,7 @@ export interface GaxiosOptions {
    */
   maxRedirects?: number;
   follow?: number;
+  multipart?: GaxiosMultipartOptions[];
   params?: any;
   paramsSerializer?: (params: {[index: string]: string | number}) => string;
   timeout?: number;
