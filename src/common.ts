@@ -181,6 +181,9 @@ export interface GaxiosOptions {
    */
   maxRedirects?: number;
   follow?: number;
+  /**
+   * A collection of parts to send as a `Content-Type: multipart/related` request.
+   */
   multipart?: GaxiosMultipartOptions[];
   params?: any;
   paramsSerializer?: (params: {[index: string]: string | number}) => string;
@@ -213,6 +216,32 @@ export interface GaxiosOptions {
   // Configure client to use mTLS:
   cert?: string;
   key?: string;
+
+  /**
+   * An optional proxy to use for requests.
+   * Available via `process.env.HTTP_PROXY` and `process.env.HTTPS_PROXY` as well - with a preference for the this config option when multiple are available.
+   *
+   * @see {@link GaxiosOptions.noProxy}
+   */
+  proxy?: string | URL;
+  /**
+   * A list for excluding traffic for proxies.
+   * Available via `process.env.NO_PROXY` as well as a common-separated list of strings - merged with any local `noProxy` rules.
+   *
+   * - When provided a string, it is matched by
+   *   - Wildcard `*.` and `.` matching are available. (e.g. `.example.com` or `*.example.com`)
+   * - When provided a URL, it is matched by the `.origin` property.
+   *   - For example, requesting `https://example.com` with the following `noProxy`s would result in a no proxy use:
+   *     - new URL('https://example.com')
+   *   - The following would be used with a proxy:
+   *     - new URL('http://example.com:80')
+   *     - new URL('http://example.com:80')
+   * - When provided a regular expression it is used to match the stringified URL
+   *
+   * @see {@link GaxiosOptions.proxy}
+   */
+  noProxy?: (string | URL | RegExp)[];
+
   /**
    * An experimental error redactor.
    *

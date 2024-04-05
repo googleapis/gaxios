@@ -31,7 +31,6 @@ import {
 } from './common';
 import {getRetryConfig} from './retry';
 import {PassThrough, Stream, pipeline} from 'stream';
-import {HttpsProxyAgent as httpsProxyAgent} from 'https-proxy-agent';
 import {v4} from 'uuid';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -64,54 +63,11 @@ function getHeader(options: GaxiosOptions, header: string): string | undefined {
   return undefined;
 }
 
-let HttpsProxyAgent: any;
-
-function loadProxy() {
-  const proxy =
-    process?.env?.HTTPS_PROXY ||
-    process?.env?.https_proxy ||
-    process?.env?.HTTP_PROXY ||
-    process?.env?.http_proxy;
-  if (proxy) {
-    HttpsProxyAgent = httpsProxyAgent;
-  }
-
-  return proxy;
-}
-
-loadProxy();
-
-function skipProxy(url: string | URL) {
-  const noProxyEnv = process.env.NO_PROXY ?? process.env.no_proxy;
-  if (!noProxyEnv) {
-    return false;
-  }
-  const noProxyUrls = noProxyEnv.split(',');
-  const parsedURL = url instanceof URL ? url : new URL(url);
-  return !!noProxyUrls.find(url => {
-    if (url.startsWith('*.') || url.startsWith('.')) {
-      url = url.replace(/^\*\./, '.');
-      return parsedURL.hostname.endsWith(url);
-    } else {
-      return url === parsedURL.origin || url === parsedURL.hostname;
-    }
-  });
-}
-
-// Figure out if we should be using a proxy. Only if it's required, load
-// the https-proxy-agent module as it adds startup cost.
-function getProxy(url: string | URL) {
-  // If there is a match between the no_proxy env variables and the url, then do not proxy
-  if (skipProxy(url)) {
-    return undefined;
-    // If there is not a match between the no_proxy env variables and the url, check to see if there should be a proxy
-  } else {
-    return loadProxy();
-  }
-}
-
 export class Gaxios {
-  protected agentCache = new Map<string, Agent | ((parsedUrl: URL) => Agent)>();
+  protected agentCache = new Map<
+    string | URL,
+    Agent | ((parsedUrl: URL) => Agent)
+  >();
 
   /**
    * Default HTTP options that will be used for every HTTP request.
@@ -131,7 +87,7 @@ export class Gaxios {
    * @param opts Set of HTTP options that will be used for this HTTP request.
    */
   async request<T = any>(opts: GaxiosOptions = {}): GaxiosPromise<T> {
-    opts = this.validateOpts(opts);
+    opts = await this.#prepareRequest(opts);
     return this._request(opts);
   }
 
@@ -139,7 +95,7 @@ export class Gaxios {
     opts: GaxiosOptions
   ): Promise<GaxiosResponse<T>> {
     const fetchImpl = opts.fetchImplementation || fetch;
-    const res = (await fetchImpl(opts.url!, opts)) as FetchResponse;
+    const res = (await fetchImpl(opts.url, opts)) as FetchResponse;
     const data = await this.getResponseData(opts, res);
     return this.translateResponse<T>(opts, res, data);
   }
@@ -228,11 +184,55 @@ export class Gaxios {
     }
   }
 
+  #shouldUseProxyForURLIfAvailable(
+    url: string | URL,
+    noProxy: GaxiosOptions['noProxy'] = []
+  ): boolean {
+    const candidate = new URL(url);
+    const noProxyList = [...noProxy];
+    const noProxyEnvList =
+      (process.env.NO_PROXY ?? process.env.no_proxy)?.split(',') || [];
+
+    for (const rule of noProxyEnvList) {
+      noProxyList.push(rule.trim());
+    }
+
+    for (const rule of noProxyList) {
+      // Match regex
+      if (rule instanceof RegExp) {
+        if (rule.test(candidate.toString())) {
+          return false;
+        }
+      }
+      // Match URL
+      else if (rule instanceof URL) {
+        if (rule.origin === candidate.origin) {
+          return false;
+        }
+      }
+      // Match string regex
+      else if (rule.startsWith('*.') || rule.startsWith('.')) {
+        const cleanedRule = rule.replace(/^\*\./, '.');
+        if (candidate.hostname.endsWith(cleanedRule)) {
+          return false;
+        }
+      }
+      // Basic string match
+      else if (rule === candidate.origin || rule === candidate.hostname) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   /**
-   * Validates the options, and merges them with defaults.
-   * @param opts The original options passed from the client.
+   * Validates the options, merges them with defaults, and prepare request.
+   *
+   * @param options The original options passed from the client.
+   * @returns Prepared options, ready to make a request
    */
-  private validateOpts(options: GaxiosOptions): GaxiosOptions {
+  async #prepareRequest(options: GaxiosOptions): Promise<GaxiosOptions> {
     const opts = extend(true, {}, this.defaults, options);
     if (!opts.url) {
       throw new Error('URL is required.');
@@ -318,25 +318,30 @@ export class Gaxios {
     }
     opts.method = opts.method || 'GET';
 
-    const proxy = getProxy(opts.url);
-    if (proxy) {
+    const shouldUseProxy = this.#shouldUseProxyForURLIfAvailable(
+      opts.url,
+      opts.noProxy
+    );
+
+    const proxy =
+      opts.proxy ||
+      process?.env?.HTTPS_PROXY ||
+      process?.env?.https_proxy ||
+      process?.env?.HTTP_PROXY ||
+      process?.env?.http_proxy;
+
+    if (shouldUseProxy && proxy) {
+      const HttpsProxyAgent = await Gaxios.#getProxyAgent();
+
       if (this.agentCache.has(proxy)) {
         opts.agent = this.agentCache.get(proxy);
       } else {
-        // Proxy is being used in conjunction with mTLS.
-        if (opts.cert && opts.key) {
-          const parsedURL = new URL(proxy);
-          opts.agent = new HttpsProxyAgent({
-            port: parsedURL.port,
-            host: parsedURL.host,
-            protocol: parsedURL.protocol,
-            cert: opts.cert,
-            key: opts.key,
-          });
-        } else {
-          opts.agent = new HttpsProxyAgent(proxy);
-        }
-        this.agentCache.set(proxy, opts.agent!);
+        opts.agent = new HttpsProxyAgent(proxy, {
+          cert: opts.cert,
+          key: opts.key,
+        });
+
+        this.agentCache.set(proxy, opts.agent);
       }
     } else if (opts.cert && opts.key) {
       // Configure client for mTLS:
@@ -347,7 +352,7 @@ export class Gaxios {
           cert: opts.cert,
           key: opts.key,
         });
-        this.agentCache.set(opts.key, opts.agent!);
+        this.agentCache.set(opts.key, opts.agent);
       }
     }
 
@@ -458,5 +463,24 @@ export class Gaxios {
       yield '\r\n';
     }
     yield finale;
+  }
+
+  /**
+   * A cache for the lazily-loaded proxy agent.
+   *
+   * Should use {@link Gaxios[#getProxyAgent]} to retrieve.
+   */
+  // using `import` to dynamically import the types here
+  static #proxyAgent?: typeof import('https-proxy-agent').HttpsProxyAgent;
+
+  /**
+   * Imports, caches, and returns a proxy agent - if not already imported
+   *
+   * @returns A proxy agent
+   */
+  static async #getProxyAgent() {
+    this.#proxyAgent ||= (await import('https-proxy-agent')).HttpsProxyAgent;
+
+    return this.#proxyAgent;
   }
 }
