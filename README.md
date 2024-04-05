@@ -180,7 +180,7 @@ interface GaxiosOptions = {
    *     - new URL('https://example.com')
    *   - The following would be used with a proxy:
    *     - new URL('http://example.com:80')
-   *     - new URL('http://example.com:80')
+   *     - new URL('https://example.com:443')
    * - When provided a regular expression it is used to match the stringified URL
    *
    * @see {@link GaxiosOptions.proxy}
