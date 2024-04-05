@@ -163,8 +163,10 @@ interface GaxiosOptions = {
   /**
    * An optional proxy to use for requests.
    * Available via `process.env.HTTP_PROXY` and `process.env.HTTPS_PROXY` as well - with a preference for the this config option when multiple are available.
+   * The `agent` option overrides this.
    *
    * @see {@link GaxiosOptions.noProxy}
+   * @see {@link GaxiosOptions.agent}
    */
   proxy?: string | URL;
   /**

@@ -318,19 +318,20 @@ export class Gaxios {
     }
     opts.method = opts.method || 'GET';
 
-    const shouldUseProxy = this.#shouldUseProxyForURLIfAvailable(
-      opts.url,
-      opts.noProxy
-    );
-
     const proxy =
       opts.proxy ||
       process?.env?.HTTPS_PROXY ||
       process?.env?.https_proxy ||
       process?.env?.HTTP_PROXY ||
       process?.env?.http_proxy;
+    const urlMayUseProxy = this.#shouldUseProxyForURLIfAvailable(
+      opts.url,
+      opts.noProxy
+    );
 
-    if (shouldUseProxy && proxy) {
+    if (opts.agent) {
+      // don't do any of the following options - use the user-provided agent.
+    } else if (proxy && urlMayUseProxy) {
       const HttpsProxyAgent = await Gaxios.#getProxyAgent();
 
       if (this.agentCache.has(proxy)) {
@@ -344,7 +345,7 @@ export class Gaxios {
         this.agentCache.set(proxy, opts.agent);
       }
     } else if (opts.cert && opts.key) {
-      // Configure client for mTLS:
+      // Configure client for mTLS
       if (this.agentCache.has(opts.key)) {
         opts.agent = this.agentCache.get(opts.key);
       } else {
