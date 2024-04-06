@@ -184,7 +184,7 @@ export class Gaxios {
     }
   }
 
-  #shouldUseProxyForURLIfAvailable(
+  #urlMayUseProxy(
     url: string | URL,
     noProxy: GaxiosOptions['noProxy'] = []
   ): boolean {
@@ -218,7 +218,11 @@ export class Gaxios {
         }
       }
       // Basic string match
-      else if (rule === candidate.origin || rule === candidate.hostname) {
+      else if (
+        rule === candidate.origin ||
+        rule === candidate.hostname ||
+        rule === candidate.href
+      ) {
         return false;
       }
     }
@@ -324,10 +328,7 @@ export class Gaxios {
       process?.env?.https_proxy ||
       process?.env?.HTTP_PROXY ||
       process?.env?.http_proxy;
-    const urlMayUseProxy = this.#shouldUseProxyForURLIfAvailable(
-      opts.url,
-      opts.noProxy
-    );
+    const urlMayUseProxy = this.#urlMayUseProxy(opts.url, opts.noProxy);
 
     if (opts.agent) {
       // don't do any of the following options - use the user-provided agent.
