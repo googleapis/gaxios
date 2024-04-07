@@ -87,7 +87,7 @@ function skipProxy(url: string | URL) {
     return false;
   }
   const noProxyUrls = noProxyEnv.split(',');
-  const parsedURL = url instanceof URL ? url : new URL(url);
+  const parsedURL = new URL(url);
   return !!noProxyUrls.find(url => {
     if (url.startsWith('*.') || url.startsWith('.')) {
       url = url.replace(/^\*\./, '.');
@@ -238,10 +238,8 @@ export class Gaxios {
       throw new Error('URL is required.');
     }
 
-    // baseUrl has been deprecated, remove in 2.0
-    const baseUrl = opts.baseUrl || opts.baseURL;
-    if (baseUrl) {
-      opts.url = baseUrl.toString() + opts.url;
+    if (opts.baseURL) {
+      opts.url = new URL(opts.url, opts.baseURL);
     }
 
     opts.paramsSerializer = opts.paramsSerializer || this.paramsSerializer;
