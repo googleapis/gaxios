@@ -178,9 +178,10 @@ interface GaxiosOptions = {
    * - When provided a URL, it is matched by the `.origin` property.
    *   - For example, requesting `https://example.com` with the following `noProxy`s would result in a no proxy use:
    *     - new URL('https://example.com')
+   *     - new URL('https://example.com:443')
    *   - The following would be used with a proxy:
    *     - new URL('http://example.com:80')
-   *     - new URL('https://example.com:443')
+   *     - new URL('https://example.com:8443')
    * - When provided a regular expression it is used to match the stringified URL
    *
    * @see {@link GaxiosOptions.proxy}
