@@ -41,8 +41,8 @@ over other authentication methods, i.e., application default credentials.
 
 ## Request Options
 
-```js
-{
+```ts
+interface GaxiosOptions = {
   // The url to which the request should be sent.  Required.
   url: string,
 
@@ -154,6 +154,39 @@ over other authentication methods, i.e., application default credentials.
   // Cancelling a request requires the `abort-controller` library.
   // See https://github.com/bitinn/node-fetch#request-cancellation-with-abortsignal
   signal?: AbortSignal
+
+  /**
+   * A collection of parts to send as a `Content-Type: multipart/related` request.
+   */
+  multipart?: GaxiosMultipartOptions;
+
+  /**
+   * An optional proxy to use for requests.
+   * Available via `process.env.HTTP_PROXY` and `process.env.HTTPS_PROXY` as well - with a preference for the this config option when multiple are available.
+   * The `agent` option overrides this.
+   *
+   * @see {@link GaxiosOptions.noProxy}
+   * @see {@link GaxiosOptions.agent}
+   */
+  proxy?: string | URL;
+  /**
+   * A list for excluding traffic for proxies.
+   * Available via `process.env.NO_PROXY` as well as a common-separated list of strings - merged with any local `noProxy` rules.
+   *
+   * - When provided a string, it is matched by
+   *   - Wildcard `*.` and `.` matching are available. (e.g. `.example.com` or `*.example.com`)
+   * - When provided a URL, it is matched by the `.origin` property.
+   *   - For example, requesting `https://example.com` with the following `noProxy`s would result in a no proxy use:
+   *     - new URL('https://example.com')
+   *     - new URL('https://example.com:443')
+   *   - The following would be used with a proxy:
+   *     - new URL('http://example.com:80')
+   *     - new URL('https://example.com:8443')
+   * - When provided a regular expression it is used to match the stringified URL
+   *
+   * @see {@link GaxiosOptions.proxy}
+   */
+  noProxy?: (string | URL | RegExp)[];
 
   /**
    * An experimental, customizable error redactor.
