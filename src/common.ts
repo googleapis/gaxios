@@ -304,7 +304,7 @@ export interface RetryConfig {
 
   /**
    * The HTTP response status codes that will automatically be retried.
-   * Defaults to: [[100, 199], [429, 429], [500, 599]]
+   * Defaults to: [[100, 199], [408, 408], [429, 429], [500, 599]]
    */
   statusCodesToRetry?: number[][];
 

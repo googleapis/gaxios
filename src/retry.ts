@@ -42,9 +42,11 @@ export async function getRetryConfig(err: GaxiosError) {
     // 2xx - Do not retry (Success)
     // 3xx - Do not retry (Redirect)
     // 4xx - Do not retry (Client errors)
+    // 408 - Retry ("Request Timeout")
     // 429 - Retry ("Too Many Requests")
     // 5xx - Retry (Server errors)
     [100, 199],
+    [408, 408],
     [429, 429],
     [500, 599],
   ];

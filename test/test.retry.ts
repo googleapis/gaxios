@@ -51,6 +51,7 @@ describe('🛸 retry & exponential backoff', () => {
       }
       const expectedStatusCodes = [
         [100, 199],
+        [408, 408],
         [429, 429],
         [500, 599],
       ];
