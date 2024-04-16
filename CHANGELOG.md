@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.5.0](https://github.com/googleapis/gaxios/compare/v6.4.0...v6.5.0) (2024-04-09)
+
+
+### Features
+
+* Retry `408` by Default ([#616](https://github.com/googleapis/gaxios/issues/616)) ([9331f79](https://github.com/googleapis/gaxios/commit/9331f79f9c9d0c1f4f1f995e1928323f4feb5427))
+* Support `proxy` option ([#614](https://github.com/googleapis/gaxios/issues/614)) ([2d14b3f](https://github.com/googleapis/gaxios/commit/2d14b3f54bc97111cb184cecf2379b55ceaca3c2))
+
 ## [6.4.0](https://github.com/googleapis/gaxios/compare/v6.3.0...v6.4.0) (2024-04-03)
 
 
