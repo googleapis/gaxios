@@ -56,7 +56,7 @@ interface GaxiosOptions = {
   headers: { 'some': 'header' },
 
   // The data to send in the body of the request. Data objects will be
-  // serialized as JSON.
+  // serialized as JSON, except for `FormData`.
   //
   // Note: if you would like to provide a Content-Type header other than
   // application/json you you must provide a string or readable stream, rather
@@ -151,8 +151,7 @@ interface GaxiosOptions = {
   // Enables default configuration for retries.
   retry: boolean,
 
-  // Cancelling a request requires the `abort-controller` library.
-  // See https://github.com/bitinn/node-fetch#request-cancellation-with-abortsignal
+  // Enables aborting via AbortController
   signal?: AbortSignal
 
   /**

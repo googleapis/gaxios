@@ -68,7 +68,7 @@ export async function getRetryConfig(err: GaxiosError) {
   const delay =
     retryDelay + ((Math.pow(2, config.currentRetryAttempt) - 1) / 2) * 1000;
 
-  // We're going to retry!  Incremenent the counter.
+  // We're going to retry!  Increment the counter.
   err.config.retryConfig!.currentRetryAttempt! += 1;
 
   // Create a promise that invokes the retry after the backOffDelay

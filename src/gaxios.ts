@@ -14,10 +14,11 @@
 import extend from 'extend';
 import {Agent} from 'http';
 import {Agent as HTTPSAgent} from 'https';
-import nodeFetch from 'node-fetch';
 import qs from 'querystring';
 import isStream from 'is-stream';
 import {URL} from 'url';
+
+import type nodeFetch from 'node-fetch' with {'resolution-mode': 'import'};
 
 import {
   FetchResponse,
@@ -30,20 +31,10 @@ import {
   defaultErrorRedactor,
 } from './common';
 import {getRetryConfig} from './retry';
-import {PassThrough, Stream, pipeline} from 'stream';
+import {Readable} from 'stream';
 import {v4} from 'uuid';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
-const fetch = hasFetch() ? window.fetch : nodeFetch;
-
-function hasWindow() {
-  return typeof window !== 'undefined' && !!window;
-}
-
-function hasFetch() {
-  return hasWindow() && !!window.fetch;
-}
 
 function hasBuffer() {
   return typeof Buffer !== 'undefined';
@@ -94,8 +85,14 @@ export class Gaxios {
   private async _defaultAdapter<T>(
     opts: GaxiosOptions
   ): Promise<GaxiosResponse<T>> {
-    const fetchImpl = opts.fetchImplementation || fetch;
-    const res = (await fetchImpl(opts.url, opts)) as FetchResponse;
+    const fetchImpl = opts.fetchImplementation || (await Gaxios.#getFetch());
+
+    // node-fetch v3 warns when `data` is present
+    // https://github.com/node-fetch/node-fetch/issues/1000
+    const preparedOpts = {...opts};
+    delete preparedOpts.data;
+
+    const res = await fetchImpl(opts.url, preparedOpts);
     const data = await this.getResponseData(opts, res);
     return this.translateResponse<T>(opts, res, data);
   }
@@ -122,10 +119,10 @@ export class Gaxios {
         if (opts.responseType === 'stream') {
           let response = '';
           await new Promise(resolve => {
-            (translatedResponse?.data as Stream).on('data', chunk => {
+            (translatedResponse?.data as Readable).on('data', chunk => {
               response += chunk;
             });
-            (translatedResponse?.data as Stream).on('end', resolve);
+            (translatedResponse?.data as Readable).on('end', resolve);
           });
           translatedResponse.data = response as T;
         }
@@ -164,15 +161,13 @@ export class Gaxios {
     switch (opts.responseType) {
       case 'stream':
         return res.body;
-      case 'json': {
-        let data = await res.text();
+      case 'json':
         try {
-          data = JSON.parse(data);
+          return await res.json();
         } catch {
-          // continue
+          // fallback to returning text
+          return await res.text();
         }
-        return data as {};
-      }
       case 'arraybuffer':
         return res.arrayBuffer();
       case 'blob':
@@ -267,11 +262,17 @@ export class Gaxios {
     }
 
     opts.headers = opts.headers || {};
+
+    // FormData is available in Node.js versions 18.0.0+, however there is a runtime
+    // warning until 18.13.0. Additionally, `node-fetch` v3 only supports the official
+    // `FormData` or its own exported `FormData` class:
+    // - https://nodejs.org/api/globals.html#class-formdata
+    // - https://nodejs.org/en/blog/release/v18.13.0
+    // - https://github.com/node-fetch/node-fetch/issues/1167
+    // const isFormData = opts?.data instanceof FormData;
+    const isFormData = opts.data?.constructor?.name === 'FormData';
+
     if (opts.multipart === undefined && opts.data) {
-      const isFormData =
-        typeof FormData === 'undefined'
-          ? false
-          : opts?.data instanceof FormData;
       if (isStream.readable(opts.data)) {
         opts.body = opts.data;
       } else if (hasBuffer() && Buffer.isBuffer(opts.data)) {
@@ -280,22 +281,19 @@ export class Gaxios {
         if (!hasHeader(opts, 'Content-Type')) {
           opts.headers['Content-Type'] = 'application/json';
         }
-      } else if (typeof opts.data === 'object') {
-        // If www-form-urlencoded content type has been set, but data is
-        // provided as an object, serialize the content using querystring:
-        if (!isFormData) {
-          if (
-            getHeader(opts, 'content-type') ===
-            'application/x-www-form-urlencoded'
-          ) {
-            opts.body = opts.paramsSerializer(opts.data);
-          } else {
-            // } else if (!(opts.data instanceof FormData)) {
-            if (!hasHeader(opts, 'Content-Type')) {
-              opts.headers['Content-Type'] = 'application/json';
-            }
-            opts.body = JSON.stringify(opts.data);
+      } else if (typeof opts.data === 'object' && !isFormData) {
+        if (
+          getHeader(opts, 'content-type') ===
+          'application/x-www-form-urlencoded'
+        ) {
+          // If www-form-urlencoded content type has been set, but data is
+          // provided as an object, serialize the content
+          opts.body = opts.paramsSerializer(opts.data);
+        } else {
+          if (!hasHeader(opts, 'Content-Type')) {
+            opts.headers['Content-Type'] = 'application/json';
           }
+          opts.body = JSON.stringify(opts.data);
         }
       } else {
         opts.body = opts.data;
@@ -306,12 +304,8 @@ export class Gaxios {
       // and the dependency on UUID removed
       const boundary = v4();
       opts.headers['Content-Type'] = `multipart/related; boundary=${boundary}`;
-      const bodyStream = new PassThrough();
-      opts.body = bodyStream;
-      pipeline(
-        this.getMultipartRequest(opts.multipart, boundary),
-        bodyStream,
-        () => {}
+      opts.body = Readable.from(
+        this.getMultipartRequest(opts.multipart, boundary)
       );
     }
 
@@ -476,6 +470,14 @@ export class Gaxios {
   static #proxyAgent?: typeof import('https-proxy-agent').HttpsProxyAgent;
 
   /**
+   * A cache for the lazily-loaded fetch library.
+   *
+   * Should use {@link Gaxios[#getFetch]} to retrieve.
+   */
+  //
+  static #fetch?: typeof nodeFetch | typeof fetch;
+
+  /**
    * Imports, caches, and returns a proxy agent - if not already imported
    *
    * @returns A proxy agent
@@ -484,5 +486,15 @@ export class Gaxios {
     this.#proxyAgent ||= (await import('https-proxy-agent')).HttpsProxyAgent;
 
     return this.#proxyAgent;
+  }
+
+  static async #getFetch() {
+    const hasWindow = typeof window !== 'undefined' && !!window;
+
+    this.#fetch ||= hasWindow
+      ? window.fetch
+      : (await import('node-fetch')).default;
+
+    return this.#fetch;
   }
 }

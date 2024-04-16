@@ -203,9 +203,8 @@ export interface GaxiosOptions {
   validateStatus?: (status: number) => boolean;
   retryConfig?: RetryConfig;
   retry?: boolean;
-  // Should be instance of https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal
-  // interface. Left as 'any' due to incompatibility between spec and abort-controller.
-  signal?: any;
+  // Enables aborting via AbortController
+  signal?: AbortSignal;
   size?: number;
   /**
    * Implementation of `fetch` to use when making the API call. By default,

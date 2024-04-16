@@ -16,7 +16,6 @@ import nock from 'nock';
 import sinon from 'sinon';
 import stream, {Readable} from 'stream';
 import {describe, it, afterEach} from 'mocha';
-import fetch from 'node-fetch';
 import {HttpsProxyAgent} from 'https-proxy-agent';
 import {
   Gaxios,
@@ -30,8 +29,6 @@ import {GAXIOS_ERROR_SYMBOL, Headers} from '../src/common';
 import {pkg} from '../src/util';
 import qs from 'querystring';
 import fs from 'fs';
-import {Blob} from 'node-fetch';
-global.FormData = require('form-data');
 
 nock.disableNetConnect();
 
@@ -604,10 +601,33 @@ describe('🥁 configuration options', () => {
   });
 
   it('should not stringify the data if it is appended by a form', async () => {
+    const FormData = (await import('node-fetch')).FormData;
     const formData = new FormData();
     formData.append('test', '123');
-    // I don't think matching formdata is supported in nock, so skipping: https://github.com/nock/nock/issues/887
-    const scope = nock(url).post('/').reply(200);
+
+    const scope = nock(url)
+      .post('/', body => {
+        /**
+         * Sample from native `node-fetch`
+         * body: '------3785545705014550845559551617\r\n' +
+         * 'Content-Disposition: form-data; name="test"\r\n' +
+         * '\r\n' +
+         * '123\r\n' +
+         * '------3785545705014550845559551617--',
+         */
+
+        /**
+         * Sample from native `fetch`
+         * body: '------formdata-undici-0.39470493152687736\r\n' +
+         * 'Content-Disposition: form-data; name="test"\r\n' +
+         * '\r\n' +
+         * '123\r\n' +
+         * '------formdata-undici-0.39470493152687736--',
+         */
+
+        return body.match('Content-Disposition: form-data;');
+      })
+      .reply(200);
     const res = await request({
       url,
       method: 'POST',
@@ -615,14 +635,22 @@ describe('🥁 configuration options', () => {
     });
     scope.done();
     assert.deepStrictEqual(res.config.data, formData);
+    assert.ok(res.config.body instanceof FormData);
     assert.ok(res.config.data instanceof FormData);
-    assert.deepEqual(res.config.body, undefined);
   });
 
   it('should allow explicitly setting the fetch implementation to node-fetch', async () => {
+    let customFetchCalled = false;
+    const nodeFetch = (await import('node-fetch')).default;
+    const myFetch = (...args: Parameters<typeof nodeFetch>) => {
+      customFetchCalled = true;
+      return nodeFetch(...args);
+    };
+
     const scope = nock(url).get('/').reply(200);
-    const res = await request({url, fetchImplementation: fetch});
+    const res = await request({url, fetchImplementation: myFetch});
     scope.done();
+    assert(customFetchCalled);
     assert.deepStrictEqual(res.status, 200);
   });
 
@@ -777,7 +805,9 @@ describe('🎏 data handling', () => {
     const res = await request({url});
     scope.done();
     assert.ok(res.data);
-    assert.strictEqual(res.statusText, 'OK');
+    // node-fetch and native fetch specs differ...
+    // https://github.com/node-fetch/node-fetch/issues/1066
+    assert.strictEqual(typeof res.statusText, 'string');
   });
 
   it('should return JSON when response Content-Type=application/json', async () => {
