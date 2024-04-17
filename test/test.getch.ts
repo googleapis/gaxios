@@ -601,7 +601,8 @@ describe('🥁 configuration options', () => {
   });
 
   it('should not stringify the data if it is appended by a form', async () => {
-    const FormData = (await import('node-fetch')).FormData;
+    // Optional, can use `node-fetch`'s FormData to avoid warnings in Node < 18.13
+    // const FormData = (await import('node-fetch')).FormData;
     const formData = new FormData();
     formData.append('test', '123');
 
