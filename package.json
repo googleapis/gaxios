@@ -71,7 +71,7 @@
     "multiparty": "^4.2.1",
     "mv": "^2.1.1",
     "ncp": "^2.0.0",
-    "nock": "^13.0.0",
+    "nock": "^14.0.0-beta.5",
     "null-loader": "^4.0.0",
     "puppeteer": "^21.0.0",
     "sinon": "^17.0.0",
@@ -85,7 +85,6 @@
   "dependencies": {
     "extend": "^3.0.2",
     "https-proxy-agent": "^7.0.1",
-    "is-stream": "^2.0.0",
     "node-fetch": "^3.3.2",
     "uuid": "^9.0.1"
   }

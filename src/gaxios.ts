@@ -15,13 +15,10 @@ import extend from 'extend';
 import {Agent} from 'http';
 import {Agent as HTTPSAgent} from 'https';
 import qs from 'querystring';
-import isStream from 'is-stream';
 import {URL} from 'url';
-
 import type nodeFetch from 'node-fetch' with {'resolution-mode': 'import'};
 
 import {
-  FetchResponse,
   GaxiosMultipartOptions,
   GaxiosError,
   GaxiosOptions,
@@ -35,24 +32,6 @@ import {Readable} from 'stream';
 import {v4} from 'uuid';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
-function hasBuffer() {
-  return typeof Buffer !== 'undefined';
-}
-
-function hasHeader(options: GaxiosOptions, header: string) {
-  return !!getHeader(options, header);
-}
-
-function getHeader(options: GaxiosOptions, header: string): string | undefined {
-  header = header.toLowerCase();
-  for (const key of Object.keys(options?.headers || {})) {
-    if (header === key.toLowerCase()) {
-      return options.headers![key];
-    }
-  }
-  return undefined;
-}
 
 export class Gaxios {
   protected agentCache = new Map<
@@ -78,23 +57,50 @@ export class Gaxios {
    * @param opts Set of HTTP options that will be used for this HTTP request.
    */
   async request<T = any>(opts: GaxiosOptions = {}): GaxiosPromise<T> {
-    opts = await this.#prepareRequest(opts);
-    return this._request(opts);
+    const prepared = await this.#prepareRequest(opts);
+    return this._request(prepared);
   }
 
   private async _defaultAdapter<T>(
-    opts: GaxiosOptions
+    config: GaxiosOptions
   ): Promise<GaxiosResponse<T>> {
-    const fetchImpl = opts.fetchImplementation || (await Gaxios.#getFetch());
+    const fetchImpl =
+      config.fetchImplementation ||
+      this.defaults.fetchImplementation ||
+      (await Gaxios.#getFetch());
 
     // node-fetch v3 warns when `data` is present
     // https://github.com/node-fetch/node-fetch/issues/1000
-    const preparedOpts = {...opts};
+    const preparedOpts = {...config};
     delete preparedOpts.data;
 
-    const res = await fetchImpl(opts.url, preparedOpts);
-    const data = await this.getResponseData(opts, res);
-    return this.translateResponse<T>(opts, res, data);
+    const res = (await fetchImpl(config.url!, preparedOpts as {})) as Response;
+    let data = await this.getResponseData(config, res);
+
+    // `node-fetch`'s data isn't writable. Native `fetch`'s is.
+    if (Object.getOwnPropertyDescriptor(res, 'data')?.configurable) {
+      // Keep `Response` as a class
+      return Object.assign(res, {config, data});
+    } else {
+      Object.assign(res, {config});
+
+      // best effort for `node-fetch`; `.data` is not writable...
+      return new Proxy(res, {
+        get: (target, prop, receiver) => {
+          if (prop === 'data') return data;
+
+          return Reflect.get(target, prop, receiver);
+        },
+        set(target, prop, newValue, receiver) {
+          if (prop === 'data') {
+            data = newValue;
+            return true;
+          } else {
+            return Reflect.set(target, prop, newValue, receiver);
+          }
+        },
+      }) as GaxiosResponse<T>;
+    }
   }
 
   /**
@@ -117,13 +123,12 @@ export class Gaxios {
 
       if (!opts.validateStatus!(translatedResponse.status)) {
         if (opts.responseType === 'stream') {
-          let response = '';
-          await new Promise(resolve => {
-            (translatedResponse?.data as Readable).on('data', chunk => {
-              response += chunk;
-            });
-            (translatedResponse?.data as Readable).on('end', resolve);
-          });
+          const response = [];
+
+          for await (const chunk of opts.data) {
+            response.push(chunk);
+          }
+
           translatedResponse.data = response as T;
         }
         throw new GaxiosError<T>(
@@ -156,18 +161,26 @@ export class Gaxios {
 
   private async getResponseData(
     opts: GaxiosOptions,
-    res: FetchResponse
+    res: Response
   ): Promise<any> {
+    if (
+      opts.maxContentLength &&
+      res.headers.has('content-length') &&
+      opts.maxContentLength <
+        Number.parseInt(res.headers?.get('content-length') || '')
+    ) {
+      throw new GaxiosError(
+        "Response's `Content-Length` is over the limit.",
+        opts,
+        Object.assign(res, {config: opts}) as GaxiosResponse
+      );
+    }
+
     switch (opts.responseType) {
       case 'stream':
         return res.body;
       case 'json':
-        try {
-          return await res.json();
-        } catch {
-          // fallback to returning text
-          return await res.text();
-        }
+        return res.json();
       case 'arraybuffer':
         return res.arrayBuffer();
       case 'blob':
@@ -261,37 +274,44 @@ export class Gaxios {
       opts.follow = options.maxRedirects;
     }
 
-    opts.headers = opts.headers || {};
+    const preparedHeaders =
+      opts.headers instanceof Headers
+        ? opts.headers
+        : new Headers(opts.headers);
 
-    // FormData is available in Node.js versions 18.0.0+, however there is a runtime
-    // warning until 18.13.0. Additionally, `node-fetch` v3 only supports the official
-    // `FormData` or its own exported `FormData` class:
-    // - https://nodejs.org/api/globals.html#class-formdata
-    // - https://nodejs.org/en/blog/release/v18.13.0
-    // - https://github.com/node-fetch/node-fetch/issues/1167
-    // const isFormData = opts?.data instanceof FormData;
-    const isFormData = opts.data?.constructor?.name === 'FormData';
+    const isFormData =
+      opts?.data instanceof FormData ||
+      /**
+       * @deprecated `node-fetch` or another third-party `FormData` instance
+       **/
+      opts.data?.constructor?.name === 'FormData';
 
     if (opts.multipart === undefined && opts.data) {
-      if (isStream.readable(opts.data)) {
-        opts.body = opts.data;
-      } else if (hasBuffer() && Buffer.isBuffer(opts.data)) {
+      if (
+        opts.data instanceof ReadableStream ||
+        opts.data instanceof Readable
+      ) {
+        opts.body = opts.data as ReadableStream;
+      } else if (
+        opts.data instanceof Blob ||
+        ('Buffer' in globalThis && Buffer.isBuffer(opts.data))
+      ) {
         // Do not attempt to JSON.stringify() a Buffer:
         opts.body = opts.data;
-        if (!hasHeader(opts, 'Content-Type')) {
-          opts.headers['Content-Type'] = 'application/json';
+        if (!preparedHeaders.has('content-type')) {
+          preparedHeaders.set('content-type', 'application/json');
         }
       } else if (typeof opts.data === 'object' && !isFormData) {
         if (
-          getHeader(opts, 'content-type') ===
+          preparedHeaders.get('Content-Type') ===
           'application/x-www-form-urlencoded'
         ) {
           // If www-form-urlencoded content type has been set, but data is
           // provided as an object, serialize the content
           opts.body = opts.paramsSerializer(opts.data);
         } else {
-          if (!hasHeader(opts, 'Content-Type')) {
-            opts.headers['Content-Type'] = 'application/json';
+          if (!preparedHeaders.has('content-type')) {
+            preparedHeaders.set('content-type', 'application/json');
           }
           opts.body = JSON.stringify(opts.data);
         }
@@ -303,16 +323,20 @@ export class Gaxios {
       // this can be replaced with randomUUID() function from crypto
       // and the dependency on UUID removed
       const boundary = v4();
-      opts.headers['Content-Type'] = `multipart/related; boundary=${boundary}`;
+      preparedHeaders.set(
+        'content-type',
+        `multipart/related; boundary=${boundary}`
+      );
+
       opts.body = Readable.from(
         this.getMultipartRequest(opts.multipart, boundary)
-      );
+      ) as {} as ReadableStream;
     }
 
     opts.validateStatus = opts.validateStatus || this.validateStatus;
     opts.responseType = opts.responseType || 'unknown';
-    if (!opts.headers['Accept'] && opts.responseType === 'json') {
-      opts.headers['Accept'] = 'application/json';
+    if (!preparedHeaders.has('accept') && opts.responseType === 'json') {
+      preparedHeaders.set('accept', 'application/json');
     }
     opts.method = opts.method || 'GET';
 
@@ -359,6 +383,26 @@ export class Gaxios {
       opts.errorRedactor = defaultErrorRedactor;
     }
 
+    if (opts.body && !('duplex' in opts)) {
+      /**
+       * required for Node.js and the type isn't available today
+       * @link https://github.com/nodejs/node/issues/46221
+       * @link https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1483
+       */
+      (opts as {duplex: string}).duplex = 'half';
+    }
+
+    // preserve the original type for auditing later
+    if (opts.headers instanceof Headers) {
+      opts.headers = preparedHeaders;
+    } else {
+      const headers: Headers = {};
+      preparedHeaders.forEach((value, key) => {
+        headers[key] = value;
+      });
+      opts.headers = headers;
+    }
+
     return opts;
   }
 
@@ -378,38 +422,13 @@ export class Gaxios {
     return qs.stringify(params);
   }
 
-  private translateResponse<T>(
-    opts: GaxiosOptions,
-    res: FetchResponse,
-    data?: T
-  ): GaxiosResponse<T> {
-    // headers need to be converted from a map to an obj
-    const headers = {} as Headers;
-    res.headers.forEach((value, key) => {
-      headers[key] = value;
-    });
-
-    return {
-      config: opts,
-      data: data as T,
-      headers,
-      status: res.status,
-      statusText: res.statusText,
-
-      // XMLHttpRequestLike
-      request: {
-        responseURL: res.url,
-      },
-    };
-  }
-
   /**
    * Attempts to parse a response by looking at the Content-Type header.
-   * @param {FetchResponse} response the HTTP response.
+   * @param {Response} response the HTTP response.
    * @returns {Promise<any>} a promise that resolves to the response data.
    */
   private async getResponseDataFromContentType(
-    response: FetchResponse
+    response: Response
   ): Promise<any> {
     let contentType = response.headers.get('Content-Type');
     if (contentType === null) {

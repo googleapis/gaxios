@@ -71,10 +71,6 @@ interface GaxiosOptions = {
   // Defaults to `0`, which is the same as unset.
   maxContentLength: 2000,
 
-  // The max number of HTTP redirects to follow.
-  // Defaults to 100.
-  maxRedirects: 100,
-
   // The querystring parameters that will be encoded using `qs` and
   // appended to the url
   params: {
@@ -105,6 +101,8 @@ interface GaxiosOptions = {
   // The expected return type of the request.  Options are:
   // json | stream | blob | arraybuffer | text | unknown
   // Defaults to `unknown`.
+  // If the `fetchImplementation` is native `fetch`, the
+  // stream is a `ReadableStream`, otherwise `readable.Stream`
   responseType: 'unknown',
 
   // The node.js http agent to use for the request.
@@ -114,9 +112,9 @@ interface GaxiosOptions = {
   // status code.  Defaults to (>= 200 && < 300)
   validateStatus: (status: number) => true,
 
-  // Implementation of `fetch` to use when making the API call. By default,
-  // will use the browser context if available, and fall back to `node-fetch`
-  // in node.js otherwise.
+  /**
+   * Implementation of `fetch` to use when making the API call. Will use `fetch` by default.
+   */
   fetchImplementation?: typeof fetch;
 
   // Configuration for retrying of requests.

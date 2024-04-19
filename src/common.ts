@@ -94,7 +94,8 @@ export class GaxiosError<T = any> extends Error {
       try {
         this.response.data = translateData(
           this.config.responseType,
-          this.response?.data
+          // workaround for `node-fetch`'s `.data` deprecation...
+          this.response?.bodyUsed ? this.response?.data : undefined
         );
       } catch {
         // best effort - don't throw an error within an error
@@ -118,22 +119,17 @@ export class GaxiosError<T = any> extends Error {
   }
 }
 
+/**
+ * @deprecated use native {@link globalThis.Headers}.
+ */
 export interface Headers {
   [index: string]: any;
 }
 export type GaxiosPromise<T = any> = Promise<GaxiosResponse<T>>;
 
-export interface GaxiosXMLHttpRequest {
-  responseURL: string;
-}
-
-export interface GaxiosResponse<T = any> {
+export interface GaxiosResponse<T = any> extends Response {
   config: GaxiosOptions;
   data: T;
-  status: number;
-  statusText: string;
-  headers: Headers;
-  request: GaxiosXMLHttpRequest;
 }
 
 export interface GaxiosMultipartOptions {
@@ -144,10 +140,12 @@ export interface GaxiosMultipartOptions {
 /**
  * Request options that are used to form the request.
  */
-export interface GaxiosOptions {
+export interface GaxiosOptions extends Omit<RequestInit, 'headers'> {
   /**
    * Optional method to override making the actual HTTP request. Useful
    * for writing tests.
+   *
+   * @deprecated Use {@link GaxiosOptions.fetchImplementation} instead.
    */
   adapter?: <T = any>(
     options: GaxiosOptions,
@@ -169,20 +167,48 @@ export interface GaxiosOptions {
     | 'OPTIONS'
     | 'TRACE'
     | 'PATCH';
-  headers?: Headers;
-  data?: any;
-  body?: any;
   /**
-   * The maximum size of the http response content in bytes allowed.
+   * Recommended: Provide a native {@link globalThis.Headers Headers} object.
+   *
+   * @privateRemarks
+   *
+   * This type does not have the native {@link globalThis.Headers Headers} in
+   * its signature as it would break customers looking to modify headers before
+   * providing to this library (new, unnecessary type checks/guards).
+   */
+  headers?: Headers;
+  /**
+   * The data to send in the {@link RequestInit.body} of the request. Data objects will be
+   * serialized as JSON, except for `FormData`.
+   *
+   * Note: if you would like to provide a Content-Type header other than
+   * application/json you you must provide a string or readable stream, rather
+   * than an object:
+   *
+   * ```ts
+   * {data: JSON.stringify({some: 'data'})}
+   * {data: fs.readFile('./some-data.jpeg')}
+   * ```
+   */
+  data?: any;
+  /**
+   * The maximum size of the http response `Content-Length` in bytes allowed.
    */
   maxContentLength?: number;
   /**
    * The maximum number of redirects to follow. Defaults to 20.
+   *
+   * @deprecated non-spec. Should use `20` if enabled per-spec: https://fetch.spec.whatwg.org/#http-redirect-fetch
    */
   maxRedirects?: number;
+  /**
+   * @deprecated non-spec. Should use `20` if enabled per-spec: https://fetch.spec.whatwg.org/#http-redirect-fetch
+   */
   follow?: number;
   /**
    * A collection of parts to send as a `Content-Type: multipart/related` request.
+   *
+   * This is passed to {@link RequestInit.body}.
    */
   multipart?: GaxiosMultipartOptions[];
   params?: any;
@@ -192,6 +218,10 @@ export interface GaxiosOptions {
    * @deprecated ignored
    */
   onUploadProgress?: (progressEvent: any) => void;
+  /**
+   * If the `fetchImplementation` is native `fetch`, the
+   * stream is a `ReadableStream`, otherwise `readable.Stream`
+   */
   responseType?:
     | 'arraybuffer'
     | 'blob'
@@ -203,15 +233,28 @@ export interface GaxiosOptions {
   validateStatus?: (status: number) => boolean;
   retryConfig?: RetryConfig;
   retry?: boolean;
-  // Enables aborting via AbortController
+  /**
+   * Enables aborting via {@link AbortController}.
+   */
   signal?: AbortSignal;
+  /**
+   * @deprecated non-spec. https://github.com/node-fetch/node-fetch/issues/1438
+   */
   size?: number;
   /**
-   * Implementation of `fetch` to use when making the API call. By default,
-   * will use the browser context if available, and fall back to `node-fetch`
-   * in node.js otherwise.
+   * Implementation of `fetch` to use when making the API call. Will use `fetch` by default.
+   *
+   * @example
+   *
+   * let customFetchCalled = false;
+   * const myFetch = (...args: Parameters<typeof fetch>) => {
+   *  customFetchCalled = true;
+   *  return fetch(...args);
+   * };
+   *
+   * {fetchImplementation: myFetch};
    */
-  fetchImplementation?: FetchImplementation;
+  fetchImplementation?: typeof fetch;
   // Configure client to use mTLS:
   cert?: string;
   key?: string;
@@ -258,7 +301,7 @@ export interface GaxiosOptions {
   errorRedactor?: typeof defaultErrorRedactor | false;
 }
 /**
- * A partial object of `GaxiosResponse` with only redactable keys
+ * A partial object of `GaxiosOptions` with only redactable keys
  *
  * @experimental
  */
@@ -330,41 +373,6 @@ export interface RetryConfig {
   retryBackoff?: (err: GaxiosError, defaultBackoffMs: number) => Promise<void>;
 }
 
-export type FetchImplementation = (
-  input: FetchRequestInfo,
-  init?: FetchRequestInit
-) => Promise<FetchResponse>;
-
-export type FetchRequestInfo = any;
-
-export interface FetchResponse {
-  readonly status: number;
-  readonly statusText: string;
-  readonly url: string;
-  readonly body: unknown | null;
-  arrayBuffer(): Promise<unknown>;
-  blob(): Promise<unknown>;
-  readonly headers: FetchHeaders;
-  json(): Promise<any>;
-  text(): Promise<string>;
-}
-
-export interface FetchRequestInit {
-  method?: string;
-}
-
-export interface FetchHeaders {
-  append(name: string, value: string): void;
-  delete(name: string): void;
-  get(name: string): string | null;
-  has(name: string): boolean;
-  set(name: string, value: string): void;
-  forEach(
-    callbackfn: (value: string, key: string) => void,
-    thisArg?: any
-  ): void;
-}
-
 function translateData(responseType: string | undefined, data: any) {
   switch (responseType) {
     case 'stream':
@@ -395,24 +403,39 @@ export function defaultErrorRedactor<T = any>(data: {
   const REDACT =
     '<<REDACTED> - See `errorRedactor` option in `gaxios` for configuration>.';
 
-  function redactHeaders(headers?: Headers) {
+  function redactHeaders(headers?: Headers | globalThis.Headers) {
     if (!headers) return;
 
-    for (const key of Object.keys(headers)) {
+    function check(key: string) {
       // any casing of `Authentication`
-      if (/^authentication$/i.test(key)) {
-        headers[key] = REDACT;
-      }
-
       // any casing of `Authorization`
-      if (/^authorization$/i.test(key)) {
-        headers[key] = REDACT;
-      }
-
       // anything containing secret, such as 'client secret'
-      if (/secret/i.test(key)) {
-        headers[key] = REDACT;
+      return (
+        /^authentication$/i.test(key) ||
+        /^authorization$/i.test(key) ||
+        /secret/i.test(key)
+      );
+    }
+
+    function redactHeadersObject(headers: Headers) {
+      for (const key of Object.keys(headers)) {
+        if (check(key)) headers[key] = REDACT;
       }
+    }
+
+    function redactHeadersHeaders(headers: globalThis.Headers) {
+      headers.forEach((value, key) => {
+        if (check(key)) headers.set(key, REDACT);
+      });
+
+      // headers.g
+    }
+
+    // support `node-fetch` Headers and other third-parties
+    if (headers instanceof Headers || 'set' in headers) {
+      redactHeadersHeaders(headers as globalThis.Headers);
+    } else {
+      redactHeadersObject(headers);
     }
   }
 
@@ -480,8 +503,11 @@ export function defaultErrorRedactor<T = any>(data: {
     defaultErrorRedactor({config: data.response.config});
     redactHeaders(data.response.headers);
 
-    redactString(data.response, 'data');
-    redactObject(data.response.data);
+    // workaround for `node-fetch`'s `.data` deprecation...
+    if ((data.response as {} as Response).bodyUsed) {
+      redactString(data.response, 'data');
+      redactObject(data.response.data);
+    }
   }
 
   return data;
