@@ -104,7 +104,7 @@ describe('🚙 error handling', () => {
 
   it('should not throw an error during a translation error', () => {
     const notJSON = '.';
-    const response: GaxiosResponse = {
+    const response = {
       config: {
         responseType: 'json',
       },
@@ -112,10 +112,7 @@ describe('🚙 error handling', () => {
       status: 500,
       statusText: '',
       headers: {},
-      request: {
-        responseURL: url,
-      },
-    };
+    } as GaxiosResponse;
 
     const error = new GaxiosError('translation test', {}, response);
 
@@ -178,9 +175,14 @@ describe('🥁 configuration options', () => {
 
   it('should allow setting maxContentLength', async () => {
     const body = {hello: '🌎'};
-    const scope = nock(url).get('/').reply(200, body);
+    const scope = nock(url)
+      .get('/')
+      .reply(200, body, {'content-length': body.toString().length.toString()});
     const maxContentLength = 1;
-    await assert.rejects(request({url, maxContentLength}), /over limit/);
+    await assert.rejects(request({url, maxContentLength}), (err: Error) => {
+      return err instanceof GaxiosError && /limit/.test(err.message);
+    });
+
     scope.done();
   });
 
@@ -193,27 +195,17 @@ describe('🥁 configuration options', () => {
     const res = await request({url});
     scopes.forEach(x => x.done());
     assert.deepStrictEqual(res.data, body);
-    assert.strictEqual(res.request.responseURL, `${url}/foo`);
-  });
-
-  it('should support disabling redirects', async () => {
-    const scope = nock(url).get('/').reply(302, undefined, {location: '/foo'});
-    const maxRedirects = 0;
-    await assert.rejects(request({url, maxRedirects}), /maximum redirect/);
-    scope.done();
+    assert.strictEqual(res.url, `${url}/foo`);
   });
 
   it('should allow overriding the adapter', async () => {
-    const response: GaxiosResponse = {
+    const response = {
       data: {hello: '🌎'},
       config: {},
       status: 200,
       statusText: 'OK',
-      headers: {},
-      request: {
-        responseURL: url,
-      },
-    };
+      headers: new Headers(),
+    } as GaxiosResponse;
     const adapter = () => Promise.resolve(response);
     const res = await request({url, adapter});
     assert.strictEqual(response, res);
@@ -601,22 +593,11 @@ describe('🥁 configuration options', () => {
   });
 
   it('should not stringify the data if it is appended by a form', async () => {
-    // Optional, can use `node-fetch`'s FormData to avoid warnings in Node < 18.13
-    // const FormData = (await import('node-fetch')).FormData;
     const formData = new FormData();
     formData.append('test', '123');
 
     const scope = nock(url)
       .post('/', body => {
-        /**
-         * Sample from native `node-fetch`
-         * body: '------3785545705014550845559551617\r\n' +
-         * 'Content-Disposition: form-data; name="test"\r\n' +
-         * '\r\n' +
-         * '123\r\n' +
-         * '------3785545705014550845559551617--',
-         */
-
         /**
          * Sample from native `fetch`
          * body: '------formdata-undici-0.39470493152687736\r\n' +
@@ -640,12 +621,11 @@ describe('🥁 configuration options', () => {
     assert.ok(res.config.data instanceof FormData);
   });
 
-  it('should allow explicitly setting the fetch implementation to node-fetch', async () => {
+  it('should allow explicitly setting the fetch implementation', async () => {
     let customFetchCalled = false;
-    const nodeFetch = (await import('node-fetch')).default;
-    const myFetch = (...args: Parameters<typeof nodeFetch>) => {
+    const myFetch = (...args: Parameters<typeof fetch>) => {
       customFetchCalled = true;
-      return nodeFetch(...args);
+      return fetch(...args);
     };
 
     const scope = nock(url).get('/').reply(200);
@@ -764,9 +744,9 @@ describe('🎏 data handling', () => {
   it('should return stream if asked nicely', async () => {
     const body = {hello: '🌎'};
     const scope = nock(url).get('/').reply(200, body);
-    const res = await request<stream.Readable>({url, responseType: 'stream'});
+    const res = await request({url, responseType: 'stream'});
     scope.done();
-    assert(res.data instanceof stream.Readable);
+    assert(res.data instanceof ReadableStream);
   });
 
   it('should return an ArrayBuffer if asked nicely', async () => {
@@ -806,9 +786,7 @@ describe('🎏 data handling', () => {
     const res = await request({url});
     scope.done();
     assert.ok(res.data);
-    // node-fetch and native fetch specs differ...
-    // https://github.com/node-fetch/node-fetch/issues/1066
-    assert.strictEqual(typeof res.statusText, 'string');
+    assert.strictEqual(res.statusText, 'OK');
   });
 
   it('should return JSON when response Content-Type=application/json', async () => {
@@ -990,10 +968,15 @@ describe('🎏 data handling', () => {
 
       // config redactions - headers
       assert(e.config.headers);
-      assert.deepStrictEqual(e.config.headers, {
+      const expectedRequestHeaders = new Headers({
         ...config.headers, // non-redactables should be present
         Authentication: REDACT,
         AUTHORIZATION: REDACT,
+      });
+      const actualHeaders = new Headers(e.config.headers);
+
+      expectedRequestHeaders.forEach((value, key) => {
+        assert.equal(actualHeaders.get(key), value);
       });
 
       // config redactions - data
@@ -1019,16 +1002,17 @@ describe('🎏 data handling', () => {
       assert(e.response);
       assert.deepStrictEqual(e.response.config, e.config);
 
-      const expectedHeaders: Headers = {
+      const expectedResponseHeaders = new Headers({
         ...responseHeaders, // non-redactables should be present
-        authentication: REDACT,
-        authorization: REDACT,
-      };
+      });
 
-      delete expectedHeaders['AUTHORIZATION'];
-      delete expectedHeaders['Authentication'];
+      expectedResponseHeaders.set('authentication', REDACT);
+      expectedResponseHeaders.set('authorization', REDACT);
 
-      assert.deepStrictEqual(e.response.headers, expectedHeaders);
+      expectedResponseHeaders.forEach((value, key) => {
+        assert.equal(e.response?.headers.get(key), value);
+      });
+
       assert.deepStrictEqual(e.response.data, {
         ...response, // non-redactables should be present
         assertion: REDACT,

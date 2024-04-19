@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/googleapis/gaxios/branch/master/graph/badge.svg)](https://codecov.io/gh/googleapis/gaxios)
 [![Code Style: Google](https://img.shields.io/badge/code%20style-google-blueviolet.svg)](https://github.com/google/gts)
 
-> An HTTP request client that provides an `axios` like interface over top of `node-fetch`.
+> An HTTP request client that provides an `axios` like interface over top of `fetch`.
 
 ## Install
 
@@ -71,10 +71,6 @@ interface GaxiosOptions = {
   // Defaults to `0`, which is the same as unset.
   maxContentLength: 2000,
 
-  // The max number of HTTP redirects to follow.
-  // Defaults to 100.
-  maxRedirects: 100,
-
   // The querystring parameters that will be encoded using `qs` and
   // appended to the url
   params: {
@@ -114,9 +110,9 @@ interface GaxiosOptions = {
   // status code.  Defaults to (>= 200 && < 300)
   validateStatus: (status: number) => true,
 
-  // Implementation of `fetch` to use when making the API call. By default,
-  // will use the browser context if available, and fall back to `node-fetch`
-  // in node.js otherwise.
+  /**
+   * Implementation of `fetch` to use when making the API call. Will use `fetch` by default.
+   */
   fetchImplementation?: typeof fetch;
 
   // Configuration for retrying of requests.
