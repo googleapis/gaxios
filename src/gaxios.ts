@@ -32,6 +32,7 @@ import {
 import {getRetryConfig} from './retry';
 import {PassThrough, Stream, pipeline} from 'stream';
 import {v4} from 'uuid';
+import {GaxiosInterceptorManager} from './interceptor';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -63,6 +64,11 @@ function getHeader(options: GaxiosOptions, header: string): string | undefined {
   return undefined;
 }
 
+enum GaxiosInterceptorType {
+  Request = 1,
+  Response,
+}
+
 export class Gaxios {
   protected agentCache = new Map<
     string | URL,
@@ -75,11 +81,23 @@ export class Gaxios {
   defaults: GaxiosOptions;
 
   /**
+   * Interceptors
+   */
+  interceptors: {
+    request: GaxiosInterceptorManager<GaxiosOptions>;
+    response: GaxiosInterceptorManager<GaxiosResponse>;
+  };
+
+  /**
    * The Gaxios class is responsible for making HTTP requests.
    * @param defaults The default set of options to be used for this instance.
    */
   constructor(defaults?: GaxiosOptions) {
     this.defaults = defaults || {};
+    this.interceptors = {
+      request: new GaxiosInterceptorManager(),
+      response: new GaxiosInterceptorManager(),
+    };
   }
 
   /**
@@ -88,7 +106,11 @@ export class Gaxios {
    */
   async request<T = any>(opts: GaxiosOptions = {}): GaxiosPromise<T> {
     opts = await this.#prepareRequest(opts);
-    return this._request(opts);
+    opts = await this.#applyInterceptors(opts);
+    return this.#applyInterceptors(
+      this._request(opts),
+      GaxiosInterceptorType.Response
+    );
   }
 
   private async _defaultAdapter<T>(
@@ -228,6 +250,49 @@ export class Gaxios {
     }
 
     return true;
+  }
+
+  /**
+   * Applies the interceptors. The request interceptors are applied after the
+   * call to prepareRequest is completed. The response interceptors are applied after the call
+   * to translateResponse.
+   *
+   * @param {T} optionsOrResponse The current set of options or the translated response.
+   *
+   * @returns {Promise<T>} Promise that resolves to the set of options or response after interceptors are applied.
+   */
+  async #applyInterceptors<
+    T extends
+      | GaxiosOptions
+      | GaxiosResponse
+      | Promise<GaxiosOptions | GaxiosResponse>,
+  >(
+    optionsOrResponse: T,
+    type: GaxiosInterceptorType = GaxiosInterceptorType.Request
+  ): Promise<T> {
+    let promiseChain = Promise.resolve(optionsOrResponse) as Promise<T>;
+
+    if (type === GaxiosInterceptorType.Request) {
+      for (const interceptor of this.interceptors.request) {
+        if (interceptor) {
+          promiseChain = promiseChain.then(
+            interceptor.resolved as unknown as (opts: T) => Promise<T>,
+            interceptor.rejected
+          ) as Promise<T>;
+        }
+      }
+    } else {
+      for (const interceptor of this.interceptors.response) {
+        if (interceptor) {
+          promiseChain = promiseChain.then(
+            interceptor.resolved as unknown as (resp: T) => Promise<T>,
+            interceptor.rejected
+          ) as Promise<T>;
+        }
+      }
+    }
+
+    return promiseChain;
   }
 
   /**

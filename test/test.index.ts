@@ -19,5 +19,6 @@ describe('📝 main exports', () => {
   it('should export all the types', () => {
     assert(main.Gaxios);
     assert(main.GaxiosError);
+    assert(main.GaxiosInterceptorManager);
   });
 });
