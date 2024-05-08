@@ -46,7 +46,7 @@ export class GaxiosInterceptorManager<
   }
 
   /**
-   * Adds an interceptor to the queue.
+   * Adds an interceptor.
    *
    * @param {GaxiosInterceptor} interceptor the interceptor to be added.
    *
@@ -60,7 +60,7 @@ export class GaxiosInterceptorManager<
   }
 
   /**
-   * Removes an interceptor from the queue.
+   * Removes an interceptor.
    *
    * @param {number} id the previously id of the interceptor to remove.
    */
@@ -71,7 +71,7 @@ export class GaxiosInterceptorManager<
   }
 
   /**
-   * Removes all interceptors from the queue.
+   * Removes all interceptors.
    */
   removeAll() {
     this.interceptorMap.clear();
