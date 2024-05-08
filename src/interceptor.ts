@@ -36,41 +36,13 @@ export interface GaxiosInterceptor<T extends GaxiosOptions | GaxiosResponse> {
 /**
  * Class to manage collections of GaxiosInterceptors for both requests and responses.
  */
-export class GaxiosInterceptorManager<T extends GaxiosOptions | GaxiosResponse>
-  implements
-    Iterator<GaxiosInterceptor<T> | null>,
-    Iterable<GaxiosInterceptor<T> | null>
-{
-  #interceptorQueue: Array<GaxiosInterceptor<T> | null>;
-  #index: number;
+export class GaxiosInterceptorManager<
+  T extends GaxiosOptions | GaxiosResponse,
+> {
+  interceptorMap: Map<Number, GaxiosInterceptor<T> | null>;
 
   constructor() {
-    this.#interceptorQueue = [];
-    this.#index = 0;
-  }
-
-  [Symbol.iterator](): Iterator<GaxiosInterceptor<T> | null> {
-    return this;
-  }
-
-  next(): IteratorResult<
-    GaxiosInterceptor<T> | null,
-    GaxiosInterceptor<T> | null
-  > {
-    const value =
-      this.#index < this.#interceptorQueue.length
-        ? this.#interceptorQueue[this.#index]
-        : undefined;
-
-    return this.#index++ >= this.#interceptorQueue.length
-      ? ({
-          done: true,
-          value,
-        } as IteratorReturnResult<GaxiosInterceptor<T> | null>)
-      : ({
-          done: false,
-          value,
-        } as IteratorYieldResult<GaxiosInterceptor<T> | null>);
+    this.interceptorMap = new Map<Number, GaxiosInterceptor<T>>();
   }
 
   /**
@@ -81,7 +53,10 @@ export class GaxiosInterceptorManager<T extends GaxiosOptions | GaxiosResponse>
    * @returns {number} an identifier that can be used to remove the interceptor.
    */
   addInterceptor(interceptor: GaxiosInterceptor<T>): number {
-    return this.#interceptorQueue.push(interceptor) - 1;
+    const index = this.interceptorMap.size;
+    this.interceptorMap.set(index, interceptor);
+
+    return index;
   }
 
   /**
@@ -90,8 +65,8 @@ export class GaxiosInterceptorManager<T extends GaxiosOptions | GaxiosResponse>
    * @param {number} id the previously id of the interceptor to remove.
    */
   removeInterceptor(id: number) {
-    if (this.#interceptorQueue[id]) {
-      this.#interceptorQueue[id] = null;
+    if (this.interceptorMap.has(id)) {
+      this.interceptorMap.set(id, null);
     }
   }
 
@@ -99,6 +74,6 @@ export class GaxiosInterceptorManager<T extends GaxiosOptions | GaxiosResponse>
    * Removes all interceptors from the queue.
    */
   removeAll() {
-    this.#interceptorQueue = [];
+    this.interceptorMap.clear();
   }
 }
