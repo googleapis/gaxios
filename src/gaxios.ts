@@ -257,7 +257,7 @@ export class Gaxios {
   ): Promise<GaxiosOptions> {
     let promiseChain = Promise.resolve(options);
 
-    for (const interceptor of this.interceptors.request.interceptorMap.values()) {
+    for (const interceptor of this.interceptors.request.values()) {
       if (interceptor) {
         promiseChain = promiseChain.then(
           interceptor.resolved,
@@ -282,7 +282,7 @@ export class Gaxios {
   ) {
     let promiseChain = Promise.resolve(response);
 
-    for (const interceptor of this.interceptors.response.interceptorMap.values()) {
+    for (const interceptor of this.interceptors.response.values()) {
       if (interceptor) {
         promiseChain = promiseChain.then(
           interceptor.resolved,

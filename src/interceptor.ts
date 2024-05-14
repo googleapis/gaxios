@@ -38,42 +38,4 @@ export interface GaxiosInterceptor<T extends GaxiosOptions | GaxiosResponse> {
  */
 export class GaxiosInterceptorManager<
   T extends GaxiosOptions | GaxiosResponse,
-> {
-  interceptorMap: Map<Number, GaxiosInterceptor<T> | null>;
-
-  constructor() {
-    this.interceptorMap = new Map<Number, GaxiosInterceptor<T>>();
-  }
-
-  /**
-   * Adds an interceptor.
-   *
-   * @param {GaxiosInterceptor} interceptor the interceptor to be added.
-   *
-   * @returns {number} an identifier that can be used to remove the interceptor.
-   */
-  addInterceptor(interceptor: GaxiosInterceptor<T>): number {
-    const index = this.interceptorMap.size;
-    this.interceptorMap.set(index, interceptor);
-
-    return index;
-  }
-
-  /**
-   * Removes an interceptor.
-   *
-   * @param {number} id the previously id of the interceptor to remove.
-   */
-  removeInterceptor(id: number) {
-    if (this.interceptorMap.has(id)) {
-      this.interceptorMap.set(id, null);
-    }
-  }
-
-  /**
-   * Removes all interceptors.
-   */
-  removeAll() {
-    this.interceptorMap.clear();
-  }
-}
+> extends Set<GaxiosInterceptor<T> | null> {}
