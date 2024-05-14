@@ -32,7 +32,6 @@ module.exports = {
       buffer: 'browserify',
       process: false,
       os: false,
-      querystring: false,
       path: false,
       stream: 'stream-browserify',
       url: false,

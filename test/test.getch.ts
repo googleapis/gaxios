@@ -27,7 +27,6 @@ import {
 } from '../src';
 import {GAXIOS_ERROR_SYMBOL, Headers} from '../src/common';
 import {pkg} from '../src/util';
-import qs from 'querystring';
 import fs from 'fs';
 
 nock.disableNetConnect();
@@ -247,7 +246,7 @@ describe('🥁 configuration options', () => {
     const scope = nock(url).get(path).reply(200, {});
     const res = await request(opts);
     assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.config.url, url + path);
+    assert.strictEqual(res.config.url?.toString(), url + path);
     scope.done();
   });
 
@@ -257,7 +256,7 @@ describe('🥁 configuration options', () => {
     const scope = nock(url).get(path).reply(200, {});
     const res = await request(opts);
     assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.config.url, url + path);
+    assert.strictEqual(res.config.url?.toString(), url + path);
     scope.done();
   });
 
@@ -278,7 +277,10 @@ describe('🥁 configuration options', () => {
     const scope = nock(url).get(path).reply(200, {});
     const res = await request(opts);
     assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.config.url, url + qs);
+    assert.strictEqual(
+      res.config.url?.toString(),
+      new URL(url + qs).toString()
+    );
     scope.done();
   });
 
@@ -291,7 +293,7 @@ describe('🥁 configuration options', () => {
     const scope = nock(url).get(path).reply(200, {});
     const res = await request(opts);
     assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.config.url, url + path);
+    assert.strictEqual(res.config.url?.toString(), url + path);
     scope.done();
   });
 
@@ -309,7 +311,7 @@ describe('🥁 configuration options', () => {
     const scope = nock(url).get(`/${qs}`).reply(200, {});
     const res = await request(opts);
     assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.config.url, url + qs);
+    assert.strictEqual(res.config.url, new URL(url + qs).toString());
     scope.done();
   });
 
@@ -692,10 +694,10 @@ describe('🎏 data handling', () => {
 
   it('should accept a string in the request data', async () => {
     const body = {hello: '🌎'};
-    const encoded = qs.stringify(body);
+    const encoded = new URLSearchParams(body);
     const scope = nock(url)
       .matchHeader('content-type', 'application/x-www-form-urlencoded')
-      .post('/', encoded)
+      .post('/', encoded.toString())
       .reply(200, {});
     const res = await request({
       url,
@@ -744,7 +746,7 @@ describe('🎏 data handling', () => {
     const body = {hello: '🌎'};
     const scope = nock(url)
       .matchHeader('Content-Type', 'application/x-www-form-urlencoded')
-      .post('/', qs.stringify(body))
+      .post('/', new URLSearchParams(body).toString())
       .reply(200, {});
     const res = await request({
       url,
@@ -948,7 +950,7 @@ describe('🎏 data handling', () => {
     customURL.searchParams.append('client_secret', 'data');
     customURL.searchParams.append('random', 'non-sensitive');
 
-    const config: GaxiosOptions = {
+    const config = {
       headers: {
         Authentication: 'My Auth',
         /**
@@ -965,7 +967,7 @@ describe('🎏 data handling', () => {
         client_secret: 'data',
       },
       body: 'grant_type=somesensitivedata&assertion=somesensitivedata&client_secret=data',
-    };
+    } as const;
 
     // simulate JSON response
     const responseHeaders = {
@@ -1019,8 +1021,19 @@ describe('🎏 data handling', () => {
         client_secret: REDACT,
       });
 
-      // config redactions - body
-      assert.deepStrictEqual(e.config.body, REDACT);
+      assert.deepStrictEqual(
+        Object.fromEntries(e.config.body as URLSearchParams),
+        {
+          ...config.data, // non-redactables should be present
+          grant_type: REDACT,
+          assertion: REDACT,
+          client_secret: REDACT,
+        }
+      );
+
+      expectedRequestHeaders.forEach((value, key) => {
+        assert.equal(actualHeaders.get(key), value);
+      });
 
       // config redactions - url
       assert(e.config.url);

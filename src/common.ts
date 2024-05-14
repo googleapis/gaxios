@@ -178,19 +178,46 @@ export interface GaxiosOptions extends Omit<RequestInit, 'headers'> {
    */
   headers?: Headers;
   /**
-   * The data to send in the {@link RequestInit.body} of the request. Data objects will be
-   * serialized as JSON, except for `FormData`.
+   * The data to send in the {@link RequestInit.body} of the request. Objects will be
+   * serialized as JSON, except for:
+   * - `ArrayBuffer`
+   * - `Blob`
+   * - `Buffer` (Node.js)
+   * - `DataView`
+   * - `File`
+   * - `FormData`
+   * - `ReadableStream`
+   * - `stream.Readable` (Node.js)
+   * - strings
+   * - `TypedArray` (e.g. `Uint8Array`, `BigInt64Array`)
+   * - `URLSearchParams`
+   * - all other objects where:
+   *   - headers['Content-Type'] === 'application/x-www-form-urlencoded' (serialized as `URLSearchParams`)
    *
-   * Note: if you would like to provide a Content-Type header other than
-   * application/json you you must provide a string or readable stream, rather
-   * than an object:
+   * In all other cases, if you would like to prevent `application/json` as the
+   * default `Content-Type` header you must provide a string or readable stream
+   * rather than an object, e.g.:
    *
    * ```ts
    * {data: JSON.stringify({some: 'data'})}
    * {data: fs.readFile('./some-data.jpeg')}
    * ```
    */
-  data?: any;
+  data?:
+    | ArrayBuffer
+    | Blob
+    | Buffer
+    | DataView
+    | File
+    | FormData
+    | ReadableStream
+    | Readable
+    | string
+    | ArrayBufferView
+    | {buffer: ArrayBufferLike}
+    | URLSearchParams
+    | {}
+    | BodyInit;
   /**
    * The maximum size of the http response `Content-Length` in bytes allowed.
    */
@@ -212,6 +239,9 @@ export interface GaxiosOptions extends Omit<RequestInit, 'headers'> {
    */
   multipart?: GaxiosMultipartOptions[];
   params?: any;
+  /**
+   * @deprecated Use {@link URLSearchParams} instead and pass this directly to {@link GaxiosOptions.data `data`}.
+   */
   paramsSerializer?: (params: {[index: string]: string | number}) => string;
   timeout?: number;
   /**
@@ -427,8 +457,6 @@ export function defaultErrorRedactor<T = any>(data: {
       headers.forEach((value, key) => {
         if (check(key)) headers.set(key, REDACT);
       });
-
-      // headers.g
     }
 
     // support `node-fetch` Headers and other third-parties
@@ -439,26 +467,44 @@ export function defaultErrorRedactor<T = any>(data: {
     }
   }
 
-  function redactString(obj: GaxiosOptions, key: keyof GaxiosOptions) {
+  function redactString<T extends GaxiosOptions | RedactableGaxiosResponse>(
+    obj: T,
+    key: keyof T
+  ) {
     if (
       typeof obj === 'object' &&
       obj !== null &&
       typeof obj[key] === 'string'
     ) {
-      const text = obj[key];
+      const text = obj[key] as string;
 
       if (
         /grant_type=/i.test(text) ||
         /assertion=/i.test(text) ||
         /secret/i.test(text)
       ) {
-        obj[key] = REDACT;
+        (obj[key] as {}) = REDACT;
       }
     }
   }
 
-  function redactObject<T extends GaxiosOptions['data']>(obj: T) {
-    if (typeof obj === 'object' && obj !== null) {
+  function redactObject<T extends GaxiosOptions['data'] | GaxiosResponse>(
+    obj: T | null
+  ) {
+    if (!obj) {
+      return;
+    } else if (
+      obj instanceof FormData ||
+      obj instanceof URLSearchParams ||
+      // support `node-fetch` FormData/URLSearchParams
+      ('forEach' in obj && 'set' in obj)
+    ) {
+      (obj as FormData | URLSearchParams).forEach((_, key) => {
+        if (['grant_type', 'assertion'].includes(key) || /secret/.test(key)) {
+          (obj as FormData | URLSearchParams).set(key, REDACT);
+        }
+      });
+    } else {
       if ('grant_type' in obj) {
         obj['grant_type'] = REDACT;
       }
