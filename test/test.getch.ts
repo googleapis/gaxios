@@ -1258,13 +1258,13 @@ describe('interceptors', () => {
       const instance = new Gaxios();
       instance.interceptors.response.add({
         resolved(response) {
-          response.headers['hello'] = 'world';
+          response.headers.set('hello', 'world');
           return Promise.resolve(response);
         },
       });
       const resp = await instance.request({url});
       scope.done();
-      assert.strictEqual(resp.headers['hello'], 'world');
+      assert.strictEqual(resp.headers.get('hello'), 'world');
     });
 
     it('should not invoke a response interceptor after it is removed', async () => {
@@ -1293,30 +1293,30 @@ describe('interceptors', () => {
       const instance = new Gaxios();
       instance.interceptors.response.add({
         resolved: response => {
-          response.headers!['foo'] = 'bar';
+          response.headers.set('foo', 'bar');
           return Promise.resolve(response);
         },
       });
       instance.interceptors.response.add({
         resolved: response => {
-          assert.strictEqual(response.headers!['foo'], 'bar');
-          response.headers!['bar'] = 'baz';
+          assert.strictEqual(response.headers.get('foo'), 'bar');
+          response.headers.set('bar', 'baz');
           return Promise.resolve(response);
         },
       });
       instance.interceptors.response.add({
         resolved: response => {
-          assert.strictEqual(response.headers!['foo'], 'bar');
-          assert.strictEqual(response.headers!['bar'], 'baz');
-          response.headers!['baz'] = 'buzz';
+          assert.strictEqual(response.headers.get('foo'), 'bar');
+          assert.strictEqual(response.headers.get('bar'), 'baz');
+          response.headers.set('baz', 'buzz');
           return Promise.resolve(response);
         },
       });
       const resp = await instance.request({url, headers: {}});
       scope.done();
-      assert.strictEqual(resp.headers['foo'], 'bar');
-      assert.strictEqual(resp.headers['bar'], 'baz');
-      assert.strictEqual(resp.headers['baz'], 'buzz');
+      assert.strictEqual(resp.headers.get('foo'), 'bar');
+      assert.strictEqual(resp.headers.get('bar'), 'baz');
+      assert.strictEqual(resp.headers.get('baz'), 'buzz');
     });
 
     it('should not invoke a any response interceptors after they are removed', async () => {
