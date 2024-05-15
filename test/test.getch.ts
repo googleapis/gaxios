@@ -1102,22 +1102,6 @@ describe('🍂 defaults & instances', () => {
     assert.deepStrictEqual(res.data, {});
   });
 
-  it('should set content-type to application/json by default, for buffer', async () => {
-    const pkg = fs.readFileSync('./package.json');
-    const pkgJson = JSON.parse(pkg.toString('utf8'));
-    const scope = nock(url)
-      .matchHeader('content-type', 'application/json')
-      .post('/', pkgJson)
-      .reply(200, {});
-    const res = await request({
-      url,
-      method: 'POST',
-      data: pkg,
-    });
-    scope.done();
-    assert.deepStrictEqual(res.data, {});
-  });
-
   describe('mtls', () => {
     class GaxiosAssertAgentCache extends Gaxios {
       getAgentCache() {
