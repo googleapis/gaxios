@@ -1146,3 +1146,234 @@ describe('🍂 defaults & instances', () => {
     });
   });
 });
+
+describe('interceptors', () => {
+  describe('request', () => {
+    it('should invoke a request interceptor when one is provided', async () => {
+      const scope = nock(url)
+        .matchHeader('hello', 'world')
+        .get('/')
+        .reply(200, {});
+      const instance = new Gaxios();
+      instance.interceptors.request.add({
+        resolved: config => {
+          config.headers = {hello: 'world'};
+          return Promise.resolve(config);
+        },
+      });
+      await instance.request({url});
+      scope.done();
+    });
+
+    it('should not invoke a request interceptor after it is removed', async () => {
+      const scope = nock(url).persist().get('/').reply(200, {});
+      const spyFunc = sinon.fake(
+        () =>
+          Promise.resolve({
+            url,
+            validateStatus: () => {
+              return true;
+            },
+          }) as unknown as Promise<GaxiosOptions>
+      );
+      const instance = new Gaxios();
+      const interceptor = {resolved: spyFunc};
+      instance.interceptors.request.add(interceptor);
+      await instance.request({url});
+      instance.interceptors.request.delete(interceptor);
+      await instance.request({url});
+      scope.done();
+      assert.strictEqual(spyFunc.callCount, 1);
+    });
+
+    it('should invoke multiple request interceptors in the order they were added', async () => {
+      const scope = nock(url)
+        .matchHeader('foo', 'bar')
+        .matchHeader('bar', 'baz')
+        .matchHeader('baz', 'buzz')
+        .get('/')
+        .reply(200, {});
+      const instance = new Gaxios();
+      instance.interceptors.request.add({
+        resolved: config => {
+          config.headers!['foo'] = 'bar';
+          return Promise.resolve(config);
+        },
+      });
+      instance.interceptors.request.add({
+        resolved: config => {
+          assert.strictEqual(config.headers!['foo'], 'bar');
+          config.headers!['bar'] = 'baz';
+          return Promise.resolve(config);
+        },
+      });
+      instance.interceptors.request.add({
+        resolved: config => {
+          assert.strictEqual(config.headers!['foo'], 'bar');
+          assert.strictEqual(config.headers!['bar'], 'baz');
+          config.headers!['baz'] = 'buzz';
+          return Promise.resolve(config);
+        },
+      });
+      await instance.request({url, headers: {}});
+      scope.done();
+    });
+
+    it('should not invoke a any request interceptors after they are removed', async () => {
+      const scope = nock(url).persist().get('/').reply(200, {});
+      const spyFunc = sinon.fake(
+        () =>
+          Promise.resolve({
+            url,
+            validateStatus: () => {
+              return true;
+            },
+          }) as unknown as Promise<GaxiosOptions>
+      );
+      const instance = new Gaxios();
+      instance.interceptors.request.add({
+        resolved: spyFunc,
+      });
+      instance.interceptors.request.add({
+        resolved: spyFunc,
+      });
+      instance.interceptors.request.add({
+        resolved: spyFunc,
+      });
+      await instance.request({url});
+      instance.interceptors.request.clear();
+      await instance.request({url});
+      scope.done();
+      assert.strictEqual(spyFunc.callCount, 3);
+    });
+
+    it('should invoke the rejected function when a previous request interceptor rejects', async () => {
+      const instance = new Gaxios();
+      instance.interceptors.request.add({
+        resolved: () => {
+          throw new Error('Something went wrong');
+        },
+      });
+      instance.interceptors.request.add({
+        resolved: config => {
+          config.headers = {hello: 'world'};
+          return Promise.resolve(config);
+        },
+        rejected: err => {
+          assert.strictEqual(err.message, 'Something went wrong');
+        },
+      });
+      // Because the options wind up being invalid the call will reject with a URL problem.
+      assert.rejects(instance.request({url}));
+    });
+  });
+
+  describe('response', () => {
+    it('should invoke a response interceptor when one is provided', async () => {
+      const scope = nock(url).get('/').reply(200, {});
+      const instance = new Gaxios();
+      instance.interceptors.response.add({
+        resolved(response) {
+          response.headers['hello'] = 'world';
+          return Promise.resolve(response);
+        },
+      });
+      const resp = await instance.request({url});
+      scope.done();
+      assert.strictEqual(resp.headers['hello'], 'world');
+    });
+
+    it('should not invoke a response interceptor after it is removed', async () => {
+      const scope = nock(url).persist().get('/').reply(200, {});
+      const spyFunc = sinon.fake(
+        () =>
+          Promise.resolve({
+            url,
+            validateStatus: () => {
+              return true;
+            },
+          }) as unknown as Promise<GaxiosResponse>
+      );
+      const instance = new Gaxios();
+      const interceptor = {resolved: spyFunc};
+      instance.interceptors.response.add(interceptor);
+      await instance.request({url});
+      instance.interceptors.response.delete(interceptor);
+      await instance.request({url});
+      scope.done();
+      assert.strictEqual(spyFunc.callCount, 1);
+    });
+
+    it('should invoke multiple response interceptors in the order they were added', async () => {
+      const scope = nock(url).get('/').reply(200, {});
+      const instance = new Gaxios();
+      instance.interceptors.response.add({
+        resolved: response => {
+          response.headers!['foo'] = 'bar';
+          return Promise.resolve(response);
+        },
+      });
+      instance.interceptors.response.add({
+        resolved: response => {
+          assert.strictEqual(response.headers!['foo'], 'bar');
+          response.headers!['bar'] = 'baz';
+          return Promise.resolve(response);
+        },
+      });
+      instance.interceptors.response.add({
+        resolved: response => {
+          assert.strictEqual(response.headers!['foo'], 'bar');
+          assert.strictEqual(response.headers!['bar'], 'baz');
+          response.headers!['baz'] = 'buzz';
+          return Promise.resolve(response);
+        },
+      });
+      const resp = await instance.request({url, headers: {}});
+      scope.done();
+      assert.strictEqual(resp.headers['foo'], 'bar');
+      assert.strictEqual(resp.headers['bar'], 'baz');
+      assert.strictEqual(resp.headers['baz'], 'buzz');
+    });
+
+    it('should not invoke a any response interceptors after they are removed', async () => {
+      const scope = nock(url).persist().get('/').reply(200, {});
+      const spyFunc = sinon.fake(
+        () =>
+          Promise.resolve({
+            url,
+            validateStatus: () => {
+              return true;
+            },
+          }) as unknown as Promise<GaxiosResponse>
+      );
+      const instance = new Gaxios();
+      instance.interceptors.response.add({
+        resolved: spyFunc,
+      });
+      instance.interceptors.response.add({
+        resolved: spyFunc,
+      });
+      instance.interceptors.response.add({
+        resolved: spyFunc,
+      });
+      await instance.request({url});
+      instance.interceptors.response.clear();
+      await instance.request({url});
+      scope.done();
+      assert.strictEqual(spyFunc.callCount, 3);
+    });
+
+    it('should invoke the rejected function when a request has an error', async () => {
+      const scope = nock(url).get('/').reply(404, {});
+      const instance = new Gaxios();
+      instance.interceptors.response.add({
+        rejected: err => {
+          assert.strictEqual(err.status, 404);
+        },
+      });
+
+      await instance.request({url});
+      scope.done();
+    });
+  });
+});

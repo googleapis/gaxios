@@ -28,6 +28,7 @@ import {
 } from './common';
 import {getRetryConfig} from './retry';
 import {Readable} from 'stream';
+import {GaxiosInterceptorManager} from './interceptor';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -46,11 +47,23 @@ export class Gaxios {
   defaults: GaxiosOptions;
 
   /**
+   * Interceptors
+   */
+  interceptors: {
+    request: GaxiosInterceptorManager<GaxiosOptions>;
+    response: GaxiosInterceptorManager<GaxiosResponse>;
+  };
+
+  /**
    * The Gaxios class is responsible for making HTTP requests.
    * @param defaults The default set of options to be used for this instance.
    */
   constructor(defaults?: GaxiosOptions) {
     this.defaults = defaults || {};
+    this.interceptors = {
+      request: new GaxiosInterceptorManager(),
+      response: new GaxiosInterceptorManager(),
+    };
   }
 
   /**
@@ -58,8 +71,9 @@ export class Gaxios {
    * @param opts Set of HTTP options that will be used for this HTTP request.
    */
   async request<T = any>(opts: GaxiosOptions = {}): GaxiosPromise<T> {
-    const prepared = await this.#prepareRequest(opts);
-    return this._request(prepared);
+    let prepared = await this.#prepareRequest(opts);
+    prepared = await this.#applyRequestInterceptors(prepared);
+    return this.#applyResponseInterceptors(this._request(prepared));
   }
 
   private async _defaultAdapter<T>(
@@ -237,6 +251,56 @@ export class Gaxios {
     }
 
     return true;
+  }
+
+  /**
+   * Applies the request interceptors. The request interceptors are applied after the
+   * call to prepareRequest is completed.
+   *
+   * @param {GaxiosOptions} options The current set of options.
+   *
+   * @returns {Promise<GaxiosOptions>} Promise that resolves to the set of options or response after interceptors are applied.
+   */
+  async #applyRequestInterceptors(
+    options: GaxiosOptions
+  ): Promise<GaxiosOptions> {
+    let promiseChain = Promise.resolve(options);
+
+    for (const interceptor of this.interceptors.request.values()) {
+      if (interceptor) {
+        promiseChain = promiseChain.then(
+          interceptor.resolved,
+          interceptor.rejected
+        ) as Promise<GaxiosOptions>;
+      }
+    }
+
+    return promiseChain;
+  }
+
+  /**
+   * Applies the response interceptors. The response interceptors are applied after the
+   * call to request is made.
+   *
+   * @param {GaxiosOptions} options The current set of options.
+   *
+   * @returns {Promise<GaxiosOptions>} Promise that resolves to the set of options or response after interceptors are applied.
+   */
+  async #applyResponseInterceptors(
+    response: GaxiosResponse | Promise<GaxiosResponse>
+  ) {
+    let promiseChain = Promise.resolve(response);
+
+    for (const interceptor of this.interceptors.response.values()) {
+      if (interceptor) {
+        promiseChain = promiseChain.then(
+          interceptor.resolved,
+          interceptor.rejected
+        ) as Promise<GaxiosResponse>;
+      }
+    }
+
+    return promiseChain;
   }
 
   /**
