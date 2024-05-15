@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.6.0](https://github.com/googleapis/gaxios/compare/v6.5.0...v6.6.0) (2024-05-15)
+
+
+### Features
+
+* Add request and response interceptors ([#619](https://github.com/googleapis/gaxios/issues/619)) ([059fe77](https://github.com/googleapis/gaxios/commit/059fe7708e6d98cc44814ec1fad7d412668a05b9))
+
 ## [6.5.0](https://github.com/googleapis/gaxios/compare/v6.4.0...v6.5.0) (2024-04-09)
 
 
