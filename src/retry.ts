@@ -97,11 +97,7 @@ function shouldRetryRequest(err: GaxiosError) {
 
   // `fetch` raises an AbortError if signaled:
   // https://developer.mozilla.org/en-US/docs/Web/API/AbortController/abort
-  if (
-    err.config.signal?.aborted ||
-    err.name === 'AbortError' ||
-    err.error?.name === 'AbortError'
-  ) {
+  if (err.config.signal?.aborted || err.error?.name === 'AbortError') {
     return false;
   }
 

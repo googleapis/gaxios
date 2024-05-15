@@ -14,7 +14,6 @@
 import extend from 'extend';
 import {Agent} from 'http';
 import {Agent as HTTPSAgent} from 'https';
-import qs from 'querystring';
 import {URL} from 'url';
 
 import {
@@ -28,9 +27,12 @@ import {
 } from './common';
 import {getRetryConfig} from './retry';
 import {Readable} from 'stream';
-import {v4} from 'uuid';
+import {GaxiosInterceptorManager} from './interceptor';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+const randomUUID = async () =>
+  globalThis.crypto?.randomUUID() || (await import('crypto')).randomUUID();
 
 export class Gaxios {
   protected agentCache = new Map<
@@ -44,11 +46,23 @@ export class Gaxios {
   defaults: GaxiosOptions;
 
   /**
+   * Interceptors
+   */
+  interceptors: {
+    request: GaxiosInterceptorManager<GaxiosOptions>;
+    response: GaxiosInterceptorManager<GaxiosResponse>;
+  };
+
+  /**
    * The Gaxios class is responsible for making HTTP requests.
    * @param defaults The default set of options to be used for this instance.
    */
   constructor(defaults?: GaxiosOptions) {
     this.defaults = defaults || {};
+    this.interceptors = {
+      request: new GaxiosInterceptorManager(),
+      response: new GaxiosInterceptorManager(),
+    };
   }
 
   /**
@@ -56,8 +70,9 @@ export class Gaxios {
    * @param opts Set of HTTP options that will be used for this HTTP request.
    */
   async request<T = any>(opts: GaxiosOptions = {}): GaxiosPromise<T> {
-    const prepared = await this.#prepareRequest(opts);
-    return this._request(prepared);
+    let prepared = await this.#prepareRequest(opts);
+    prepared = await this.#applyRequestInterceptors(prepared);
+    return this.#applyResponseInterceptors(this._request(prepared));
   }
 
   private async _defaultAdapter<T>(
@@ -93,7 +108,7 @@ export class Gaxios {
         if (opts.responseType === 'stream') {
           const response = [];
 
-          for await (const chunk of opts.data) {
+          for await (const chunk of opts.data as Readable) {
             response.push(chunk);
           }
 
@@ -140,7 +155,7 @@ export class Gaxios {
       throw new GaxiosError(
         "Response's `Content-Length` is over the limit.",
         opts,
-        Object.assign(res, {config: opts, data: null}) as GaxiosResponse
+        Object.assign(res, {config: opts}) as GaxiosResponse
       );
     }
 
@@ -207,13 +222,63 @@ export class Gaxios {
   }
 
   /**
+   * Applies the request interceptors. The request interceptors are applied after the
+   * call to prepareRequest is completed.
+   *
+   * @param {GaxiosOptions} options The current set of options.
+   *
+   * @returns {Promise<GaxiosOptions>} Promise that resolves to the set of options or response after interceptors are applied.
+   */
+  async #applyRequestInterceptors(
+    options: GaxiosOptions
+  ): Promise<GaxiosOptions> {
+    let promiseChain = Promise.resolve(options);
+
+    for (const interceptor of this.interceptors.request.values()) {
+      if (interceptor) {
+        promiseChain = promiseChain.then(
+          interceptor.resolved,
+          interceptor.rejected
+        ) as Promise<GaxiosOptions>;
+      }
+    }
+
+    return promiseChain;
+  }
+
+  /**
+   * Applies the response interceptors. The response interceptors are applied after the
+   * call to request is made.
+   *
+   * @param {GaxiosOptions} options The current set of options.
+   *
+   * @returns {Promise<GaxiosOptions>} Promise that resolves to the set of options or response after interceptors are applied.
+   */
+  async #applyResponseInterceptors(
+    response: GaxiosResponse | Promise<GaxiosResponse>
+  ) {
+    let promiseChain = Promise.resolve(response);
+
+    for (const interceptor of this.interceptors.response.values()) {
+      if (interceptor) {
+        promiseChain = promiseChain.then(
+          interceptor.resolved,
+          interceptor.rejected
+        ) as Promise<GaxiosResponse>;
+      }
+    }
+
+    return promiseChain;
+  }
+
+  /**
    * Validates the options, merges them with defaults, and prepare request.
    *
    * @param options The original options passed from the client.
    * @returns Prepared options, ready to make a request
    */
   async #prepareRequest(options: GaxiosOptions): Promise<GaxiosOptions> {
-    const opts = extend(true, {}, this.defaults, options);
+    const opts: GaxiosOptions = extend(true, {}, this.defaults, options);
     if (!opts.url) {
       throw new Error('URL is required.');
     }
@@ -224,14 +289,27 @@ export class Gaxios {
       opts.url = baseUrl.toString() + opts.url;
     }
 
-    opts.paramsSerializer = opts.paramsSerializer || this.paramsSerializer;
-    if (opts.params && Object.keys(opts.params).length > 0) {
-      let additionalQueryParams = opts.paramsSerializer(opts.params);
-      if (additionalQueryParams.startsWith('?')) {
-        additionalQueryParams = additionalQueryParams.slice(1);
+    // don't modify the properties of a default or provided URL
+    opts.url = new URL(opts.url);
+
+    if (opts.params) {
+      if (opts.paramsSerializer) {
+        let additionalQueryParams = opts.paramsSerializer(opts.params);
+
+        if (additionalQueryParams.startsWith('?')) {
+          additionalQueryParams = additionalQueryParams.slice(1);
+        }
+        const prefix = opts.url.toString().includes('?') ? '&' : '?';
+        opts.url = opts.url + prefix + additionalQueryParams;
+      } else {
+        const url = opts.url instanceof URL ? opts.url : new URL(opts.url);
+
+        for (const [key, value] of new URLSearchParams(opts.params)) {
+          url.searchParams.append(key, value);
+        }
+
+        opts.url = url;
       }
-      const prefix = opts.url.toString().includes('?') ? '&' : '?';
-      opts.url = opts.url + prefix + additionalQueryParams;
     }
 
     const preparedHeaders =
@@ -239,45 +317,21 @@ export class Gaxios {
         ? opts.headers
         : new Headers(opts.headers);
 
-    const isFormData = opts?.data instanceof FormData;
+    const shouldDirectlyPassData =
+      typeof opts.data === 'string' ||
+      opts.data instanceof ArrayBuffer ||
+      opts.data instanceof Blob ||
+      opts.data instanceof File ||
+      opts.data instanceof FormData ||
+      opts.data instanceof Readable ||
+      opts.data instanceof ReadableStream ||
+      opts.data instanceof String ||
+      opts.data instanceof URLSearchParams ||
+      ArrayBuffer.isView(opts.data); // `Buffer` (Node.js), `DataView`, `TypedArray`
 
-    if (opts.multipart === undefined && opts.data) {
-      if (
-        opts.data instanceof ReadableStream ||
-        opts.data instanceof Readable
-      ) {
-        opts.body = opts.data as ReadableStream;
-      } else if (
-        opts.data instanceof Blob ||
-        ('Buffer' in globalThis && Buffer.isBuffer(opts.data))
-      ) {
-        // Do not attempt to JSON.stringify() a Buffer:
-        opts.body = opts.data;
-        if (!preparedHeaders.has('content-type')) {
-          preparedHeaders.set('content-type', 'application/json');
-        }
-      } else if (typeof opts.data === 'object' && !isFormData) {
-        if (
-          preparedHeaders.get('Content-Type') ===
-          'application/x-www-form-urlencoded'
-        ) {
-          // If www-form-urlencoded content type has been set, but data is
-          // provided as an object, serialize the content
-          opts.body = opts.paramsSerializer(opts.data);
-        } else {
-          if (!preparedHeaders.has('content-type')) {
-            preparedHeaders.set('content-type', 'application/json');
-          }
-          opts.body = JSON.stringify(opts.data);
-        }
-      } else {
-        opts.body = opts.data;
-      }
-    } else if (opts.multipart && opts.multipart.length > 0) {
-      // note: once the minimum version reaches Node 16,
-      // this can be replaced with randomUUID() function from crypto
-      // and the dependency on UUID removed
-      const boundary = v4();
+    if (opts.multipart?.length) {
+      const boundary = await randomUUID();
+
       preparedHeaders.set(
         'content-type',
         `multipart/related; boundary=${boundary}`
@@ -286,6 +340,38 @@ export class Gaxios {
       opts.body = Readable.from(
         this.getMultipartRequest(opts.multipart, boundary)
       ) as {} as ReadableStream;
+    } else if (shouldDirectlyPassData) {
+      opts.body = opts.data as BodyInit;
+
+      /**
+       * Used for backwards-compatibility.
+       *
+       * @deprecated we shouldn't infer Buffers as JSON
+       */
+      if ('Buffer' in globalThis && Buffer.isBuffer(opts.data)) {
+        if (!preparedHeaders.has('content-type')) {
+          preparedHeaders.set('content-type', 'application/json');
+        }
+      }
+    } else if (typeof opts.data === 'object') {
+      if (
+        preparedHeaders.get('Content-Type') ===
+        'application/x-www-form-urlencoded'
+      ) {
+        // If www-form-urlencoded content type has been set, but data is
+        // provided as an object, serialize the content
+        opts.body = opts.paramsSerializer
+          ? opts.paramsSerializer(opts.data as {})
+          : new URLSearchParams(opts.data as {});
+      } else {
+        if (!preparedHeaders.has('content-type')) {
+          preparedHeaders.set('content-type', 'application/json');
+        }
+
+        opts.body = JSON.stringify(opts.data);
+      }
+    } else if (opts.data) {
+      opts.body = opts.data as BodyInit;
     }
 
     opts.validateStatus = opts.validateStatus || this.validateStatus;
@@ -301,11 +387,10 @@ export class Gaxios {
       process?.env?.https_proxy ||
       process?.env?.HTTP_PROXY ||
       process?.env?.http_proxy;
-    const urlMayUseProxy = this.#urlMayUseProxy(opts.url, opts.noProxy);
 
     if (opts.agent) {
       // don't do any of the following options - use the user-provided agent.
-    } else if (proxy && urlMayUseProxy) {
+    } else if (proxy && this.#urlMayUseProxy(opts.url, opts.noProxy)) {
       const HttpsProxyAgent = await Gaxios.#getProxyAgent();
 
       if (this.agentCache.has(proxy)) {
@@ -358,7 +443,7 @@ export class Gaxios {
       opts.headers = headers;
     }
 
-    return {...opts};
+    return opts;
   }
 
   /**
@@ -367,14 +452,6 @@ export class Gaxios {
    */
   private validateStatus(status: number) {
     return status >= 200 && status < 300;
-  }
-
-  /**
-   * Encode a set of key/value pars into a querystring format (?foo=bar&baz=boo)
-   * @param params key value pars to encode
-   */
-  private paramsSerializer(params: {[index: string]: string | number}) {
-    return qs.stringify(params);
   }
 
   /**

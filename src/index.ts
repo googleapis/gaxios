@@ -22,6 +22,7 @@ export {
   RetryConfig,
 } from './common';
 export {Gaxios, GaxiosOptions};
+export * from './interceptor';
 
 /**
  * The default instance used when the `request` method is directly

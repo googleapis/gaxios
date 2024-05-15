@@ -94,7 +94,8 @@ export class GaxiosError<T = any> extends Error {
       try {
         this.response.data = translateData(
           this.config.responseType,
-          this.response?.data
+          // workaround for `node-fetch`'s `.data` deprecation...
+          this.response?.bodyUsed ? this.response?.data : undefined
         );
       } catch {
         // best effort - don't throw an error within an error
@@ -119,7 +120,7 @@ export class GaxiosError<T = any> extends Error {
 }
 
 /**
- * @deprecated - use native {@link globalThis.Headers}.
+ * @deprecated use native {@link globalThis.Headers}.
  */
 export interface Headers {
   [index: string]: any;
@@ -144,7 +145,7 @@ export interface GaxiosOptions extends Omit<RequestInit, 'headers'> {
    * Optional method to override making the actual HTTP request. Useful
    * for writing tests.
    *
-   * @deprecated - Use {@link GaxiosOptions.fetchImplementation} instead.
+   * @deprecated Use {@link GaxiosOptions.fetchImplementation} instead.
    */
   adapter?: <T = any>(
     options: GaxiosOptions,
@@ -173,25 +174,52 @@ export interface GaxiosOptions extends Omit<RequestInit, 'headers'> {
    *
    * This type does not have the native {@link globalThis.Headers Headers} in
    * its signature as it would break customers looking to modify headers before
-   * providing to this library.
+   * providing to this library (new, unnecessary type checks/guards).
    */
   headers?: Headers;
   /**
-   * The data to send in the {@link RequestInit.body} of the request. Data objects will be
-   * serialized as JSON, except for `FormData`.
+   * The data to send in the {@link RequestInit.body} of the request. Objects will be
+   * serialized as JSON, except for:
+   * - `ArrayBuffer`
+   * - `Blob`
+   * - `Buffer` (Node.js)
+   * - `DataView`
+   * - `File`
+   * - `FormData`
+   * - `ReadableStream`
+   * - `stream.Readable` (Node.js)
+   * - strings
+   * - `TypedArray` (e.g. `Uint8Array`, `BigInt64Array`)
+   * - `URLSearchParams`
+   * - all other objects where:
+   *   - headers['Content-Type'] === 'application/x-www-form-urlencoded' (serialized as `URLSearchParams`)
    *
-   * Note: if you would like to provide a Content-Type header other than
-   * application/json you you must provide a string or readable stream, rather
-   * than an object:
+   * In all other cases, if you would like to prevent `application/json` as the
+   * default `Content-Type` header you must provide a string or readable stream
+   * rather than an object, e.g.:
    *
-   * @example
-   *
+   * ```ts
    * {data: JSON.stringify({some: 'data'})}
    * {data: fs.readFile('./some-data.jpeg')}
+   * ```
    */
-  data?: any;
+  data?:
+    | ArrayBuffer
+    | Blob
+    | Buffer
+    | DataView
+    | File
+    | FormData
+    | ReadableStream
+    | Readable
+    | string
+    | ArrayBufferView
+    | {buffer: ArrayBufferLike}
+    | URLSearchParams
+    | {}
+    | BodyInit;
   /**
-   * The maximum size of the http response content in bytes allowed.
+   * The maximum size of the http response `Content-Length` in bytes allowed.
    */
   maxContentLength?: number;
   /**
@@ -201,12 +229,11 @@ export interface GaxiosOptions extends Omit<RequestInit, 'headers'> {
    */
   multipart?: GaxiosMultipartOptions[];
   params?: any;
-  paramsSerializer?: (params: {[index: string]: string | number}) => string;
   timeout?: number;
   /**
-   * @deprecated ignored
+   * If the `fetchImplementation` is native `fetch`, the
+   * stream is a `ReadableStream`, otherwise `readable.Stream`
    */
-  onUploadProgress?: (progressEvent: any) => void;
   responseType?:
     | 'arraybuffer'
     | 'blob'
@@ -219,7 +246,7 @@ export interface GaxiosOptions extends Omit<RequestInit, 'headers'> {
   retryConfig?: RetryConfig;
   retry?: boolean;
   /**
-   * Enables aborting via {@link AbortController}
+   * Enables aborting via {@link AbortController}.
    */
   signal?: AbortSignal;
   /**
@@ -387,48 +414,75 @@ export function defaultErrorRedactor<T = any>(data: {
   function redactHeaders(headers?: Headers | globalThis.Headers) {
     if (!headers) return;
 
-    const source: string[] =
-      headers instanceof Headers
-        ? // TS is missing Headers#keys at the time of writing
-          (headers as {} as {keys(): string[]}).keys()
-        : Object.keys(headers);
-
-    for (const key of source) {
+    function check(key: string) {
       // any casing of `Authentication`
       // any casing of `Authorization`
       // anything containing secret, such as 'client secret'
-      if (
+      return (
         /^authentication$/i.test(key) ||
         /^authorization$/i.test(key) ||
         /secret/i.test(key)
-      ) {
-        headers instanceof Headers
-          ? headers.set(key, REDACT)
-          : (headers[key] = REDACT);
+      );
+    }
+
+    function redactHeadersObject(headers: Headers) {
+      for (const key of Object.keys(headers)) {
+        if (check(key)) headers[key] = REDACT;
       }
+    }
+
+    function redactHeadersHeaders(headers: globalThis.Headers) {
+      headers.forEach((value, key) => {
+        if (check(key)) headers.set(key, REDACT);
+      });
+    }
+
+    // support `node-fetch` Headers and other third-parties
+    if (headers instanceof Headers || 'set' in headers) {
+      redactHeadersHeaders(headers as globalThis.Headers);
+    } else {
+      redactHeadersObject(headers);
     }
   }
 
-  function redactString(obj: GaxiosOptions, key: keyof GaxiosOptions) {
+  function redactString<T extends GaxiosOptions | RedactableGaxiosResponse>(
+    obj: T,
+    key: keyof T
+  ) {
     if (
       typeof obj === 'object' &&
       obj !== null &&
       typeof obj[key] === 'string'
     ) {
-      const text = obj[key];
+      const text = obj[key] as string;
 
       if (
         /grant_type=/i.test(text) ||
         /assertion=/i.test(text) ||
         /secret/i.test(text)
       ) {
-        obj[key] = REDACT;
+        (obj[key] as {}) = REDACT;
       }
     }
   }
 
-  function redactObject<T extends GaxiosOptions['data']>(obj: T) {
-    if (typeof obj === 'object' && obj !== null) {
+  function redactObject<T extends GaxiosOptions['data'] | GaxiosResponse>(
+    obj: T | null
+  ) {
+    if (!obj) {
+      return;
+    } else if (
+      obj instanceof FormData ||
+      obj instanceof URLSearchParams ||
+      // support `node-fetch` FormData/URLSearchParams
+      ('forEach' in obj && 'set' in obj)
+    ) {
+      (obj as FormData | URLSearchParams).forEach((_, key) => {
+        if (['grant_type', 'assertion'].includes(key) || /secret/.test(key)) {
+          (obj as FormData | URLSearchParams).set(key, REDACT);
+        }
+      });
+    } else {
       if ('grant_type' in obj) {
         obj['grant_type'] = REDACT;
       }
@@ -473,8 +527,11 @@ export function defaultErrorRedactor<T = any>(data: {
     defaultErrorRedactor({config: data.response.config});
     redactHeaders(data.response.headers);
 
-    redactString(data.response, 'data');
-    redactObject(data.response.data);
+    // workaround for `node-fetch`'s `.data` deprecation...
+    if ((data.response as {} as Response).bodyUsed) {
+      redactString(data.response, 'data');
+      redactObject(data.response.data);
+    }
   }
 
   return data;
