@@ -479,9 +479,10 @@ export class Gaxios {
       (opts as {duplex: string}).duplex = 'half';
     }
 
-    opts.headers = preparedHeaders;
-
-    return opts as GaxiosOptionsPrepared;
+    return Object.assign(opts, {
+      headers: preparedHeaders,
+      url: opts.url instanceof URL ? opts.url : new URL(opts.url),
+    });
   }
 
   /**

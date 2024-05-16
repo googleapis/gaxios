@@ -315,7 +315,7 @@ describe('🥁 configuration options', () => {
     const scope = nock(url).get(`/${qs}`).reply(200, {});
     const res = await request(opts);
     assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.config.url, new URL(url + qs).toString());
+    assert.strictEqual(res.config.url.toString(), new URL(url + qs).toString());
     scope.done();
   });
 

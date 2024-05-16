@@ -333,7 +333,7 @@ export interface GaxiosOptions extends Omit<RequestInit, 'headers'> {
 
 export interface GaxiosOptionsPrepared extends GaxiosOptions {
   headers: globalThis.Headers;
-  url: NonNullable<GaxiosOptions['url']>;
+  url: URL;
 }
 
 /**
