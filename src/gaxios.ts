@@ -20,9 +20,9 @@ import {
   GaxiosMultipartOptions,
   GaxiosError,
   GaxiosOptions,
+  GaxiosOptionsPrepared,
   GaxiosPromise,
   GaxiosResponse,
-  Headers,
   defaultErrorRedactor,
 } from './common';
 import {getRetryConfig} from './retry';
@@ -49,7 +49,7 @@ export class Gaxios {
    * Interceptors
    */
   interceptors: {
-    request: GaxiosInterceptorManager<GaxiosOptions>;
+    request: GaxiosInterceptorManager<GaxiosOptionsPrepared>;
     response: GaxiosInterceptorManager<GaxiosResponse>;
   };
 
@@ -76,11 +76,11 @@ export class Gaxios {
   }
 
   private async _defaultAdapter<T>(
-    config: GaxiosOptions
+    config: GaxiosOptionsPrepared
   ): Promise<GaxiosResponse<T>> {
     const fetchImpl = config.fetchImplementation || fetch;
 
-    const res = await fetchImpl(config.url!, config);
+    const res = await fetchImpl(config.url, config);
     const data = await this.getResponseData(config, res);
 
     return Object.assign(res, {config, data}) as GaxiosResponse<T>;
@@ -91,7 +91,7 @@ export class Gaxios {
    * @param opts Set of HTTP options that will be used for this HTTP request.
    */
   protected async _request<T = any>(
-    opts: GaxiosOptions = {}
+    opts: GaxiosOptionsPrepared
   ): GaxiosPromise<T> {
     try {
       let translatedResponse: GaxiosResponse<T>;
@@ -143,7 +143,7 @@ export class Gaxios {
   }
 
   private async getResponseData(
-    opts: GaxiosOptions,
+    opts: GaxiosOptionsPrepared,
     res: Response
   ): Promise<any> {
     if (
@@ -177,7 +177,7 @@ export class Gaxios {
 
   #urlMayUseProxy(
     url: string | URL,
-    noProxy: GaxiosOptions['noProxy'] = []
+    noProxy: GaxiosOptionsPrepared['noProxy'] = []
   ): boolean {
     const candidate = new URL(url);
     const noProxyList = [...noProxy];
@@ -225,13 +225,13 @@ export class Gaxios {
    * Applies the request interceptors. The request interceptors are applied after the
    * call to prepareRequest is completed.
    *
-   * @param {GaxiosOptions} options The current set of options.
+   * @param {GaxiosOptionsPrepared} options The current set of options.
    *
-   * @returns {Promise<GaxiosOptions>} Promise that resolves to the set of options or response after interceptors are applied.
+   * @returns {Promise<GaxiosOptionsPrepared>} Promise that resolves to the set of options or response after interceptors are applied.
    */
   async #applyRequestInterceptors(
-    options: GaxiosOptions
-  ): Promise<GaxiosOptions> {
+    options: GaxiosOptionsPrepared
+  ): Promise<GaxiosOptionsPrepared> {
     let promiseChain = Promise.resolve(options);
 
     for (const interceptor of this.interceptors.request.values()) {
@@ -239,7 +239,7 @@ export class Gaxios {
         promiseChain = promiseChain.then(
           interceptor.resolved,
           interceptor.rejected
-        ) as Promise<GaxiosOptions>;
+        ) as Promise<GaxiosOptionsPrepared>;
       }
     }
 
@@ -250,9 +250,9 @@ export class Gaxios {
    * Applies the response interceptors. The response interceptors are applied after the
    * call to request is made.
    *
-   * @param {GaxiosOptions} options The current set of options.
+   * @param {GaxiosOptionsPrepared} options The current set of options.
    *
-   * @returns {Promise<GaxiosOptions>} Promise that resolves to the set of options or response after interceptors are applied.
+   * @returns {Promise<GaxiosOptionsPrepared>} Promise that resolves to the set of options or response after interceptors are applied.
    */
   async #applyResponseInterceptors(
     response: GaxiosResponse | Promise<GaxiosResponse>
@@ -277,8 +277,10 @@ export class Gaxios {
    * @param options The original options passed from the client.
    * @returns Prepared options, ready to make a request
    */
-  async #prepareRequest(options: GaxiosOptions): Promise<GaxiosOptions> {
-    const opts: GaxiosOptions = extend(true, {}, this.defaults, options);
+  async #prepareRequest(
+    options: GaxiosOptions
+  ): Promise<GaxiosOptionsPrepared> {
+    const opts = extend(true, {}, this.defaults, options);
     if (!opts.url) {
       throw new Error('URL is required.');
     }
@@ -432,18 +434,10 @@ export class Gaxios {
       (opts as {duplex: string}).duplex = 'half';
     }
 
-    // preserve the original type for auditing later
-    if (opts.headers instanceof Headers) {
-      opts.headers = preparedHeaders;
-    } else {
-      const headers: Headers = {};
-      preparedHeaders.forEach((value, key) => {
-        headers[key] = value;
-      });
-      opts.headers = headers;
-    }
-
-    return opts;
+    return Object.assign(opts, {
+      headers: preparedHeaders,
+      url: opts.url instanceof URL ? opts.url : new URL(opts.url),
+    });
   }
 
   /**
@@ -498,8 +492,12 @@ export class Gaxios {
   ) {
     const finale = `--${boundary}--`;
     for (const currentPart of multipartOptions) {
+      const headers =
+        currentPart.headers instanceof Headers
+          ? currentPart.headers
+          : new Headers(currentPart.headers);
       const partContentType =
-        currentPart.headers['Content-Type'] || 'application/octet-stream';
+        headers.get('Content-Type') || 'application/octet-stream';
       const preamble = `--${boundary}\r\nContent-Type: ${partContentType}\r\n\r\n`;
       yield preamble;
       if (typeof currentPart.content === 'string') {
