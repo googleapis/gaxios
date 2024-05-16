@@ -11,17 +11,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GaxiosOptions} from './common';
 import {Gaxios} from './gaxios';
 
 export {
   GaxiosError,
   GaxiosPromise,
   GaxiosResponse,
+  GaxiosOptions,
   GaxiosOptionsPrepared,
   RetryConfig,
 } from './common';
-export {Gaxios, GaxiosOptions};
+export {Gaxios};
 export * from './interceptor';
 
 /**
@@ -34,6 +34,6 @@ export const instance = new Gaxios();
  * Make an HTTP request using the given options.
  * @param opts Options for the request
  */
-export async function request<T>(opts: GaxiosOptions) {
-  return instance.request<T>(opts);
+export async function request<T>(...opts: Parameters<Gaxios['request']>) {
+  return instance.request<T>(...opts);
 }

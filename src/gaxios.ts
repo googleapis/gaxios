@@ -69,10 +69,23 @@ export class Gaxios {
    * Perform an HTTP request with the given options.
    * @param opts Set of HTTP options that will be used for this HTTP request.
    */
-  async request<T = any>(opts: GaxiosOptions = {}): GaxiosPromise<T> {
-    let prepared = await this.#prepareRequest(opts);
-    prepared = await this.#applyRequestInterceptors(prepared);
-    return this.#applyResponseInterceptors(this._request(prepared));
+  async request<T = any>(
+    options: GaxiosOptions | URL | string = {}
+  ): GaxiosPromise<T> {
+    const opts =
+      options instanceof URL || typeof options === 'string'
+        ? {url: options}
+        : options;
+
+    const prepared = await this.#prepareRequest(opts);
+    const preparedWithInterceptors =
+      await this.#applyRequestInterceptors(prepared);
+
+    const pendingResponse = this._request(preparedWithInterceptors);
+    const responseWithInterceptors =
+      this.#applyResponseInterceptors(pendingResponse);
+
+    return responseWithInterceptors;
   }
 
   private async _defaultAdapter<T>(
@@ -301,11 +314,7 @@ export class Gaxios {
         url.searchParams.append(key, value);
       }
 
-        opts.url = url;
-        opts.url = url;
-      }
       opts.url = url;
-      }
     }
 
     const preparedHeaders =
