@@ -77,7 +77,7 @@ export class GaxiosError<T = any> extends Error {
 
   constructor(
     message: string,
-    public config: GaxiosOptions,
+    public config: GaxiosOptionsPrepared,
     public response?: GaxiosResponse<T>,
     public error?: Error | NodeJS.ErrnoException
   ) {
@@ -111,7 +111,7 @@ export class GaxiosError<T = any> extends Error {
     }
 
     if (config.errorRedactor) {
-      config.errorRedactor<T>({
+      config.errorRedactor({
         config: this.config,
         response: this.response,
       });
@@ -119,35 +119,33 @@ export class GaxiosError<T = any> extends Error {
   }
 }
 
-/**
- * @deprecated use native {@link globalThis.Headers}.
- */
-export interface Headers {
-  [index: string]: any;
-}
-export type GaxiosPromise<T = any> = Promise<GaxiosResponse<T>>;
+type GaxiosResponseData =
+  | ReturnType<JSON['parse']>
+  | GaxiosOptionsPrepared['data'];
 
-export interface GaxiosResponse<T = any> extends Response {
+export type GaxiosPromise<T = GaxiosResponseData> = Promise<GaxiosResponse<T>>;
+
+export interface GaxiosResponse<T = GaxiosResponseData> extends Response {
   config: GaxiosOptionsPrepared;
   data: T;
 }
 
 export interface GaxiosMultipartOptions {
-  headers: Headers;
+  headers: HeadersInit;
   content: string | Readable;
 }
 
 /**
  * Request options that are used to form the request.
  */
-export interface GaxiosOptions extends Omit<RequestInit, 'headers'> {
+export interface GaxiosOptions extends RequestInit {
   /**
    * Optional method to override making the actual HTTP request. Useful
    * for writing tests.
    *
    * @deprecated Use {@link GaxiosOptions.fetchImplementation} instead.
    */
-  adapter?: <T = any>(
+  adapter?: <T = GaxiosResponseData>(
     options: GaxiosOptionsPrepared,
     defaultAdapter: (options: GaxiosOptionsPrepared) => GaxiosPromise<T>
   ) => GaxiosPromise<T>;
@@ -167,16 +165,6 @@ export interface GaxiosOptions extends Omit<RequestInit, 'headers'> {
     | 'OPTIONS'
     | 'TRACE'
     | 'PATCH';
-  /**
-   * Recommended: Provide a native {@link globalThis.Headers Headers} object.
-   *
-   * @privateRemarks
-   *
-   * This type does not have the native {@link globalThis.Headers Headers} in
-   * its signature as it would break customers looking to modify headers before
-   * providing to this library (new, unnecessary type checks/guards).
-   */
-  headers?: Headers;
   /**
    * The data to send in the {@link RequestInit.body} of the request. Objects will be
    * serialized as JSON, except for:
@@ -238,7 +226,7 @@ export interface GaxiosOptions extends Omit<RequestInit, 'headers'> {
    * This is passed to {@link RequestInit.body}.
    */
   multipart?: GaxiosMultipartOptions[];
-  params?: any;
+  params?: GaxiosResponseData;
   /**
    * @deprecated Use {@link URLSearchParams} instead and pass this directly to {@link GaxiosOptions.data `data`}.
    */
@@ -247,7 +235,7 @@ export interface GaxiosOptions extends Omit<RequestInit, 'headers'> {
   /**
    * @deprecated ignored
    */
-  onUploadProgress?: (progressEvent: any) => void;
+  onUploadProgress?: (progressEvent: GaxiosResponseData) => void;
   /**
    * If the `fetchImplementation` is native `fetch`, the
    * stream is a `ReadableStream`, otherwise `readable.Stream`
@@ -337,25 +325,6 @@ export interface GaxiosOptionsPrepared extends GaxiosOptions {
 }
 
 /**
- * A partial object of `GaxiosOptions` with only redactable keys
- *
- * @experimental
- */
-export type RedactableGaxiosOptions = Pick<
-  GaxiosOptions | GaxiosOptionsPrepared,
-  'body' | 'data' | 'headers' | 'url'
->;
-/**
- * A partial object of `GaxiosResponse` with only redactable keys
- *
- * @experimental
- */
-export type RedactableGaxiosResponse<T = any> = Pick<
-  GaxiosResponse<T>,
-  'config' | 'data' | 'headers'
->;
-
-/**
  * Configuration for the Gaxios `request` method.
  */
 export interface RetryConfig {
@@ -409,7 +378,10 @@ export interface RetryConfig {
   retryBackoff?: (err: GaxiosError, defaultBackoffMs: number) => Promise<void>;
 }
 
-function translateData(responseType: string | undefined, data: any) {
+function translateData(
+  responseType: string | undefined,
+  data: GaxiosResponseData
+) {
   switch (responseType) {
     case 'stream':
       return data;
@@ -432,51 +404,30 @@ function translateData(responseType: string | undefined, data: any) {
  *
  * @experimental
  */
-export function defaultErrorRedactor<T = any>(data: {
-  config?: RedactableGaxiosOptions;
-  response?: RedactableGaxiosResponse<T>;
-}) {
+export function defaultErrorRedactor<
+  O extends GaxiosOptionsPrepared,
+  R extends GaxiosResponse<GaxiosResponseData>,
+>(data: {config?: O; response?: R}) {
   const REDACT =
     '<<REDACTED> - See `errorRedactor` option in `gaxios` for configuration>.';
 
-  function redactHeaders(headers?: Headers | globalThis.Headers) {
+  function redactHeaders(headers?: Headers) {
     if (!headers) return;
 
-    function check(key: string) {
+    headers.forEach((_, key) => {
       // any casing of `Authentication`
       // any casing of `Authorization`
       // anything containing secret, such as 'client secret'
-      return (
+      if (
         /^authentication$/i.test(key) ||
         /^authorization$/i.test(key) ||
         /secret/i.test(key)
-      );
-    }
-
-    function redactHeadersObject(headers: Headers) {
-      for (const key of Object.keys(headers)) {
-        if (check(key)) headers[key] = REDACT;
-      }
-    }
-
-    function redactHeadersHeaders(headers: globalThis.Headers) {
-      headers.forEach((value, key) => {
-        if (check(key)) headers.set(key, REDACT);
-      });
-    }
-
-    // support `node-fetch` Headers and other third-parties
-    if (headers instanceof Headers || 'set' in headers) {
-      redactHeadersHeaders(headers as globalThis.Headers);
-    } else {
-      redactHeadersObject(headers);
-    }
+      )
+        headers.set(key, REDACT);
+    });
   }
 
-  function redactString<T extends GaxiosOptions | RedactableGaxiosResponse>(
-    obj: T,
-    key: keyof T
-  ) {
+  function redactString<T extends O | R>(obj: T, key: keyof T) {
     if (
       typeof obj === 'object' &&
       obj !== null &&
@@ -494,9 +445,7 @@ export function defaultErrorRedactor<T = any>(data: {
     }
   }
 
-  function redactObject<T extends GaxiosOptions['data'] | GaxiosResponse>(
-    obj: T | null
-  ) {
+  function redactObject<T extends O['data'] | R>(obj: T | null) {
     if (!obj) {
       return;
     } else if (
@@ -535,7 +484,7 @@ export function defaultErrorRedactor<T = any>(data: {
     redactObject(data.config.body);
 
     try {
-      const url = new URL('', data.config.url);
+      const url = data.config.url;
 
       if (url.searchParams.has('token')) {
         url.searchParams.set('token', REDACT);
@@ -545,7 +494,7 @@ export function defaultErrorRedactor<T = any>(data: {
         url.searchParams.set('client_secret', REDACT);
       }
 
-      data.config.url = url.toString();
+      data.config.url = url;
     } catch {
       // ignore error - no need to parse an invalid URL
     }

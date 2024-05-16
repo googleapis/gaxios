@@ -25,11 +25,7 @@ import {
   GaxiosResponse,
   GaxiosPromise,
 } from '../src';
-import {
-  GAXIOS_ERROR_SYMBOL,
-  GaxiosOptionsPrepared,
-  Headers,
-} from '../src/common';
+import {GAXIOS_ERROR_SYMBOL, GaxiosOptionsPrepared} from '../src/common';
 import {pkg} from '../src/util';
 import fs from 'fs';
 
@@ -119,7 +115,11 @@ describe('🚙 error handling', () => {
       bodyUsed: true,
     } as GaxiosResponse;
 
-    const error = new GaxiosError('translation test', {}, response);
+    const error = new GaxiosError(
+      'translation test',
+      {} as GaxiosOptionsPrepared,
+      response
+    );
 
     assert(error.response);
     assert.equal(error.response.data, notJSON);
@@ -130,7 +130,7 @@ describe('🚙 error handling', () => {
 
     const wrongVersion = {[GAXIOS_ERROR_SYMBOL]: '0.0.0'};
     const correctVersion = {[GAXIOS_ERROR_SYMBOL]: pkg.version};
-    const child = new A('', {});
+    const child = new A('', {} as GaxiosOptionsPrepared);
 
     assert.equal(wrongVersion instanceof GaxiosError, false);
     assert.equal(correctVersion instanceof GaxiosError, true);
