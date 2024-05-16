@@ -295,22 +295,16 @@ export class Gaxios {
     opts.url = new URL(opts.url);
 
     if (opts.params) {
-      if (opts.paramsSerializer) {
-        let additionalQueryParams = opts.paramsSerializer(opts.params);
+      const url = opts.url instanceof URL ? opts.url : new URL(opts.url);
 
-        if (additionalQueryParams.startsWith('?')) {
-          additionalQueryParams = additionalQueryParams.slice(1);
-        }
-        const prefix = opts.url.toString().includes('?') ? '&' : '?';
-        opts.url = opts.url + prefix + additionalQueryParams;
-      } else {
-        const url = opts.url instanceof URL ? opts.url : new URL(opts.url);
-
-        for (const [key, value] of new URLSearchParams(opts.params)) {
-          url.searchParams.append(key, value);
-        }
+      for (const [key, value] of new URLSearchParams(opts.params)) {
+        url.searchParams.append(key, value);
+      }
 
         opts.url = url;
+        opts.url = url;
+      }
+      opts.url = url;
       }
     }
 
@@ -362,9 +356,7 @@ export class Gaxios {
       ) {
         // If www-form-urlencoded content type has been set, but data is
         // provided as an object, serialize the content
-        opts.body = opts.paramsSerializer
-          ? opts.paramsSerializer(opts.data as {})
-          : new URLSearchParams(opts.data as {});
+        opts.body = new URLSearchParams(opts.data as {});
       } else {
         if (!preparedHeaders.has('content-type')) {
           preparedHeaders.set('content-type', 'application/json');
