@@ -25,7 +25,11 @@ import {
   GaxiosResponse,
   GaxiosPromise,
 } from '../src';
-import {GAXIOS_ERROR_SYMBOL, Headers} from '../src/common';
+import {
+  GAXIOS_ERROR_SYMBOL,
+  GaxiosOptionsPrepared,
+  Headers,
+} from '../src/common';
 import {pkg} from '../src/util';
 import fs from 'fs';
 
@@ -155,8 +159,8 @@ describe('🥁 configuration options', () => {
     const inst = new Gaxios({headers: {apple: 'juice'}});
     const res = await inst.request({url, headers: {figgy: 'pudding'}});
     scope.done();
-    assert.strictEqual(res.config.headers!.apple, 'juice');
-    assert.strictEqual(res.config.headers!.figgy, 'pudding');
+    assert.strictEqual(res.config.headers.get('apple'), 'juice');
+    assert.strictEqual(res.config.headers.get('figgy'), 'pudding');
   });
 
   it('should allow setting a base url in the options', async () => {
@@ -1125,7 +1129,7 @@ describe('🍂 defaults & instances', () => {
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       protected async _request<T = any>(
-        opts: GaxiosOptions = {}
+        opts: GaxiosOptionsPrepared
       ): GaxiosPromise<T> {
         assert(opts.agent);
         return super._request(opts);
@@ -1141,8 +1145,8 @@ describe('🍂 defaults & instances', () => {
       });
       const res = await inst.request({url, headers: {figgy: 'pudding'}});
       scope.done();
-      assert.strictEqual(res.config.headers!.apple, 'juice');
-      assert.strictEqual(res.config.headers!.figgy, 'pudding');
+      assert.strictEqual(res.config.headers.get('apple'), 'juice');
+      assert.strictEqual(res.config.headers.get('figgy'), 'pudding');
       const agentCache = inst.getAgentCache();
       assert(agentCache.get(key));
     });
@@ -1173,7 +1177,7 @@ describe('interceptors', () => {
       const instance = new Gaxios();
       instance.interceptors.request.add({
         resolved: config => {
-          config.headers = {hello: 'world'};
+          config.headers.set('hello', 'world');
           return Promise.resolve(config);
         },
       });
@@ -1190,7 +1194,7 @@ describe('interceptors', () => {
             validateStatus: () => {
               return true;
             },
-          }) as unknown as Promise<GaxiosOptions>
+          }) as unknown as Promise<GaxiosOptionsPrepared>
       );
       const instance = new Gaxios();
       const interceptor = {resolved: spyFunc};
@@ -1212,22 +1216,22 @@ describe('interceptors', () => {
       const instance = new Gaxios();
       instance.interceptors.request.add({
         resolved: config => {
-          config.headers!['foo'] = 'bar';
+          config.headers.set('foo', 'bar');
           return Promise.resolve(config);
         },
       });
       instance.interceptors.request.add({
         resolved: config => {
-          assert.strictEqual(config.headers!['foo'], 'bar');
-          config.headers!['bar'] = 'baz';
+          assert.strictEqual(config.headers.get('foo'), 'bar');
+          config.headers.set('bar', 'baz');
           return Promise.resolve(config);
         },
       });
       instance.interceptors.request.add({
         resolved: config => {
-          assert.strictEqual(config.headers!['foo'], 'bar');
-          assert.strictEqual(config.headers!['bar'], 'baz');
-          config.headers!['baz'] = 'buzz';
+          assert.strictEqual(config.headers.get('foo'), 'bar');
+          assert.strictEqual(config.headers.get('bar'), 'baz');
+          config.headers.set('baz', 'buzz');
           return Promise.resolve(config);
         },
       });
@@ -1244,7 +1248,7 @@ describe('interceptors', () => {
             validateStatus: () => {
               return true;
             },
-          }) as unknown as Promise<GaxiosOptions>
+          }) as unknown as Promise<GaxiosOptionsPrepared>
       );
       const instance = new Gaxios();
       instance.interceptors.request.add({
@@ -1272,7 +1276,7 @@ describe('interceptors', () => {
       });
       instance.interceptors.request.add({
         resolved: config => {
-          config.headers = {hello: 'world'};
+          config.headers.set('hello', 'world');
           return Promise.resolve(config);
         },
         rejected: err => {

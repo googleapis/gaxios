@@ -128,7 +128,7 @@ export interface Headers {
 export type GaxiosPromise<T = any> = Promise<GaxiosResponse<T>>;
 
 export interface GaxiosResponse<T = any> extends Response {
-  config: GaxiosOptions;
+  config: GaxiosOptionsPrepared;
   data: T;
 }
 
@@ -148,8 +148,8 @@ export interface GaxiosOptions extends Omit<RequestInit, 'headers'> {
    * @deprecated Use {@link GaxiosOptions.fetchImplementation} instead.
    */
   adapter?: <T = any>(
-    options: GaxiosOptions,
-    defaultAdapter: (options: GaxiosOptions) => GaxiosPromise<T>
+    options: GaxiosOptionsPrepared,
+    defaultAdapter: (options: GaxiosOptionsPrepared) => GaxiosPromise<T>
   ) => GaxiosPromise<T>;
   url?: string | URL;
   /**
@@ -330,13 +330,19 @@ export interface GaxiosOptions extends Omit<RequestInit, 'headers'> {
    */
   errorRedactor?: typeof defaultErrorRedactor | false;
 }
+
+export interface GaxiosOptionsPrepared extends GaxiosOptions {
+  headers: globalThis.Headers;
+  url: NonNullable<GaxiosOptions['url']>;
+}
+
 /**
  * A partial object of `GaxiosOptions` with only redactable keys
  *
  * @experimental
  */
 export type RedactableGaxiosOptions = Pick<
-  GaxiosOptions,
+  GaxiosOptions | GaxiosOptionsPrepared,
   'body' | 'data' | 'headers' | 'url'
 >;
 /**

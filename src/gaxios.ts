@@ -21,6 +21,7 @@ import {
   GaxiosMultipartOptions,
   GaxiosError,
   GaxiosOptions,
+  GaxiosOptionsPrepared,
   GaxiosPromise,
   GaxiosResponse,
   Headers,
@@ -50,7 +51,7 @@ export class Gaxios {
    * Interceptors
    */
   interceptors: {
-    request: GaxiosInterceptorManager<GaxiosOptions>;
+    request: GaxiosInterceptorManager<GaxiosOptionsPrepared>;
     response: GaxiosInterceptorManager<GaxiosResponse>;
   };
 
@@ -77,7 +78,7 @@ export class Gaxios {
   }
 
   private async _defaultAdapter<T>(
-    config: GaxiosOptions
+    config: GaxiosOptionsPrepared
   ): Promise<GaxiosResponse<T>> {
     const fetchImpl =
       config.fetchImplementation ||
@@ -89,7 +90,7 @@ export class Gaxios {
     const preparedOpts = {...config};
     delete preparedOpts.data;
 
-    const res = (await fetchImpl(config.url!, preparedOpts as {})) as Response;
+    const res = (await fetchImpl(config.url, preparedOpts as {})) as Response;
     let data = await this.getResponseData(config, res);
 
     // `node-fetch`'s data isn't writable. Native `fetch`'s is.
@@ -123,7 +124,7 @@ export class Gaxios {
    * @param opts Set of HTTP options that will be used for this HTTP request.
    */
   protected async _request<T = any>(
-    opts: GaxiosOptions = {}
+    opts: GaxiosOptionsPrepared
   ): GaxiosPromise<T> {
     try {
       let translatedResponse: GaxiosResponse<T>;
@@ -175,7 +176,7 @@ export class Gaxios {
   }
 
   private async getResponseData(
-    opts: GaxiosOptions,
+    opts: GaxiosOptionsPrepared,
     res: Response
   ): Promise<any> {
     if (
@@ -262,8 +263,8 @@ export class Gaxios {
    * @returns {Promise<GaxiosOptions>} Promise that resolves to the set of options or response after interceptors are applied.
    */
   async #applyRequestInterceptors(
-    options: GaxiosOptions
-  ): Promise<GaxiosOptions> {
+    options: GaxiosOptionsPrepared
+  ): Promise<GaxiosOptionsPrepared> {
     let promiseChain = Promise.resolve(options);
 
     for (const interceptor of this.interceptors.request.values()) {
@@ -271,7 +272,7 @@ export class Gaxios {
         promiseChain = promiseChain.then(
           interceptor.resolved,
           interceptor.rejected
-        ) as Promise<GaxiosOptions>;
+        ) as Promise<GaxiosOptionsPrepared>;
       }
     }
 
@@ -309,7 +310,9 @@ export class Gaxios {
    * @param options The original options passed from the client.
    * @returns Prepared options, ready to make a request
    */
-  async #prepareRequest(options: GaxiosOptions): Promise<GaxiosOptions> {
+  async #prepareRequest(
+    options: GaxiosOptions
+  ): Promise<GaxiosOptionsPrepared> {
     const opts: GaxiosOptions = extend(true, {}, this.defaults, options);
     if (!opts.url) {
       throw new Error('URL is required.');
@@ -476,18 +479,9 @@ export class Gaxios {
       (opts as {duplex: string}).duplex = 'half';
     }
 
-    // preserve the original type for auditing later
-    if (opts.headers instanceof Headers) {
-      opts.headers = preparedHeaders;
-    } else {
-      const headers: Headers = {};
-      preparedHeaders.forEach((value, key) => {
-        headers[key] = value;
-      });
-      opts.headers = headers;
-    }
+    opts.headers = preparedHeaders;
 
-    return opts;
+    return opts as GaxiosOptionsPrepared;
   }
 
   /**
