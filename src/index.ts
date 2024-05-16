@@ -18,7 +18,7 @@ export {
   GaxiosError,
   GaxiosPromise,
   GaxiosResponse,
-  Headers,
+  GaxiosOptionsPrepared,
   RetryConfig,
 } from './common';
 export {Gaxios, GaxiosOptions};
