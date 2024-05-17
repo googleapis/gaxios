@@ -94,8 +94,7 @@ export class GaxiosError<T = any> extends Error {
       try {
         this.response.data = translateData(
           this.config.responseType,
-          // workaround for `node-fetch`'s `.data` deprecation...
-          this.response?.bodyUsed ? this.response?.data : undefined
+          this.response?.data
         );
       } catch {
         // best effort - don't throw an error within an error
@@ -424,17 +423,12 @@ export function defaultErrorRedactor<
   }
 
   function redactObject<T extends O['data'] | R>(obj: T | null) {
-    if (!obj) {
+    if (!obj || typeof obj !== 'object') {
       return;
-    } else if (
-      obj instanceof FormData ||
-      obj instanceof URLSearchParams ||
-      // support `node-fetch` FormData/URLSearchParams
-      ('forEach' in obj && 'set' in obj)
-    ) {
-      (obj as FormData | URLSearchParams).forEach((_, key) => {
+    } else if (obj instanceof FormData || obj instanceof URLSearchParams) {
+      obj.forEach((_, key) => {
         if (['grant_type', 'assertion'].includes(key) || /secret/.test(key)) {
-          (obj as FormData | URLSearchParams).set(key, REDACT);
+          obj.set(key, REDACT);
         }
       });
     } else {
