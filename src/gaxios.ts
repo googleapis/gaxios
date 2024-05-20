@@ -90,32 +90,22 @@ export class Gaxios {
     delete preparedOpts.data;
 
     const res = (await fetchImpl(config.url, preparedOpts as {})) as Response;
-    let data = await this.getResponseData(config, res);
+    const data = await this.getResponseData(config, res);
 
     // `node-fetch`'s data isn't writable. Native `fetch`'s is.
-    if (Object.getOwnPropertyDescriptor(res, 'data')?.configurable) {
-      // Keep `Response` as a class
-      return Object.assign(res, {config, data});
-    } else {
-      Object.assign(res, {config});
-
-      // best effort for `node-fetch`; `.data` is not writable...
-      return new Proxy(res, {
-        get: (target, prop, receiver) => {
-          if (prop === 'data') return data;
-
-          return Reflect.get(target, prop, receiver);
+    if (!Object.getOwnPropertyDescriptor(res, 'data')?.configurable) {
+      Object.defineProperties(res, {
+        data: {
+          configurable: true,
+          writable: true,
+          enumerable: true,
+          value: data,
         },
-        set(target, prop, newValue, receiver) {
-          if (prop === 'data') {
-            data = newValue;
-            return true;
-          } else {
-            return Reflect.set(target, prop, newValue, receiver);
-          }
-        },
-      }) as GaxiosResponse<T>;
+      });
     }
+
+    // Keep object as an instance of `Response`
+    return Object.assign(res, {config, data});
   }
 
   /**
