@@ -16,9 +16,7 @@ $ npm install gaxios
 
 ```js
 const {request} = require('gaxios');
-const res = await request({
-  url: 'https://www.googleapis.com/discovery/v1/apis/',
-});
+const res = await request('https://www.googleapis.com/discovery/v1/apis/');
 ```
 
 ## Setting Defaults
