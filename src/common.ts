@@ -483,20 +483,12 @@ export function defaultErrorRedactor<
     redactString(data.config, 'body');
     redactObject(data.config.body);
 
-    try {
-      const url = data.config.url;
+    if (data.config.url.searchParams.has('token')) {
+      data.config.url.searchParams.set('token', REDACT);
+    }
 
-      if (url.searchParams.has('token')) {
-        url.searchParams.set('token', REDACT);
-      }
-
-      if (url.searchParams.has('client_secret')) {
-        url.searchParams.set('client_secret', REDACT);
-      }
-
-      data.config.url = url;
-    } catch {
-      // ignore error - no need to parse an invalid URL
+    if (data.config.url.searchParams.has('client_secret')) {
+      data.config.url.searchParams.set('client_secret', REDACT);
     }
   }
 
