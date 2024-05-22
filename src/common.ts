@@ -475,12 +475,8 @@ export function defaultErrorRedactor<
   if (data.response) {
     defaultErrorRedactor({config: data.response.config});
     redactHeaders(data.response.headers);
-
-    // workaround for `node-fetch`'s `.data` deprecation...
-    if ((data.response as {} as Response).bodyUsed) {
-      redactString(data.response, 'data');
-      redactObject(data.response.data);
-    }
+    redactString(data.response, 'data');
+    redactObject(data.response.data);
   }
 
   return data;
