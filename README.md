@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/googleapis/gaxios/branch/master/graph/badge.svg)](https://codecov.io/gh/googleapis/gaxios)
 [![Code Style: Google](https://img.shields.io/badge/code%20style-google-blueviolet.svg)](https://github.com/google/gts)
 
-> An HTTP request client that provides an `axios` like interface over top of `fetch`.
+> An HTTP request client that provides a lightweight interface on top of `fetch`.
 
 ## Install
 
