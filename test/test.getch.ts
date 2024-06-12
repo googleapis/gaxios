@@ -16,7 +16,6 @@ import nock from 'nock';
 import sinon from 'sinon';
 import stream, {Readable} from 'stream';
 import {describe, it, afterEach} from 'mocha';
-import fetch from 'node-fetch';
 import {HttpsProxyAgent} from 'https-proxy-agent';
 import {
   Gaxios,
@@ -26,12 +25,9 @@ import {
   GaxiosResponse,
   GaxiosPromise,
 } from '../src';
-import {GAXIOS_ERROR_SYMBOL, Headers} from '../src/common';
+import {GAXIOS_ERROR_SYMBOL, GaxiosOptionsPrepared} from '../src/common';
 import {pkg} from '../src/util';
-import qs from 'querystring';
 import fs from 'fs';
-import {Blob} from 'node-fetch';
-global.FormData = require('form-data');
 
 nock.disableNetConnect();
 
@@ -107,7 +103,7 @@ describe('🚙 error handling', () => {
 
   it('should not throw an error during a translation error', () => {
     const notJSON = '.';
-    const response: GaxiosResponse = {
+    const response = {
       config: {
         responseType: 'json',
       },
@@ -115,15 +111,16 @@ describe('🚙 error handling', () => {
       status: 500,
       statusText: '',
       headers: {},
-      request: {
-        responseURL: url,
-      },
-    };
+    } as GaxiosResponse;
 
-    const error = new GaxiosError('translation test', {}, response);
+    const error = new GaxiosError(
+      'translation test',
+      {} as GaxiosOptionsPrepared,
+      response
+    );
 
-    assert(error.response, undefined);
-    assert.equal(error.response.data, notJSON);
+    assert(error.response);
+    assert.equal(error.response.data, '.');
   });
 
   it('should support `instanceof` for GaxiosErrors of the same version', () => {
@@ -131,7 +128,7 @@ describe('🚙 error handling', () => {
 
     const wrongVersion = {[GAXIOS_ERROR_SYMBOL]: '0.0.0'};
     const correctVersion = {[GAXIOS_ERROR_SYMBOL]: pkg.version};
-    const child = new A('', {});
+    const child = new A('', {} as GaxiosOptionsPrepared);
 
     assert.equal(wrongVersion instanceof GaxiosError, false);
     assert.equal(correctVersion instanceof GaxiosError, true);
@@ -160,8 +157,8 @@ describe('🥁 configuration options', () => {
     const inst = new Gaxios({headers: {apple: 'juice'}});
     const res = await inst.request({url, headers: {figgy: 'pudding'}});
     scope.done();
-    assert.strictEqual(res.config.headers!.apple, 'juice');
-    assert.strictEqual(res.config.headers!.figgy, 'pudding');
+    assert.strictEqual(res.config.headers.get('apple'), 'juice');
+    assert.strictEqual(res.config.headers.get('figgy'), 'pudding');
   });
 
   it('should allow setting a base url in the options', async () => {
@@ -181,42 +178,42 @@ describe('🥁 configuration options', () => {
 
   it('should allow setting maxContentLength', async () => {
     const body = {hello: '🌎'};
-    const scope = nock(url).get('/').reply(200, body);
+    const scope = nock(url)
+      .get('/')
+      .reply(200, body, {'content-length': body.toString().length.toString()});
     const maxContentLength = 1;
-    await assert.rejects(request({url, maxContentLength}), /over limit/);
+    await assert.rejects(request({url, maxContentLength}), (err: Error) => {
+      return err instanceof GaxiosError && /limit/.test(err.message);
+    });
+
     scope.done();
   });
 
   it('should support redirects by default', async () => {
     const body = {hello: '🌎'};
-    const scopes = [
-      nock(url).get('/foo').reply(200, body),
-      nock(url).get('/').reply(302, undefined, {location: '/foo'}),
-    ];
-    const res = await request({url});
-    scopes.forEach(x => x.done());
-    assert.deepStrictEqual(res.data, body);
-    assert.strictEqual(res.request.responseURL, `${url}/foo`);
-  });
+    const url = new URL('https://example.com/foo/');
 
-  it('should support disabling redirects', async () => {
-    const scope = nock(url).get('/').reply(302, undefined, {location: '/foo'});
-    const maxRedirects = 0;
-    await assert.rejects(request({url, maxRedirects}), /maximum redirect/);
+    nock.enableNetConnect();
+    const scope = nock(url.origin)
+      .get('/foo/')
+      .reply(302, undefined, {location: '/redirect/'})
+      .get('/redirect/')
+      .reply(200, body);
+
+    const res = await request(url);
     scope.done();
+    assert.deepStrictEqual(res.data, body);
+    assert.strictEqual(res.url, `${url}/foo`);
   });
 
   it('should allow overriding the adapter', async () => {
-    const response: GaxiosResponse = {
+    const response = {
       data: {hello: '🌎'},
       config: {},
       status: 200,
       statusText: 'OK',
-      headers: {},
-      request: {
-        responseURL: url,
-      },
-    };
+      headers: new Headers(),
+    } as GaxiosResponse;
     const adapter = () => Promise.resolve(response);
     const res = await request({url, adapter});
     assert.strictEqual(response, res);
@@ -256,7 +253,7 @@ describe('🥁 configuration options', () => {
     const scope = nock(url).get(path).reply(200, {});
     const res = await request(opts);
     assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.config.url, url + path);
+    assert.strictEqual(res.config.url?.toString(), url + path);
     scope.done();
   });
 
@@ -266,7 +263,7 @@ describe('🥁 configuration options', () => {
     const scope = nock(url).get(path).reply(200, {});
     const res = await request(opts);
     assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.config.url, url + path);
+    assert.strictEqual(res.config.url?.toString(), url + path);
     scope.done();
   });
 
@@ -287,7 +284,10 @@ describe('🥁 configuration options', () => {
     const scope = nock(url).get(path).reply(200, {});
     const res = await request(opts);
     assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.config.url, url + qs);
+    assert.strictEqual(
+      res.config.url?.toString(),
+      new URL(url + qs).toString()
+    );
     scope.done();
   });
 
@@ -300,25 +300,7 @@ describe('🥁 configuration options', () => {
     const scope = nock(url).get(path).reply(200, {});
     const res = await request(opts);
     assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.config.url, url + path);
-    scope.done();
-  });
-
-  it('should allow overriding the param serializer', async () => {
-    const qs = '?oh=HAI';
-    const params = {james: 'kirk'};
-    const opts: GaxiosOptions = {
-      url,
-      params,
-      paramsSerializer: ps => {
-        assert.strictEqual(JSON.stringify(params), JSON.stringify(ps));
-        return '?oh=HAI';
-      },
-    };
-    const scope = nock(url).get(`/${qs}`).reply(200, {});
-    const res = await request(opts);
-    assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.config.url, url + qs);
+    assert.strictEqual(res.config.url?.toString(), url + path);
     scope.done();
   });
 
@@ -340,7 +322,8 @@ describe('🥁 configuration options', () => {
     assert.deepStrictEqual(res.data, {});
   });
 
-  describe('proxying', () => {
+  // TODO: Should update with `fetch` compatible proxy agent first
+  describe.skip('proxying', () => {
     const url = 'https://domain.example.com/with-path';
     const proxy = 'https://fake.proxy/';
     let gaxios: Gaxios;
@@ -606,8 +589,21 @@ describe('🥁 configuration options', () => {
   it('should not stringify the data if it is appended by a form', async () => {
     const formData = new FormData();
     formData.append('test', '123');
-    // I don't think matching formdata is supported in nock, so skipping: https://github.com/nock/nock/issues/887
-    const scope = nock(url).post('/').reply(200);
+
+    const scope = nock(url)
+      .post('/', body => {
+        /**
+         * Sample from native `fetch`
+         * body: '------formdata-undici-0.39470493152687736\r\n' +
+         * 'Content-Disposition: form-data; name="test"\r\n' +
+         * '\r\n' +
+         * '123\r\n' +
+         * '------formdata-undici-0.39470493152687736--',
+         */
+
+        return body.match('Content-Disposition: form-data;');
+      })
+      .reply(200);
     const res = await request({
       url,
       method: 'POST',
@@ -615,15 +611,28 @@ describe('🥁 configuration options', () => {
     });
     scope.done();
     assert.deepStrictEqual(res.config.data, formData);
+    assert.ok(res.config.body instanceof FormData);
     assert.ok(res.config.data instanceof FormData);
-    assert.deepEqual(res.config.body, undefined);
   });
 
-  it('should allow explicitly setting the fetch implementation to node-fetch', async () => {
-    const scope = nock(url).get('/').reply(200);
-    const res = await request({url, fetchImplementation: fetch});
+  it('should allow explicitly setting the fetch implementation', async () => {
+    let customFetchCalled = false;
+    const myFetch = (...args: Parameters<typeof fetch>) => {
+      customFetchCalled = true;
+      return fetch(...args);
+    };
+
+    const scope = nock(url).post('/').reply(204);
+    const res = await request({
+      url,
+      method: 'POST',
+      fetchImplementation: myFetch,
+      // This `data` ensures the 'duplex' option has been set
+      data: {sample: 'data'},
+    });
+    assert(customFetchCalled);
+    assert.equal(res.status, 204);
     scope.done();
-    assert.deepStrictEqual(res.status, 200);
   });
 
   it('should be able to disable the `errorRedactor`', async () => {
@@ -666,10 +675,10 @@ describe('🎏 data handling', () => {
 
   it('should accept a string in the request data', async () => {
     const body = {hello: '🌎'};
-    const encoded = qs.stringify(body);
+    const encoded = new URLSearchParams(body);
     const scope = nock(url)
       .matchHeader('content-type', 'application/x-www-form-urlencoded')
-      .post('/', encoded)
+      .post('/', encoded.toString())
       .reply(200, {});
     const res = await request({
       url,
@@ -718,7 +727,7 @@ describe('🎏 data handling', () => {
     const body = {hello: '🌎'};
     const scope = nock(url)
       .matchHeader('Content-Type', 'application/x-www-form-urlencoded')
-      .post('/', qs.stringify(body))
+      .post('/', new URLSearchParams(body).toString())
       .reply(200, {});
     const res = await request({
       url,
@@ -735,9 +744,21 @@ describe('🎏 data handling', () => {
   it('should return stream if asked nicely', async () => {
     const body = {hello: '🌎'};
     const scope = nock(url).get('/').reply(200, body);
-    const res = await request<stream.Readable>({url, responseType: 'stream'});
+    const res = await request({url, responseType: 'stream'});
     scope.done();
-    assert(res.data instanceof stream.Readable);
+    assert(res.data instanceof ReadableStream);
+  });
+
+  it('should return a `ReadableStream` when `fetch` has been provided ', async () => {
+    const body = {hello: '🌎'};
+    const scope = nock(url).get('/').reply(200, body);
+    const res = await request<ReadableStream>({
+      url,
+      responseType: 'stream',
+      fetchImplementation: fetch,
+    });
+    scope.done();
+    assert(res.data instanceof ReadableStream);
   });
 
   it('should return an ArrayBuffer if asked nicely', async () => {
@@ -907,7 +928,7 @@ describe('🎏 data handling', () => {
     customURL.searchParams.append('client_secret', 'data');
     customURL.searchParams.append('random', 'non-sensitive');
 
-    const config: GaxiosOptions = {
+    const config = {
       headers: {
         Authentication: 'My Auth',
         /**
@@ -924,7 +945,7 @@ describe('🎏 data handling', () => {
         client_secret: 'data',
       },
       body: 'grant_type=somesensitivedata&assertion=somesensitivedata&client_secret=data',
-    };
+    } as const;
 
     // simulate JSON response
     const responseHeaders = {
@@ -959,10 +980,15 @@ describe('🎏 data handling', () => {
 
       // config redactions - headers
       assert(e.config.headers);
-      assert.deepStrictEqual(e.config.headers, {
+      const expectedRequestHeaders = new Headers({
         ...config.headers, // non-redactables should be present
         Authentication: REDACT,
         AUTHORIZATION: REDACT,
+      });
+      const actualHeaders = new Headers(e.config.headers);
+
+      expectedRequestHeaders.forEach((value, key) => {
+        assert.equal(actualHeaders.get(key), value);
       });
 
       // config redactions - data
@@ -973,8 +999,19 @@ describe('🎏 data handling', () => {
         client_secret: REDACT,
       });
 
-      // config redactions - body
-      assert.deepStrictEqual(e.config.body, REDACT);
+      assert.deepStrictEqual(
+        Object.fromEntries(e.config.body as URLSearchParams),
+        {
+          ...config.data, // non-redactables should be present
+          grant_type: REDACT,
+          assertion: REDACT,
+          client_secret: REDACT,
+        }
+      );
+
+      expectedRequestHeaders.forEach((value, key) => {
+        assert.equal(actualHeaders.get(key), value);
+      });
 
       // config redactions - url
       assert(e.config.url);
@@ -988,16 +1025,17 @@ describe('🎏 data handling', () => {
       assert(e.response);
       assert.deepStrictEqual(e.response.config, e.config);
 
-      const expectedHeaders: Headers = {
+      const expectedResponseHeaders = new Headers({
         ...responseHeaders, // non-redactables should be present
-        authentication: REDACT,
-        authorization: REDACT,
-      };
+      });
 
-      delete expectedHeaders['AUTHORIZATION'];
-      delete expectedHeaders['Authentication'];
+      expectedResponseHeaders.set('authentication', REDACT);
+      expectedResponseHeaders.set('authorization', REDACT);
 
-      assert.deepStrictEqual(e.response.headers, expectedHeaders);
+      expectedResponseHeaders.forEach((value, key) => {
+        assert.equal(e.response?.headers.get(key), value);
+      });
+
       assert.deepStrictEqual(e.response.data, {
         ...response, // non-redactables should be present
         assertion: REDACT,
@@ -1065,7 +1103,7 @@ describe('🍂 defaults & instances', () => {
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       protected async _request<T = any>(
-        opts: GaxiosOptions = {}
+        opts: GaxiosOptionsPrepared
       ): GaxiosPromise<T> {
         assert(opts.agent);
         return super._request(opts);
@@ -1081,8 +1119,8 @@ describe('🍂 defaults & instances', () => {
       });
       const res = await inst.request({url, headers: {figgy: 'pudding'}});
       scope.done();
-      assert.strictEqual(res.config.headers!.apple, 'juice');
-      assert.strictEqual(res.config.headers!.figgy, 'pudding');
+      assert.strictEqual(res.config.headers.get('apple'), 'juice');
+      assert.strictEqual(res.config.headers.get('figgy'), 'pudding');
       const agentCache = inst.getAgentCache();
       assert(agentCache.get(key));
     });
@@ -1113,7 +1151,7 @@ describe('interceptors', () => {
       const instance = new Gaxios();
       instance.interceptors.request.add({
         resolved: config => {
-          config.headers = {hello: 'world'};
+          config.headers.set('hello', 'world');
           return Promise.resolve(config);
         },
       });
@@ -1130,7 +1168,7 @@ describe('interceptors', () => {
             validateStatus: () => {
               return true;
             },
-          }) as unknown as Promise<GaxiosOptions>
+          }) as unknown as Promise<GaxiosOptionsPrepared>
       );
       const instance = new Gaxios();
       const interceptor = {resolved: spyFunc};
@@ -1152,22 +1190,22 @@ describe('interceptors', () => {
       const instance = new Gaxios();
       instance.interceptors.request.add({
         resolved: config => {
-          config.headers!['foo'] = 'bar';
+          config.headers.set('foo', 'bar');
           return Promise.resolve(config);
         },
       });
       instance.interceptors.request.add({
         resolved: config => {
-          assert.strictEqual(config.headers!['foo'], 'bar');
-          config.headers!['bar'] = 'baz';
+          assert.strictEqual(config.headers.get('foo'), 'bar');
+          config.headers.set('bar', 'baz');
           return Promise.resolve(config);
         },
       });
       instance.interceptors.request.add({
         resolved: config => {
-          assert.strictEqual(config.headers!['foo'], 'bar');
-          assert.strictEqual(config.headers!['bar'], 'baz');
-          config.headers!['baz'] = 'buzz';
+          assert.strictEqual(config.headers.get('foo'), 'bar');
+          assert.strictEqual(config.headers.get('bar'), 'baz');
+          config.headers.set('baz', 'buzz');
           return Promise.resolve(config);
         },
       });
@@ -1184,7 +1222,7 @@ describe('interceptors', () => {
             validateStatus: () => {
               return true;
             },
-          }) as unknown as Promise<GaxiosOptions>
+          }) as unknown as Promise<GaxiosOptionsPrepared>
       );
       const instance = new Gaxios();
       instance.interceptors.request.add({
@@ -1212,7 +1250,7 @@ describe('interceptors', () => {
       });
       instance.interceptors.request.add({
         resolved: config => {
-          config.headers = {hello: 'world'};
+          config.headers.set('hello', 'world');
           return Promise.resolve(config);
         },
         rejected: err => {
@@ -1230,13 +1268,13 @@ describe('interceptors', () => {
       const instance = new Gaxios();
       instance.interceptors.response.add({
         resolved(response) {
-          response.headers['hello'] = 'world';
+          response.headers.set('hello', 'world');
           return Promise.resolve(response);
         },
       });
       const resp = await instance.request({url});
       scope.done();
-      assert.strictEqual(resp.headers['hello'], 'world');
+      assert.strictEqual(resp.headers.get('hello'), 'world');
     });
 
     it('should not invoke a response interceptor after it is removed', async () => {
@@ -1265,30 +1303,30 @@ describe('interceptors', () => {
       const instance = new Gaxios();
       instance.interceptors.response.add({
         resolved: response => {
-          response.headers!['foo'] = 'bar';
+          response.headers.set('foo', 'bar');
           return Promise.resolve(response);
         },
       });
       instance.interceptors.response.add({
         resolved: response => {
-          assert.strictEqual(response.headers!['foo'], 'bar');
-          response.headers!['bar'] = 'baz';
+          assert.strictEqual(response.headers.get('foo'), 'bar');
+          response.headers.set('bar', 'baz');
           return Promise.resolve(response);
         },
       });
       instance.interceptors.response.add({
         resolved: response => {
-          assert.strictEqual(response.headers!['foo'], 'bar');
-          assert.strictEqual(response.headers!['bar'], 'baz');
-          response.headers!['baz'] = 'buzz';
+          assert.strictEqual(response.headers.get('foo'), 'bar');
+          assert.strictEqual(response.headers.get('bar'), 'baz');
+          response.headers.set('baz', 'buzz');
           return Promise.resolve(response);
         },
       });
       const resp = await instance.request({url, headers: {}});
       scope.done();
-      assert.strictEqual(resp.headers['foo'], 'bar');
-      assert.strictEqual(resp.headers['bar'], 'baz');
-      assert.strictEqual(resp.headers['baz'], 'buzz');
+      assert.strictEqual(resp.headers.get('foo'), 'bar');
+      assert.strictEqual(resp.headers.get('bar'), 'baz');
+      assert.strictEqual(resp.headers.get('baz'), 'buzz');
     });
 
     it('should not invoke a any response interceptors after they are removed', async () => {

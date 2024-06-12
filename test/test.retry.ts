@@ -11,7 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {AbortController} from 'abort-controller';
 import assert from 'assert';
 import nock from 'nock';
 import {describe, it, afterEach} from 'mocha';
@@ -94,9 +93,12 @@ describe('🛸 retry & exponential backoff', () => {
 
   it('should not retry if user aborted request', async () => {
     const ac = new AbortController();
+
+    // Note, no redirect target as it shouldn't be reached
+    nock(url).get('/').reply(302, undefined, {location: '/foo'});
+
     const config: GaxiosOptions = {
-      method: 'GET',
-      url: 'https://google.com',
+      url,
       signal: ac.signal,
       retryConfig: {retry: 10, noResponseRetries: 10},
     };
@@ -105,10 +107,10 @@ describe('🛸 retry & exponential backoff', () => {
     try {
       await req;
       throw Error('unreachable');
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
+    } catch (err) {
+      assert(err instanceof GaxiosError);
       assert(err.config);
-      assert.strictEqual(err.config.retryConfig.currentRetryAttempt, 0);
+      assert.strictEqual(err.config.retryConfig?.currentRetryAttempt, 0);
     }
   });
 
