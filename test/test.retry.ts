@@ -11,7 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {AbortController} from 'abort-controller';
 import assert from 'assert';
 import nock from 'nock';
 import {describe, it, afterEach} from 'mocha';
