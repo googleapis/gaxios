@@ -175,7 +175,7 @@ function getNextRetryDelay(config: RetryConfig) {
   // Calculate time to wait with exponential backoff.
   // If this is the first retry, look for a configured retryDelay.
   const retryDelay = config.currentRetryAttempt ? 0 : config.retryDelay ?? 100;
-  // Formula: retryDelay + ((2^c - 1 / 2) * 1000)
+  // Formula: retryDelay + ((retryDelayMultiplier^currentRetryAttempt - 1 / 2) * 1000)
   const calculatedDelay =
     retryDelay +
     ((Math.pow(config.retryDelayMultiplier!, config.currentRetryAttempt!) - 1) /
