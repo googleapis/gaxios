@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GaxiosError} from './common';
+import {GaxiosError, RetryConfig} from './common';
 
 export async function getRetryConfig(err: GaxiosError) {
   let config = getConfig(err);
@@ -33,6 +33,18 @@ export async function getRetryConfig(err: GaxiosError) {
     config.noResponseRetries === undefined || config.noResponseRetries === null
       ? 2
       : config.noResponseRetries;
+  config.retryDelayMultiplier = config.retryDelayMultiplier
+    ? config.retryDelayMultiplier
+    : 2;
+  config.timeOfFirstRequest = config.timeOfFirstRequest
+    ? config.timeOfFirstRequest
+    : Date.now();
+  config.totalTimeout = config.totalTimeout
+    ? config.totalTimeout
+    : Number.MAX_SAFE_INTEGER;
+  config.maxRetryDelay = config.maxRetryDelay
+    ? config.maxRetryDelay
+    : Number.MAX_SAFE_INTEGER;
 
   // If this wasn't in the list of status codes where we want
   // to automatically retry, return.
@@ -61,12 +73,7 @@ export async function getRetryConfig(err: GaxiosError) {
     return {shouldRetry: false, config: err.config};
   }
 
-  // Calculate time to wait with exponential backoff.
-  // If this is the first retry, look for a configured retryDelay.
-  const retryDelay = config.currentRetryAttempt ? 0 : config.retryDelay ?? 100;
-  // Formula: retryDelay + ((2^c - 1 / 2) * 1000)
-  const delay =
-    retryDelay + ((Math.pow(2, config.currentRetryAttempt) - 1) / 2) * 1000;
+  const delay = getNextRetryDelay(config);
 
   // We're going to retry!  Incremenent the counter.
   err.config.retryConfig!.currentRetryAttempt! += 1;
@@ -156,4 +163,26 @@ function getConfig(err: GaxiosError) {
     return err.config.retryConfig;
   }
   return;
+}
+
+/**
+ * Gets the delay to wait before the next retry.
+ *
+ * @param {RetryConfig} config The current set of retry options
+ * @returns {number} the amount of ms to wait before the next retry attempt.
+ */
+function getNextRetryDelay(config: RetryConfig) {
+  // Calculate time to wait with exponential backoff.
+  // If this is the first retry, look for a configured retryDelay.
+  const retryDelay = config.currentRetryAttempt ? 0 : config.retryDelay ?? 100;
+  // Formula: retryDelay + ((2^c - 1 / 2) * 1000)
+  const calculatedDelay =
+    retryDelay +
+    ((Math.pow(config.retryDelayMultiplier!, config.currentRetryAttempt!) - 1) /
+      2) *
+      1000;
+  const maxAllowableDelay =
+    config.totalTimeout! - (Date.now() - config.timeOfFirstRequest!);
+
+  return Math.min(calculatedDelay, maxAllowableDelay, config.maxRetryDelay!);
 }
