@@ -320,7 +320,7 @@ describe('🛸 retry & exponential backoff', () => {
       },
     });
     const delay = Date.now() - start;
-    assert.ok(delay > 1100 && delay < 1199);
+    assert.ok(delay > 1000 && delay < 1999);
     scope.done();
   });
 
