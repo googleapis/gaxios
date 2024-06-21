@@ -50,7 +50,7 @@
     "@types/node-fetch": "^2.5.7",
     "@types/sinon": "^17.0.0",
     "@types/tmp": "0.2.6",
-    "@types/uuid": "^9.0.0",
+    "@types/uuid": "^10.0.0",
     "abort-controller": "^3.0.0",
     "assert": "^2.0.0",
     "browserify": "^17.0.0",
