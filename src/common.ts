@@ -329,6 +329,34 @@ export interface RetryConfig {
    * the `retryDelay`
    */
   retryBackoff?: (err: GaxiosError, defaultBackoffMs: number) => Promise<void>;
+
+  /**
+   * Time that the initial request was made. Users should not set this directly.
+   */
+  timeOfFirstRequest?: number;
+
+  /**
+   * The length of time to keep retrying in ms. The last sleep period will
+   * be shortened as necessary, so that the last retry runs at deadline (and not
+   * considerably beyond it).  The total time starting from when the initial
+   * request is sent, after which an error will be returned, regardless of the
+   * retrying attempts made meanwhile. Defaults to Number.MAX_SAFE_INTEGER indicating to effectively
+   * ignore totalTimeout.
+   */
+  totalTimeout?: number;
+
+  /*
+   *  The maximum time to delay in ms. If retryDelayMultiplier results in a
+   *  delay greater than maxRetryDelay, retries should delay by maxRetryDelay
+   *  seconds instead. Defaults to Number.MAX_SAFE_INTEGER indicating to effectively ignore maxRetryDelay.
+   */
+  maxRetryDelay?: number;
+
+  /*
+   * The multiplier by which to increase the delay time between the completion of
+   *  failed requests, and the initiation of the subsequent retrying request. Defaults to 2.
+   */
+  retryDelayMultiplier?: number;
 }
 
 export type FetchImplementation = (
