@@ -72,7 +72,7 @@ interface GaxiosOptions = {
   //   - headers['Content-Type'] === 'application/x-www-form-urlencoded' (serialized as `URLSearchParams`)
   //
   // In all other cases, if you would like to prevent `application/json` as the
-  // default `Content-Type` header you must set the `Content-Type`.
+  // default you must set the `Content-Type` header.
   data: {
     some: 'data'
   },
