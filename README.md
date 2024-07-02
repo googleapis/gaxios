@@ -53,16 +53,26 @@ interface GaxiosOptions = {
   baseURL: 'https://example.com';
 
   // The HTTP methods to be sent with the request.
-  headers: { 'some': 'header' },
+  headers: { 'some': 'header' } || new Headers(),
 
-  // The data to send in the body of the request. Data objects will be
-  // serialized as JSON.
+  // The data to send in the body of the request. Objects will be serialized as JSON
+  // except for:
+  // - `ArrayBuffer`
+  // - `Blob`
+  // - `Buffer` (Node.js)
+  // - `DataView`
+  // - `File`
+  // - `FormData`
+  // - `ReadableStream`
+  // - `stream.Readable` (Node.js)
+  // - strings
+  // - `TypedArray` (e.g. `Uint8Array`, `BigInt64Array`)
+  // - `URLSearchParams`
+  // - all other objects where:
+  //   - headers['Content-Type'] === 'application/x-www-form-urlencoded' (serialized as `URLSearchParams`)
   //
-  // Note: if you would like to provide a Content-Type header other than
-  // application/json you you must provide a string or readable stream, rather
-  // than an object:
-  // data: JSON.stringify({some: 'data'})
-  // data: fs.readFile('./some-data.jpeg')
+  // In all other cases, if you would like to prevent `application/json` as the
+  // default you must set the `Content-Type` header.
   data: {
     some: 'data'
   },
@@ -71,21 +81,10 @@ interface GaxiosOptions = {
   // Defaults to `0`, which is the same as unset.
   maxContentLength: 2000,
 
-  // The max number of HTTP redirects to follow.
-  // Defaults to 100.
-  maxRedirects: 100,
-
-  // The querystring parameters that will be encoded using `qs` and
+  // The query parameters that will be encoded using `URLSearchParams` and
   // appended to the url
   params: {
     querystring: 'parameters'
-  },
-
-  // By default, we use the `querystring` package in node core to serialize
-  // querystring parameters.  You can override that and provide your
-  // own implementation.
-  paramsSerializer: (params) => {
-    return qs.stringify(params);
   },
 
   // The timeout for the HTTP request in milliseconds. Defaults to 0.
@@ -105,6 +104,8 @@ interface GaxiosOptions = {
   // The expected return type of the request.  Options are:
   // json | stream | blob | arraybuffer | text | unknown
   // Defaults to `unknown`.
+  // If the `fetchImplementation` is native `fetch`, the
+  // stream is a `ReadableStream`, otherwise `readable.Stream`
   responseType: 'unknown',
 
   // The node.js http agent to use for the request.
@@ -114,9 +115,9 @@ interface GaxiosOptions = {
   // status code.  Defaults to (>= 200 && < 300)
   validateStatus: (status: number) => true,
 
-  // Implementation of `fetch` to use when making the API call. By default,
-  // will use the browser context if available, and fall back to `node-fetch`
-  // in node.js otherwise.
+  /**
+   * Implementation of `fetch` to use when making the API call. Will use `fetch` by default.
+   */
   fetchImplementation?: typeof fetch;
 
   // Configuration for retrying of requests.
@@ -151,8 +152,7 @@ interface GaxiosOptions = {
   // Enables default configuration for retries.
   retry: boolean,
 
-  // Cancelling a request requires the `abort-controller` library.
-  // See https://github.com/bitinn/node-fetch#request-cancellation-with-abortsignal
+  // Enables aborting via AbortController
   signal?: AbortSignal
 
   /**
