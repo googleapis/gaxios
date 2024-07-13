@@ -90,6 +90,6 @@
     "https-proxy-agent": "^7.0.1",
     "is-stream": "^2.0.0",
     "node-fetch": "^2.6.9",
-    "uuid": "^9.0.1"
+    "uuid": "^10.0.0"
   }
 }
