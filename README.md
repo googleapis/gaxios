@@ -39,6 +39,9 @@ over other authentication methods, i.e., application default credentials.
 
 ## Request Options
 
+`GaxiosOptions` extends from [`RequestInit`](https://developer.mozilla.org/en-US/docs/Web/API/RequestInit).
+`Gaxios#request` also accepts [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) objects as well.
+
 ```ts
 interface GaxiosOptions = {
   // The url to which the request should be sent.  Required.
