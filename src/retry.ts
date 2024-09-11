@@ -118,9 +118,10 @@ function shouldRetryRequest(err: GaxiosError) {
 
   // Only retry with configured HttpMethods.
   if (
-    config.httpMethodsToRetry!.indexOf(
+    !config.httpMethodsToRetry ||
+    !config.httpMethodsToRetry.includes(
       err.config.method?.toUpperCase() || 'GET'
-    ) < 0
+    )
   ) {
     return false;
   }
