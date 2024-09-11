@@ -145,8 +145,15 @@ describe('🥁 configuration options', () => {
   });
 
   it('should accept `Request` objects', async () => {
-    const scope = nock(url).get('/').reply(204);
-    const res = await request(new Request(url));
+    const body = 'abc';
+    const scope = nock(url).post('/', body).reply(204);
+    const res = await request(
+      new Request(url, {
+        method: 'POST',
+        headers: {'content-type': 'application/json'},
+        body,
+      })
+    );
     scope.done();
     assert.strictEqual(res.status, 204);
   });
@@ -670,7 +677,7 @@ describe('🥁 configuration options', () => {
 });
 
 describe('🎏 data handling', () => {
-  it.only('should accpet a ReadableStream as request data', async () => {
+  it('should accept a ReadableStream as request data', async () => {
     const body = fs.createReadStream('package.json');
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const contents = require('../../package.json');
