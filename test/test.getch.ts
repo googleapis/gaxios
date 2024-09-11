@@ -993,13 +993,12 @@ describe('🎏 data handling', () => {
       assert.notStrictEqual(e.config, config);
 
       // config redactions - headers
-      assert(e.config.headers);
       const expectedRequestHeaders = new Headers({
         ...config.headers, // non-redactables should be present
         Authentication: REDACT,
         AUTHORIZATION: REDACT,
       });
-      const actualHeaders = new Headers(e.config.headers);
+      const actualHeaders = e.config.headers;
 
       expectedRequestHeaders.forEach((value, key) => {
         assert.equal(actualHeaders.get(key), value);
@@ -1089,22 +1088,6 @@ describe('🍂 defaults & instances', () => {
       method: 'POST',
       data: pkg,
       headers: {'content-type': 'application/dicom'},
-    });
-    scope.done();
-    assert.deepStrictEqual(res.data, {});
-  });
-
-  it('should set content-type to application/json by default, for buffer', async () => {
-    const pkg = fs.readFileSync('./package.json');
-    const pkgJson = JSON.parse(pkg.toString('utf8'));
-    const scope = nock(url)
-      .matchHeader('content-type', 'application/json')
-      .post('/', pkgJson)
-      .reply(200, {});
-    const res = await request({
-      url,
-      method: 'POST',
-      data: pkg,
     });
     scope.done();
     assert.deepStrictEqual(res.data, {});

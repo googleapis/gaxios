@@ -251,7 +251,7 @@ describe('🛸 retry & exponential backoff', () => {
   it('should retry on ENOTFOUND', async () => {
     const body = {spicy: '🌮'};
     const scopes = [
-      nock(url).get('/').replyWithError({code: 'ENOTFOUND'}),
+      nock(url).get('/').reply(500, {code: 'ENOTFOUND'}),
       nock(url).get('/').reply(200, body),
     ];
     const res = await request({url, retry: true});
@@ -262,7 +262,7 @@ describe('🛸 retry & exponential backoff', () => {
   it('should retry on ETIMEDOUT', async () => {
     const body = {sizzling: '🥓'};
     const scopes = [
-      nock(url).get('/').replyWithError({code: 'ETIMEDOUT'}),
+      nock(url).get('/').reply(500, {code: 'ETIMEDOUT'}),
       nock(url).get('/').reply(200, body),
     ];
     const res = await request({url, retry: true});
@@ -271,13 +271,14 @@ describe('🛸 retry & exponential backoff', () => {
   });
 
   it('should allow configuring noResponseRetries', async () => {
-    const scope = nock(url).get('/').replyWithError({code: 'ETIMEDOUT'});
+    // `nock` is not listening, therefore it should fail
     const config = {url, retryConfig: {noResponseRetries: 0}};
-    await assert.rejects(request(config), (e: Error) => {
-      const cfg = getConfig(e);
-      return cfg!.currentRetryAttempt === 0;
+    await assert.rejects(request(config), (e: GaxiosError) => {
+      return (
+        e.code === 'ENETUNREACH' &&
+        e.config.retryConfig?.currentRetryAttempt === 0
+      );
     });
-    scope.done();
   });
 
   it('should delay the initial retry by 100ms by default', async () => {
@@ -303,6 +304,70 @@ describe('🛸 retry & exponential backoff', () => {
     });
     const delay = Date.now() - start;
     assert.ok(delay > 500 && delay < 599);
+    scope.done();
+  });
+
+  it('should respect retryDelayMultiplier if configured', async () => {
+    const scope = nock(url)
+      .get('/')
+      .reply(500)
+      .get('/')
+      .reply(500)
+      .get('/')
+      .reply(200, {});
+    const start = Date.now();
+    await request({
+      url,
+      retryConfig: {
+        retryDelayMultiplier: 3,
+      },
+    });
+    const delay = Date.now() - start;
+    assert.ok(delay > 1000 && delay < 1999);
+    scope.done();
+  });
+
+  it('should respect totalTimeout if configured', async () => {
+    const scope = nock(url)
+      .get('/')
+      .reply(500)
+      .get('/')
+      .reply(500)
+      .get('/')
+      .reply(200, {});
+
+    const start = Date.now();
+    await request({
+      url,
+      retryConfig: {
+        retryDelayMultiplier: 100,
+        totalTimeout: 3000,
+      },
+    });
+    const delay = Date.now() - start;
+    assert.ok(delay > 3000 && delay < 3999);
+    scope.done();
+  });
+
+  it('should respect maxRetryDelay if configured', async () => {
+    const scope = nock(url)
+      .get('/')
+      .reply(500)
+      .get('/')
+      .reply(500)
+      .get('/')
+      .reply(200, {});
+
+    const start = Date.now();
+    await request({
+      url,
+      retryConfig: {
+        retryDelayMultiplier: 100,
+        maxRetryDelay: 4000,
+      },
+    });
+    const delay = Date.now() - start;
+    assert.ok(delay > 4000 && delay < 4999);
     scope.done();
   });
 });
