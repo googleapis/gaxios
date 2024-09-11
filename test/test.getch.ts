@@ -693,7 +693,7 @@ describe('🥁 configuration options', () => {
 });
 
 describe('🎏 data handling', () => {
-  it.only('should accpet a ReadableStream as request data', async () => {
+  it('should accpet a ReadableStream as request data', async () => {
     const body = fs.createReadStream('package.json');
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const contents = require('../../package.json');
