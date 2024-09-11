@@ -139,11 +139,18 @@ describe('🚙 error handling', () => {
 });
 
 describe('🥁 configuration options', () => {
-  it('should accept URL objects', async () => {
+  it('should accept `URL` objects', async () => {
     const scope = nock(url).get('/').reply(204);
     const res = await request({url: new URL(url)});
     scope.done();
-    assert.strictEqual(res.config.method, 'GET');
+    assert.strictEqual(res.status, 204);
+  });
+
+  it('should accept `Request` objects', async () => {
+    const scope = nock(url).get('/').reply(204);
+    const res = await request(new Request(url));
+    scope.done();
+    assert.strictEqual(res.status, 204);
   });
 
   it('should use options passed into the constructor', async () => {
@@ -1005,13 +1012,12 @@ describe('🎏 data handling', () => {
       assert.notStrictEqual(e.config, config);
 
       // config redactions - headers
-      assert(e.config.headers);
       const expectedRequestHeaders = new Headers({
         ...config.headers, // non-redactables should be present
         Authentication: REDACT,
         AUTHORIZATION: REDACT,
       });
-      const actualHeaders = new Headers(e.config.headers);
+      const actualHeaders = e.config.headers;
 
       expectedRequestHeaders.forEach((value, key) => {
         assert.equal(actualHeaders.get(key), value);

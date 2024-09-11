@@ -155,16 +155,6 @@ export interface GaxiosOptions extends RequestInit {
    */
   baseUrl?: string;
   baseURL?: string | URL;
-  method?:
-    | 'GET'
-    | 'HEAD'
-    | 'POST'
-    | 'DELETE'
-    | 'PUT'
-    | 'CONNECT'
-    | 'OPTIONS'
-    | 'TRACE'
-    | 'PATCH';
   /**
    * The data to send in the {@link RequestInit.body} of the request. Objects will be
    * serialized as JSON, except for:
@@ -319,7 +309,7 @@ export interface GaxiosOptionsPrepared extends GaxiosOptions {
 }
 
 /**
- * Configuration for the Gaxios `request` method.
+ * Gaxios retry configuration.
  */
 export interface RetryConfig {
   /**
@@ -505,20 +495,12 @@ export function defaultErrorRedactor<
     redactString(data.config, 'body');
     redactObject(data.config.body);
 
-    try {
-      const url = data.config.url;
+    if (data.config.url.searchParams.has('token')) {
+      data.config.url.searchParams.set('token', REDACT);
+    }
 
-      if (url.searchParams.has('token')) {
-        url.searchParams.set('token', REDACT);
-      }
-
-      if (url.searchParams.has('client_secret')) {
-        url.searchParams.set('client_secret', REDACT);
-      }
-
-      data.config.url = url;
-    } catch {
-      // ignore error - no need to parse an invalid URL
+    if (data.config.url.searchParams.has('client_secret')) {
+      data.config.url.searchParams.set('client_secret', REDACT);
     }
   }
 
