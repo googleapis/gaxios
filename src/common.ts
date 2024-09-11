@@ -155,16 +155,6 @@ export interface GaxiosOptions extends RequestInit {
    */
   baseUrl?: string;
   baseURL?: string | URL;
-  method?:
-    | 'GET'
-    | 'HEAD'
-    | 'POST'
-    | 'DELETE'
-    | 'PUT'
-    | 'CONNECT'
-    | 'OPTIONS'
-    | 'TRACE'
-    | 'PATCH';
   /**
    * The data to send in the {@link RequestInit.body} of the request. Objects will be
    * serialized as JSON, except for:
@@ -325,7 +315,7 @@ export interface GaxiosOptionsPrepared extends GaxiosOptions {
 }
 
 /**
- * Configuration for the Gaxios `request` method.
+ * Gaxios retry configuration.
  */
 export interface RetryConfig {
   /**

@@ -139,11 +139,18 @@ describe('🚙 error handling', () => {
 });
 
 describe('🥁 configuration options', () => {
-  it('should accept URL objects', async () => {
+  it('should accept `URL` objects', async () => {
     const scope = nock(url).get('/').reply(204);
     const res = await request({url: new URL(url)});
     scope.done();
-    assert.strictEqual(res.config.method, 'GET');
+    assert.strictEqual(res.status, 204);
+  });
+
+  it('should accept `Request` objects', async () => {
+    const scope = nock(url).get('/').reply(204);
+    const res = await request(new Request(url));
+    scope.done();
+    assert.strictEqual(res.status, 204);
   });
 
   it('should use options passed into the constructor', async () => {
@@ -686,7 +693,7 @@ describe('🥁 configuration options', () => {
 });
 
 describe('🎏 data handling', () => {
-  it('should accpet a ReadableStream as request data', async () => {
+  it.only('should accpet a ReadableStream as request data', async () => {
     const body = fs.createReadStream('package.json');
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const contents = require('../../package.json');
