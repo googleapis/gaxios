@@ -1012,13 +1012,12 @@ describe('🎏 data handling', () => {
       assert.notStrictEqual(e.config, config);
 
       // config redactions - headers
-      assert(e.config.headers);
       const expectedRequestHeaders = new Headers({
         ...config.headers, // non-redactables should be present
         Authentication: REDACT,
         AUTHORIZATION: REDACT,
       });
-      const actualHeaders = new Headers(e.config.headers);
+      const actualHeaders = e.config.headers;
 
       expectedRequestHeaders.forEach((value, key) => {
         assert.equal(actualHeaders.get(key), value);
