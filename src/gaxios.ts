@@ -382,7 +382,6 @@ export class Gaxios {
     if (!preparedHeaders.has('accept') && opts.responseType === 'json') {
       preparedHeaders.set('accept', 'application/json');
     }
-    opts.method = opts.method || 'GET';
 
     const proxy =
       opts.proxy ||
