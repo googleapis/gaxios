@@ -303,6 +303,33 @@ export class Gaxios {
     options: GaxiosOptions
   ): Promise<GaxiosOptionsPrepared> {
     const opts = extend(true, {}, this.defaults, options);
+
+    // Initial headers from defaults, options, or both
+    let initHeaders: Headers | undefined;
+
+    if (this.defaults.headers && options.headers) {
+      // default headers + options.headers
+      initHeaders = new Headers(this.defaults.headers);
+
+      new Headers(options.headers).forEach((value, key) => {
+        // set-cookie is the only header that would repeat.
+        // A bit of background: https://developer.mozilla.org/en-US/docs/Web/API/Headers/getSetCookie
+        key === 'set-cookie'
+          ? initHeaders?.append(key, value)
+          : initHeaders?.set(key, value);
+      });
+    } else if (this.defaults.headers) {
+      // default headers only
+      initHeaders = this.defaults.headers;
+    } else if (options.headers) {
+      // options.headers only
+      initHeaders = options.headers;
+    }
+
+    // Prepared Headers
+    const preparedHeaders =
+      initHeaders instanceof Headers ? initHeaders : new Headers(initHeaders);
+
     if (!opts.url) {
       throw new Error('URL is required.');
     }
@@ -343,11 +370,6 @@ export class Gaxios {
     if (typeof options.maxRedirects === 'number') {
       opts.follow = options.maxRedirects;
     }
-
-    const preparedHeaders =
-      opts.headers instanceof Headers
-        ? opts.headers
-        : new Headers(opts.headers);
 
     const shouldDirectlyPassData =
       typeof opts.data === 'string' ||
