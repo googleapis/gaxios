@@ -19,7 +19,7 @@
     "webpack": "webpack",
     "prebrowser-test": "npm run compile",
     "browser-test": "node build/browser-test/browser-test-runner.js",
-    "docs": "jsdoc -c .jsdoc.json",
+    "docs": "jsdoc -c .jsdoc.js",
     "docs-test": "linkinator docs",
     "predocs-test": "npm run docs",
     "samples-test": "cd samples/ && npm link ../ && npm test && cd ../",
