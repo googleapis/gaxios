@@ -17,7 +17,7 @@
 set -eo pipefail
 
 export NPM_CONFIG_PREFIX=${HOME}/.npm-global
-npm install -g npm@10
+npm install -g npm@10.7
 
 # Setup service account credentials.
 export GOOGLE_APPLICATION_CREDENTIALS=${KOKORO_GFILE_DIR}/secret_manager/long-door-651-kokoro-system-test-service-account
