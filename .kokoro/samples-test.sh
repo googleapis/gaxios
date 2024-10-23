@@ -16,35 +16,7 @@
 
 set -eo pipefail
 
-echo "===NPM_CONFIG_PREFIX: NPM DEBUGGING==="
-echo "$NPM_CONFIG_PREFIX"
-
-(
-  unset -e
-  echo "===UPDATE NOTIFIER: NPM DEBUGGING==="
-  echo npm config get update-notifier
-  echo npm config set update-notifier false
-)
-
 export NPM_CONFIG_PREFIX=${HOME}/.npm-global
-
-echo "===PRE: NPM DEBUGGING==="
-which npm
-whereis npm
-npm -v
-echo npm config get update-notifier
-
-echo "===INSTALL: NPM DEBUGGING==="
-npm install -g npm@10
-
-echo "===POST: NPM DEBUGGING==="
-which npm
-whereis npm
-npm -v
-echo npm config get update-notifier
-
-echo "===RUN: NPM DEBUGGING==="
-
 
 # Setup service account credentials.
 export GOOGLE_APPLICATION_CREDENTIALS=${KOKORO_GFILE_DIR}/secret_manager/long-door-651-kokoro-system-test-service-account
@@ -60,19 +32,12 @@ if [ -f .kokoro/pre-samples-test.sh ]; then
 fi
 
 if [ -f samples/package.json ]; then
-    echo "===1: NPM DEBUGGING==="
     npm install
 
     # Install and link samples
     cd samples/
-
-    echo "===2: NPM DEBUGGING==="
     npm link ../
-
-    echo "===3: NPM DEBUGGING==="
     npm install
-
-    echo "===4: NPM DEBUGGING==="
     cd ..
     # If tests are running against main branch, configure flakybot
     # to open issues on failures:
@@ -86,10 +51,7 @@ if [ -f samples/package.json ]; then
       trap cleanup EXIT HUP
     fi
 
-    echo "===5: NPM DEBUGGING==="
     npm run samples-test
-
-    echo "===6: NPM DEBUGGING==="
 fi
 
 # codecov combines coverage across integration and unit tests. Include
@@ -100,12 +62,7 @@ if npx check-node-version@3.3.0 --silent --node $COVERAGE_NODE; then
   if [ -f "$NYC_BIN" ]; then
     $NYC_BIN report || true
   fi
-
-  echo "===7: NPM DEBUGGING==="
-
   bash $KOKORO_GFILE_DIR/codecov.sh
 else
   echo "coverage is only reported for Node $COVERAGE_NODE"
 fi
-
-echo "===DONE: NPM DEBUGGING==="
