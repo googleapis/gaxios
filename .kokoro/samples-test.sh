@@ -21,8 +21,8 @@ echo "$NPM_CONFIG_PREFIX"
 
 (
   echo "===UPDATE NOTIFIER: NPM DEBUGGING==="
-  echo npm config get update-notifier
-  echo npm config set update-notifier false
+  npm config get update-notifier || true
+  npm config set update-notifier false || true
 )
 
 export NPM_CONFIG_PREFIX=${HOME}/.npm-global
