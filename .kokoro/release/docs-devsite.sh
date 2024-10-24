@@ -19,6 +19,7 @@ set -eo pipefail
 if [[ -z "$CREDENTIALS" ]]; then
   # if CREDENTIALS are explicitly set, assume we're testing locally
   # and don't set NPM_CONFIG_PREFIX.
+  export NPM_CONFIG_PREFIX=${HOME}/.npm-global
   export PATH="$PATH:${NPM_CONFIG_PREFIX}/bin"
   cd $(dirname $0)/../..
 fi
