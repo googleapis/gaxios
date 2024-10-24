@@ -92,8 +92,8 @@ export class Gaxios {
     const res = (await fetchImpl(config.url, preparedOpts as {})) as Response;
     const data = await this.getResponseData(config, res);
 
-    // `node-fetch`'s data isn't writable. Native `fetch`'s is.
     if (!Object.getOwnPropertyDescriptor(res, 'data')?.configurable) {
+      // Work-around for `node-fetch` v3 as accessing `data` would otherwise throw
       Object.defineProperties(res, {
         data: {
           configurable: true,
