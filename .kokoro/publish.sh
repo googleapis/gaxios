@@ -16,8 +16,6 @@
 
 set -eo pipefail
 
-export NPM_CONFIG_PREFIX=${HOME}/.npm-global
-
 # Start the releasetool reporter
 python3 -m releasetool publish-reporter-script > /tmp/publisher-script; source /tmp/publisher-script
 
