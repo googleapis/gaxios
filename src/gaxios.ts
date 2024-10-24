@@ -353,7 +353,8 @@ export class Gaxios {
       typeof opts.data === 'string' ||
       opts.data instanceof ArrayBuffer ||
       opts.data instanceof Blob ||
-      opts.data instanceof File ||
+      // Node 18 does not have a global `File` object
+      (globalThis.File && opts.data instanceof File) ||
       opts.data instanceof FormData ||
       opts.data instanceof Readable ||
       opts.data instanceof ReadableStream ||
