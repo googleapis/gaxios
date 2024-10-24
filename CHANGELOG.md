@@ -1,5 +1,16 @@
 # Changelog
 
+## [7.0.0](https://github.com/googleapis/gaxios/compare/v6.7.1...v7.0.0) (2024-10-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* Support Node 18+ ([#650](https://github.com/googleapis/gaxios/issues/650))
+
+### Features
+
+* Support Node 18+ ([#650](https://github.com/googleapis/gaxios/issues/650)) ([6fa8080](https://github.com/googleapis/gaxios/commit/6fa80809656bafe85ce86602c190e4b2b7546576))
+
 ## [6.7.1](https://github.com/googleapis/gaxios/compare/v6.7.0...v6.7.1) (2024-08-13)
 
 
