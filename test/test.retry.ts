@@ -86,7 +86,7 @@ describe('🛸 retry & exponential backoff', () => {
       (e: Error) => {
         const config = getConfig(e);
         return config!.currentRetryAttempt === 0;
-      }
+      },
     );
     scope.done();
   });

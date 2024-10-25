@@ -87,7 +87,7 @@ export async function getRetryConfig(err: GaxiosError) {
 
   // Notify the user if they added an `onRetryAttempt` handler
   if (config.onRetryAttempt) {
-    config.onRetryAttempt(err);
+    await config.onRetryAttempt(err);
   }
 
   // Return the promise in which recalls Gaxios to retry the request
@@ -127,7 +127,7 @@ function shouldRetryRequest(err: GaxiosError) {
   if (
     !config.httpMethodsToRetry ||
     !config.httpMethodsToRetry.includes(
-      err.config.method?.toUpperCase() || 'GET'
+      err.config.method?.toUpperCase() || 'GET',
     )
   ) {
     return false;
@@ -178,7 +178,9 @@ function getConfig(err: GaxiosError) {
 function getNextRetryDelay(config: RetryConfig) {
   // Calculate time to wait with exponential backoff.
   // If this is the first retry, look for a configured retryDelay.
-  const retryDelay = config.currentRetryAttempt ? 0 : config.retryDelay ?? 100;
+  const retryDelay = config.currentRetryAttempt
+    ? 0
+    : (config.retryDelay ?? 100);
   // Formula: retryDelay + ((retryDelayMultiplier^currentRetryAttempt - 1 / 2) * 1000)
   const calculatedDelay =
     retryDelay +
