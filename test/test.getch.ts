@@ -720,11 +720,16 @@ describe('🥁 configuration options', () => {
       const timeout = 4000; // after network delay, so this shouldn't trigger
       const message = 'Changed my mind - no request please';
 
-      setTimeout(() => ac.abort(new Error(message)), 10);
+      setTimeout(() => ac.abort(message), 10);
+
+      // await gaxios.request({url, timeout, signal});
 
       await assert.rejects(
         () => gaxios.request({url, timeout, signal}),
-        new RegExp(message)
+        // `node-fetch` always rejects with the generic 'abort' error:
+        /abort/
+        // native `fetch` matches the error properly:
+        // new RegExp(message)
       );
     });
   });
