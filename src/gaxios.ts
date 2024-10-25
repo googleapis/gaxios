@@ -144,10 +144,15 @@ export class Gaxios {
       }
       return translatedResponse;
     } catch (e) {
-      const err =
-        e instanceof GaxiosError
-          ? e
-          : new GaxiosError((e as Error).message, opts, undefined, e as Error);
+      let err: GaxiosError;
+
+      if (e instanceof GaxiosError) {
+        err = e;
+      } else if (e instanceof Error) {
+        err = new GaxiosError(e.message, opts, undefined, e);
+      } else {
+        err = new GaxiosError(new Error(e as '').message, opts, undefined, e);
+      }
 
       const {shouldRetry, config} = await getRetryConfig(err);
       if (shouldRetry && config) {

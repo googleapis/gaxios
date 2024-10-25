@@ -93,9 +93,9 @@ export class GaxiosError<T = any> extends Error {
     message: string,
     public config: GaxiosOptionsPrepared,
     public response?: GaxiosResponse<T>,
-    public error?: Error | NodeJS.ErrnoException,
+    cause?: unknown,
   ) {
-    super(message);
+    super(message, {cause});
 
     // deep-copy config as we do not want to mutate
     // the existing config for future retries/use
@@ -120,8 +120,14 @@ export class GaxiosError<T = any> extends Error {
       this.status = this.response.status;
     }
 
-    if (error && 'code' in error && error.code) {
-      this.code = error.code;
+    if (this.cause instanceof Error) {
+      if (this.cause instanceof DOMException) {
+        // 'code' is legacy for DOMExceptions, use the `name` instead
+        // https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
+        this.code = this.cause.name;
+      } else if ('code' in this.cause && typeof this.cause.code === 'string') {
+        this.code = this.cause.code;
+      }
     }
 
     if (config.errorRedactor) {
