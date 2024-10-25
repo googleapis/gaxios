@@ -952,7 +952,7 @@ describe('🎏 data handling', () => {
       method: 'POST',
       multipart: [
         {
-          headers: {'Content-Type': 'application/json'},
+          headers: new Headers({'Content-Type': 'application/json'}),
           content: body,
         },
       ],
@@ -982,11 +982,11 @@ describe('🎏 data handling', () => {
       method: 'POST',
       multipart: [
         {
-          headers: {'Content-Type': 'application/json'},
+          headers: new Headers({'Content-Type': 'application/json'}),
           content: body,
         },
         {
-          headers: {'Content-Type': 'text/plain'},
+          headers: new Headers({'Content-Type': 'text/plain'}),
           content: textContent,
         },
       ],

@@ -548,12 +548,8 @@ export class Gaxios {
   ) {
     const finale = `--${boundary}--`;
     for (const currentPart of multipartOptions) {
-      const headers =
-        currentPart.headers instanceof Headers
-          ? currentPart.headers
-          : new Headers(currentPart.headers);
       const partContentType =
-        headers.get('Content-Type') || 'application/octet-stream';
+        currentPart.headers.get('Content-Type') || 'application/octet-stream';
       const preamble = `--${boundary}\r\nContent-Type: ${partContentType}\r\n\r\n`;
       yield preamble;
       if (typeof currentPart.content === 'string') {
