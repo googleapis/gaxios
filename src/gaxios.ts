@@ -14,55 +14,26 @@
 import extend from 'extend';
 import {Agent} from 'http';
 import {Agent as HTTPSAgent} from 'https';
-import nodeFetch from 'node-fetch';
-import qs from 'querystring';
-import isStream from 'is-stream';
 import {URL} from 'url';
+import type nodeFetch from 'node-fetch' with {'resolution-mode': 'import'};
 
 import {
-  FetchResponse,
   GaxiosMultipartOptions,
   GaxiosError,
   GaxiosOptions,
+  GaxiosOptionsPrepared,
   GaxiosPromise,
   GaxiosResponse,
-  Headers,
   defaultErrorRedactor,
 } from './common';
 import {getRetryConfig} from './retry';
-import {PassThrough, Stream, pipeline} from 'stream';
-import {v4} from 'uuid';
+import {Readable} from 'stream';
 import {GaxiosInterceptorManager} from './interceptor';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-const fetch = hasFetch() ? window.fetch : nodeFetch;
-
-function hasWindow() {
-  return typeof window !== 'undefined' && !!window;
-}
-
-function hasFetch() {
-  return hasWindow() && !!window.fetch;
-}
-
-function hasBuffer() {
-  return typeof Buffer !== 'undefined';
-}
-
-function hasHeader(options: GaxiosOptions, header: string) {
-  return !!getHeader(options, header);
-}
-
-function getHeader(options: GaxiosOptions, header: string): string | undefined {
-  header = header.toLowerCase();
-  for (const key of Object.keys(options?.headers || {})) {
-    if (header === key.toLowerCase()) {
-      return options.headers![key];
-    }
-  }
-  return undefined;
-}
+const randomUUID = async () =>
+  globalThis.crypto?.randomUUID() || (await import('crypto')).randomUUID();
 
 export class Gaxios {
   protected agentCache = new Map<
@@ -79,7 +50,7 @@ export class Gaxios {
    * Interceptors
    */
   interceptors: {
-    request: GaxiosInterceptorManager<GaxiosOptions>;
+    request: GaxiosInterceptorManager<GaxiosOptionsPrepared>;
     response: GaxiosInterceptorManager<GaxiosResponse>;
   };
 
@@ -100,18 +71,41 @@ export class Gaxios {
    * @param opts Set of HTTP options that will be used for this HTTP request.
    */
   async request<T = any>(opts: GaxiosOptions = {}): GaxiosPromise<T> {
-    opts = await this.#prepareRequest(opts);
-    opts = await this.#applyRequestInterceptors(opts);
-    return this.#applyResponseInterceptors(this._request(opts));
+    let prepared = await this.#prepareRequest(opts);
+    prepared = await this.#applyRequestInterceptors(prepared);
+    return this.#applyResponseInterceptors(this._request(prepared));
   }
 
   private async _defaultAdapter<T>(
-    opts: GaxiosOptions
+    config: GaxiosOptionsPrepared
   ): Promise<GaxiosResponse<T>> {
-    const fetchImpl = opts.fetchImplementation || fetch;
-    const res = (await fetchImpl(opts.url, opts)) as FetchResponse;
-    const data = await this.getResponseData(opts, res);
-    return this.translateResponse<T>(opts, res, data);
+    const fetchImpl =
+      config.fetchImplementation ||
+      this.defaults.fetchImplementation ||
+      (await Gaxios.#getFetch());
+
+    // node-fetch v3 warns when `data` is present
+    // https://github.com/node-fetch/node-fetch/issues/1000
+    const preparedOpts = {...config};
+    delete preparedOpts.data;
+
+    const res = (await fetchImpl(config.url, preparedOpts as {})) as Response;
+    const data = await this.getResponseData(config, res);
+
+    if (!Object.getOwnPropertyDescriptor(res, 'data')?.configurable) {
+      // Work-around for `node-fetch` v3 as accessing `data` would otherwise throw
+      Object.defineProperties(res, {
+        data: {
+          configurable: true,
+          writable: true,
+          enumerable: true,
+          value: data,
+        },
+      });
+    }
+
+    // Keep object as an instance of `Response`
+    return Object.assign(res, {config, data});
   }
 
   /**
@@ -119,7 +113,7 @@ export class Gaxios {
    * @param opts Set of HTTP options that will be used for this HTTP request.
    */
   protected async _request<T = any>(
-    opts: GaxiosOptions = {}
+    opts: GaxiosOptionsPrepared
   ): GaxiosPromise<T> {
     try {
       let translatedResponse: GaxiosResponse<T>;
@@ -134,13 +128,12 @@ export class Gaxios {
 
       if (!opts.validateStatus!(translatedResponse.status)) {
         if (opts.responseType === 'stream') {
-          let response = '';
-          await new Promise(resolve => {
-            (translatedResponse?.data as Stream).on('data', chunk => {
-              response += chunk;
-            });
-            (translatedResponse?.data as Stream).on('end', resolve);
-          });
+          const response = [];
+
+          for await (const chunk of opts.data as Readable) {
+            response.push(chunk);
+          }
+
           translatedResponse.data = response as T;
         }
         throw new GaxiosError<T>(
@@ -172,21 +165,27 @@ export class Gaxios {
   }
 
   private async getResponseData(
-    opts: GaxiosOptions,
-    res: FetchResponse
+    opts: GaxiosOptionsPrepared,
+    res: Response
   ): Promise<any> {
+    if (
+      opts.maxContentLength &&
+      res.headers.has('content-length') &&
+      opts.maxContentLength <
+        Number.parseInt(res.headers?.get('content-length') || '')
+    ) {
+      throw new GaxiosError(
+        "Response's `Content-Length` is over the limit.",
+        opts,
+        Object.assign(res, {config: opts}) as GaxiosResponse
+      );
+    }
+
     switch (opts.responseType) {
       case 'stream':
         return res.body;
-      case 'json': {
-        let data = await res.text();
-        try {
-          data = JSON.parse(data);
-        } catch {
-          // continue
-        }
-        return data as {};
-      }
+      case 'json':
+        return res.json();
       case 'arraybuffer':
         return res.arrayBuffer();
       case 'blob':
@@ -200,7 +199,7 @@ export class Gaxios {
 
   #urlMayUseProxy(
     url: string | URL,
-    noProxy: GaxiosOptions['noProxy'] = []
+    noProxy: GaxiosOptionsPrepared['noProxy'] = []
   ): boolean {
     const candidate = new URL(url);
     const noProxyList = [...noProxy];
@@ -248,13 +247,13 @@ export class Gaxios {
    * Applies the request interceptors. The request interceptors are applied after the
    * call to prepareRequest is completed.
    *
-   * @param {GaxiosOptions} options The current set of options.
+   * @param {GaxiosOptionsPrepared} options The current set of options.
    *
-   * @returns {Promise<GaxiosOptions>} Promise that resolves to the set of options or response after interceptors are applied.
+   * @returns {Promise<GaxiosOptionsPrepared>} Promise that resolves to the set of options or response after interceptors are applied.
    */
   async #applyRequestInterceptors(
-    options: GaxiosOptions
-  ): Promise<GaxiosOptions> {
+    options: GaxiosOptionsPrepared
+  ): Promise<GaxiosOptionsPrepared> {
     let promiseChain = Promise.resolve(options);
 
     for (const interceptor of this.interceptors.request.values()) {
@@ -262,7 +261,7 @@ export class Gaxios {
         promiseChain = promiseChain.then(
           interceptor.resolved,
           interceptor.rejected
-        ) as Promise<GaxiosOptions>;
+        ) as Promise<GaxiosOptionsPrepared>;
       }
     }
 
@@ -273,9 +272,9 @@ export class Gaxios {
    * Applies the response interceptors. The response interceptors are applied after the
    * call to request is made.
    *
-   * @param {GaxiosOptions} options The current set of options.
+   * @param {GaxiosOptionsPrepared} options The current set of options.
    *
-   * @returns {Promise<GaxiosOptions>} Promise that resolves to the set of options or response after interceptors are applied.
+   * @returns {Promise<GaxiosOptionsPrepared>} Promise that resolves to the set of options or response after interceptors are applied.
    */
   async #applyResponseInterceptors(
     response: GaxiosResponse | Promise<GaxiosResponse>
@@ -300,7 +299,9 @@ export class Gaxios {
    * @param options The original options passed from the client.
    * @returns Prepared options, ready to make a request
    */
-  async #prepareRequest(options: GaxiosOptions): Promise<GaxiosOptions> {
+  async #prepareRequest(
+    options: GaxiosOptions
+  ): Promise<GaxiosOptionsPrepared> {
     const opts = extend(true, {}, this.defaults, options);
     if (!opts.url) {
       throw new Error('URL is required.');
@@ -312,14 +313,27 @@ export class Gaxios {
       opts.url = baseUrl.toString() + opts.url;
     }
 
-    opts.paramsSerializer = opts.paramsSerializer || this.paramsSerializer;
-    if (opts.params && Object.keys(opts.params).length > 0) {
-      let additionalQueryParams = opts.paramsSerializer(opts.params);
-      if (additionalQueryParams.startsWith('?')) {
-        additionalQueryParams = additionalQueryParams.slice(1);
+    // don't modify the properties of a default or provided URL
+    opts.url = new URL(opts.url);
+
+    if (opts.params) {
+      if (opts.paramsSerializer) {
+        let additionalQueryParams = opts.paramsSerializer(opts.params);
+
+        if (additionalQueryParams.startsWith('?')) {
+          additionalQueryParams = additionalQueryParams.slice(1);
+        }
+        const prefix = opts.url.toString().includes('?') ? '&' : '?';
+        opts.url = opts.url + prefix + additionalQueryParams;
+      } else {
+        const url = opts.url instanceof URL ? opts.url : new URL(opts.url);
+
+        for (const [key, value] of new URLSearchParams(opts.params)) {
+          url.searchParams.append(key, value);
+        }
+
+        opts.url = url;
       }
-      const prefix = opts.url.toString().includes('?') ? '&' : '?';
-      opts.url = opts.url + prefix + additionalQueryParams;
     }
 
     if (typeof options.maxContentLength === 'number') {
@@ -330,61 +344,78 @@ export class Gaxios {
       opts.follow = options.maxRedirects;
     }
 
-    opts.headers = opts.headers || {};
-    if (opts.multipart === undefined && opts.data) {
-      const isFormData =
-        typeof FormData === 'undefined'
-          ? false
-          : opts?.data instanceof FormData;
-      if (isStream.readable(opts.data)) {
-        opts.body = opts.data;
-      } else if (hasBuffer() && Buffer.isBuffer(opts.data)) {
-        // Do not attempt to JSON.stringify() a Buffer:
-        opts.body = opts.data;
-        if (!hasHeader(opts, 'Content-Type')) {
-          opts.headers['Content-Type'] = 'application/json';
-        }
-      } else if (typeof opts.data === 'object') {
-        // If www-form-urlencoded content type has been set, but data is
-        // provided as an object, serialize the content using querystring:
-        if (!isFormData) {
-          if (
-            getHeader(opts, 'content-type') ===
-            'application/x-www-form-urlencoded'
-          ) {
-            opts.body = opts.paramsSerializer(opts.data);
-          } else {
-            // } else if (!(opts.data instanceof FormData)) {
-            if (!hasHeader(opts, 'Content-Type')) {
-              opts.headers['Content-Type'] = 'application/json';
-            }
-            opts.body = JSON.stringify(opts.data);
-          }
-        }
-      } else {
-        opts.body = opts.data;
-      }
-    } else if (opts.multipart && opts.multipart.length > 0) {
-      // note: once the minimum version reaches Node 16,
-      // this can be replaced with randomUUID() function from crypto
-      // and the dependency on UUID removed
-      const boundary = v4();
-      opts.headers['Content-Type'] = `multipart/related; boundary=${boundary}`;
-      const bodyStream = new PassThrough();
-      opts.body = bodyStream;
-      pipeline(
-        this.getMultipartRequest(opts.multipart, boundary),
-        bodyStream,
-        () => {}
+    const preparedHeaders =
+      opts.headers instanceof Headers
+        ? opts.headers
+        : new Headers(opts.headers);
+
+    const shouldDirectlyPassData =
+      typeof opts.data === 'string' ||
+      opts.data instanceof ArrayBuffer ||
+      opts.data instanceof Blob ||
+      // Node 18 does not have a global `File` object
+      (globalThis.File && opts.data instanceof File) ||
+      opts.data instanceof FormData ||
+      opts.data instanceof Readable ||
+      opts.data instanceof ReadableStream ||
+      opts.data instanceof String ||
+      opts.data instanceof URLSearchParams ||
+      ArrayBuffer.isView(opts.data) || // `Buffer` (Node.js), `DataView`, `TypedArray`
+      /**
+       * @deprecated `node-fetch` or another third-party's request types
+       */
+      ['Blob', 'File', 'FormData'].includes(opts.data?.constructor?.name || '');
+
+    if (opts.multipart?.length) {
+      const boundary = await randomUUID();
+
+      preparedHeaders.set(
+        'content-type',
+        `multipart/related; boundary=${boundary}`
       );
+
+      opts.body = Readable.from(
+        this.getMultipartRequest(opts.multipart, boundary)
+      ) as {} as ReadableStream;
+    } else if (shouldDirectlyPassData) {
+      opts.body = opts.data as BodyInit;
+
+      /**
+       * Used for backwards-compatibility.
+       *
+       * @deprecated we shouldn't infer Buffers as JSON
+       */
+      if ('Buffer' in globalThis && Buffer.isBuffer(opts.data)) {
+        if (!preparedHeaders.has('content-type')) {
+          preparedHeaders.set('content-type', 'application/json');
+        }
+      }
+    } else if (typeof opts.data === 'object') {
+      if (
+        preparedHeaders.get('Content-Type') ===
+        'application/x-www-form-urlencoded'
+      ) {
+        // If www-form-urlencoded content type has been set, but data is
+        // provided as an object, serialize the content
+        opts.body = opts.paramsSerializer
+          ? opts.paramsSerializer(opts.data as {})
+          : new URLSearchParams(opts.data as {});
+      } else {
+        if (!preparedHeaders.has('content-type')) {
+          preparedHeaders.set('content-type', 'application/json');
+        }
+
+        opts.body = JSON.stringify(opts.data);
+      }
+    } else if (opts.data) {
+      opts.body = opts.data as BodyInit;
     }
 
     opts.validateStatus = opts.validateStatus || this.validateStatus;
     opts.responseType = opts.responseType || 'unknown';
-    if (!opts.headers['Accept'] && opts.responseType === 'json') {
-      opts.headers['Accept'] = 'application/json';
+    if (!preparedHeaders.has('accept') && opts.responseType === 'json') {
+      preparedHeaders.set('accept', 'application/json');
     }
-    opts.method = opts.method || 'GET';
 
     const proxy =
       opts.proxy ||
@@ -392,11 +423,10 @@ export class Gaxios {
       process?.env?.https_proxy ||
       process?.env?.HTTP_PROXY ||
       process?.env?.http_proxy;
-    const urlMayUseProxy = this.#urlMayUseProxy(opts.url, opts.noProxy);
 
     if (opts.agent) {
       // don't do any of the following options - use the user-provided agent.
-    } else if (proxy && urlMayUseProxy) {
+    } else if (proxy && this.#urlMayUseProxy(opts.url, opts.noProxy)) {
       const HttpsProxyAgent = await Gaxios.#getProxyAgent();
 
       if (this.agentCache.has(proxy)) {
@@ -429,7 +459,19 @@ export class Gaxios {
       opts.errorRedactor = defaultErrorRedactor;
     }
 
-    return opts;
+    if (opts.body && !('duplex' in opts)) {
+      /**
+       * required for Node.js and the type isn't available today
+       * @link https://github.com/nodejs/node/issues/46221
+       * @link https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1483
+       */
+      (opts as {duplex: string}).duplex = 'half';
+    }
+
+    return Object.assign(opts, {
+      headers: preparedHeaders,
+      url: opts.url instanceof URL ? opts.url : new URL(opts.url),
+    });
   }
 
   /**
@@ -441,45 +483,12 @@ export class Gaxios {
   }
 
   /**
-   * Encode a set of key/value pars into a querystring format (?foo=bar&baz=boo)
-   * @param params key value pars to encode
-   */
-  private paramsSerializer(params: {[index: string]: string | number}) {
-    return qs.stringify(params);
-  }
-
-  private translateResponse<T>(
-    opts: GaxiosOptions,
-    res: FetchResponse,
-    data?: T
-  ): GaxiosResponse<T> {
-    // headers need to be converted from a map to an obj
-    const headers = {} as Headers;
-    res.headers.forEach((value, key) => {
-      headers[key] = value;
-    });
-
-    return {
-      config: opts,
-      data: data as T,
-      headers,
-      status: res.status,
-      statusText: res.statusText,
-
-      // XMLHttpRequestLike
-      request: {
-        responseURL: res.url,
-      },
-    };
-  }
-
-  /**
    * Attempts to parse a response by looking at the Content-Type header.
-   * @param {FetchResponse} response the HTTP response.
+   * @param {Response} response the HTTP response.
    * @returns {Promise<any>} a promise that resolves to the response data.
    */
   private async getResponseDataFromContentType(
-    response: FetchResponse
+    response: Response
   ): Promise<any> {
     let contentType = response.headers.get('Content-Type');
     if (contentType === null) {
@@ -517,8 +526,12 @@ export class Gaxios {
   ) {
     const finale = `--${boundary}--`;
     for (const currentPart of multipartOptions) {
+      const headers =
+        currentPart.headers instanceof Headers
+          ? currentPart.headers
+          : new Headers(currentPart.headers as HeadersInit);
       const partContentType =
-        currentPart.headers['Content-Type'] || 'application/octet-stream';
+        headers.get('Content-Type') || 'application/octet-stream';
       const preamble = `--${boundary}\r\nContent-Type: ${partContentType}\r\n\r\n`;
       yield preamble;
       if (typeof currentPart.content === 'string') {
@@ -540,6 +553,14 @@ export class Gaxios {
   static #proxyAgent?: typeof import('https-proxy-agent').HttpsProxyAgent;
 
   /**
+   * A cache for the lazily-loaded fetch library.
+   *
+   * Should use {@link Gaxios[#getFetch]} to retrieve.
+   */
+  //
+  static #fetch?: typeof nodeFetch | typeof fetch;
+
+  /**
    * Imports, caches, and returns a proxy agent - if not already imported
    *
    * @returns A proxy agent
@@ -548,5 +569,15 @@ export class Gaxios {
     this.#proxyAgent ||= (await import('https-proxy-agent')).HttpsProxyAgent;
 
     return this.#proxyAgent;
+  }
+
+  static async #getFetch() {
+    const hasWindow = typeof window !== 'undefined' && !!window;
+
+    this.#fetch ||= hasWindow
+      ? window.fetch
+      : (await import('node-fetch')).default;
+
+    return this.#fetch;
   }
 }

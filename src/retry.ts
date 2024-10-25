@@ -75,7 +75,7 @@ export async function getRetryConfig(err: GaxiosError) {
 
   const delay = getNextRetryDelay(config);
 
-  // We're going to retry!  Incremenent the counter.
+  // We're going to retry!  Increment the counter.
   err.config.retryConfig!.currentRetryAttempt! += 1;
 
   // Create a promise that invokes the retry after the backOffDelay
@@ -102,9 +102,11 @@ export async function getRetryConfig(err: GaxiosError) {
 function shouldRetryRequest(err: GaxiosError) {
   const config = getConfig(err);
 
-  // node-fetch raises an AbortError if signaled:
-  // https://github.com/bitinn/node-fetch#request-cancellation-with-abortsignal
-  if (err.name === 'AbortError' || err.error?.name === 'AbortError') {
+  if (
+    err.config.signal?.aborted ||
+    err.name === 'AbortError' ||
+    err.error?.name === 'AbortError'
+  ) {
     return false;
   }
 
@@ -123,8 +125,10 @@ function shouldRetryRequest(err: GaxiosError) {
 
   // Only retry with configured HttpMethods.
   if (
-    !err.config.method ||
-    config.httpMethodsToRetry!.indexOf(err.config.method.toUpperCase()) < 0
+    !config.httpMethodsToRetry ||
+    !config.httpMethodsToRetry.includes(
+      err.config.method?.toUpperCase() || 'GET'
+    )
   ) {
     return false;
   }

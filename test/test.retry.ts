@@ -11,7 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {AbortController} from 'abort-controller';
 import assert from 'assert';
 import nock from 'nock';
 import {describe, it, afterEach} from 'mocha';
@@ -249,7 +248,7 @@ describe('🛸 retry & exponential backoff', () => {
   it('should retry on ENOTFOUND', async () => {
     const body = {spicy: '🌮'};
     const scopes = [
-      nock(url).get('/').replyWithError({code: 'ENOTFOUND'}),
+      nock(url).get('/').reply(500, {code: 'ENOTFOUND'}),
       nock(url).get('/').reply(200, body),
     ];
     const res = await request({url, retry: true});
@@ -260,7 +259,7 @@ describe('🛸 retry & exponential backoff', () => {
   it('should retry on ETIMEDOUT', async () => {
     const body = {sizzling: '🥓'};
     const scopes = [
-      nock(url).get('/').replyWithError({code: 'ETIMEDOUT'}),
+      nock(url).get('/').reply(500, {code: 'ETIMEDOUT'}),
       nock(url).get('/').reply(200, body),
     ];
     const res = await request({url, retry: true});
@@ -269,13 +268,14 @@ describe('🛸 retry & exponential backoff', () => {
   });
 
   it('should allow configuring noResponseRetries', async () => {
-    const scope = nock(url).get('/').replyWithError({code: 'ETIMEDOUT'});
+    // `nock` is not listening, therefore it should fail
     const config = {url, retryConfig: {noResponseRetries: 0}};
-    await assert.rejects(request(config), (e: Error) => {
-      const cfg = getConfig(e);
-      return cfg!.currentRetryAttempt === 0;
+    await assert.rejects(request(config), (e: GaxiosError) => {
+      return (
+        e.code === 'ENETUNREACH' &&
+        e.config.retryConfig?.currentRetryAttempt === 0
+      );
     });
-    scope.done();
   });
 
   it('should delay the initial retry by 100ms by default', async () => {
