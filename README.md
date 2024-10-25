@@ -67,13 +67,11 @@ interface GaxiosOptions = {
   // - `TypedArray` (e.g. `Uint8Array`, `BigInt64Array`)
   // - `URLSearchParams`
   // - all other objects where:
-  //   - headers['Content-Type'] === 'application/x-www-form-urlencoded' (serialized as `URLSearchParams`)
+  //   - headers.get('Content-Type') === 'application/x-www-form-urlencoded' (as they will be serialized as `URLSearchParams`)
   //
-  // In all other cases, if you would like to prevent `application/json` as the
-  // default `Content-Type` header you must provide a string or readable stream
-  // rather than an object, e.g.:
-  // - data: JSON.stringify({some: 'data'})
-  // - data: fs.readFile('./some-data.jpeg')
+  // Here are a few examples that would prevent setting `Content-Type: application/json` by default:
+  // - data: JSON.stringify({some: 'data'}) // a `string`
+  // - data: fs.readFile('./some-data.jpeg') // a `stream.Readable`
   data: {
     some: 'data'
   },

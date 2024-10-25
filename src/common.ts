@@ -19,6 +19,17 @@ import extend from 'extend';
 import {Readable} from 'stream';
 
 /**
+ * TypeScript does not have this type available globally - however `@types/node` includes `undici-types`, which has it:
+ * - https://www.npmjs.com/package/@types/node/v/18.19.59?activeTab=dependencies
+ *
+ * Additionally, this is the TypeScript pattern for type sniffing and `import("undici-types")` is pretty common:
+ * - https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/node/globals.d.ts
+ */
+type _BodyInit = typeof globalThis extends {BodyInit: infer T}
+  ? T
+  : import('undici-types').BodyInit;
+
+/**
  * Support `instanceof` operator for `GaxiosError`s in different versions of this library.
  *
  * @see {@link GaxiosError[Symbol.hasInstance]}
@@ -131,7 +142,7 @@ export interface GaxiosResponse<T = GaxiosResponseData> extends Response {
 }
 
 export interface GaxiosMultipartOptions {
-  headers: HeadersInit;
+  headers: Headers;
   content: string | Readable;
 }
 
@@ -200,6 +211,7 @@ export interface GaxiosOptions extends RequestInit {
    * ```
    */
   data?:
+    | _BodyInit
     | ArrayBuffer
     | Blob
     | Buffer
@@ -210,10 +222,8 @@ export interface GaxiosOptions extends RequestInit {
     | Readable
     | string
     | ArrayBufferView
-    | {buffer: ArrayBufferLike}
     | URLSearchParams
-    | {}
-    | BodyInit;
+    | {};
   /**
    * The maximum size of the http response `Content-Length` in bytes allowed.
    */
@@ -384,6 +394,34 @@ export interface RetryConfig {
    * the `retryDelay`
    */
   retryBackoff?: (err: GaxiosError, defaultBackoffMs: number) => Promise<void>;
+
+  /**
+   * Time that the initial request was made. Users should not set this directly.
+   */
+  timeOfFirstRequest?: number;
+
+  /**
+   * The length of time to keep retrying in ms. The last sleep period will
+   * be shortened as necessary, so that the last retry runs at deadline (and not
+   * considerably beyond it).  The total time starting from when the initial
+   * request is sent, after which an error will be returned, regardless of the
+   * retrying attempts made meanwhile. Defaults to Number.MAX_SAFE_INTEGER indicating to effectively
+   * ignore totalTimeout.
+   */
+  totalTimeout?: number;
+
+  /*
+   *  The maximum time to delay in ms. If retryDelayMultiplier results in a
+   *  delay greater than maxRetryDelay, retries should delay by maxRetryDelay
+   *  seconds instead. Defaults to Number.MAX_SAFE_INTEGER indicating to effectively ignore maxRetryDelay.
+   */
+  maxRetryDelay?: number;
+
+  /*
+   * The multiplier by which to increase the delay time between the completion of
+   *  failed requests, and the initiation of the subsequent retrying request. Defaults to 2.
+   */
+  retryDelayMultiplier?: number;
 }
 
 function translateData(

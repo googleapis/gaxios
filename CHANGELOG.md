@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.7.1](https://github.com/googleapis/gaxios/compare/v6.7.0...v6.7.1) (2024-08-13)
+
+
+### Bug Fixes
+
+* Release uuid rollback ([#641](https://github.com/googleapis/gaxios/issues/641)) ([2e21115](https://github.com/googleapis/gaxios/commit/2e211158d5351d81de4e84f999ec3b41475ec0cd))
+
+## [6.7.0](https://github.com/googleapis/gaxios/compare/v6.6.0...v6.7.0) (2024-06-27)
+
+
+### Features
+
+* Add additional retry configuration options ([#634](https://github.com/googleapis/gaxios/issues/634)) ([cb5c833](https://github.com/googleapis/gaxios/commit/cb5c833a9750bf6d0c0f8e27992bb44bd953566c))
+
+
+### Bug Fixes
+
+* **deps:** Update dependency uuid to v10 ([#629](https://github.com/googleapis/gaxios/issues/629)) ([6ff684e](https://github.com/googleapis/gaxios/commit/6ff684e6e6e5f4e5e6d270685b2ac0e4d28bc964))
+
 ## [6.6.0](https://github.com/googleapis/gaxios/compare/v6.5.0...v6.6.0) (2024-05-15)
 
 

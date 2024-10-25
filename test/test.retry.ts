@@ -303,4 +303,68 @@ describe('🛸 retry & exponential backoff', () => {
     assert.ok(delay > 500 && delay < 599);
     scope.done();
   });
+
+  it('should respect retryDelayMultiplier if configured', async () => {
+    const scope = nock(url)
+      .get('/')
+      .reply(500)
+      .get('/')
+      .reply(500)
+      .get('/')
+      .reply(200, {});
+    const start = Date.now();
+    await request({
+      url,
+      retryConfig: {
+        retryDelayMultiplier: 3,
+      },
+    });
+    const delay = Date.now() - start;
+    assert.ok(delay > 1000 && delay < 1999);
+    scope.done();
+  });
+
+  it('should respect totalTimeout if configured', async () => {
+    const scope = nock(url)
+      .get('/')
+      .reply(500)
+      .get('/')
+      .reply(500)
+      .get('/')
+      .reply(200, {});
+
+    const start = Date.now();
+    await request({
+      url,
+      retryConfig: {
+        retryDelayMultiplier: 100,
+        totalTimeout: 3000,
+      },
+    });
+    const delay = Date.now() - start;
+    assert.ok(delay > 3000 && delay < 3999);
+    scope.done();
+  });
+
+  it('should respect maxRetryDelay if configured', async () => {
+    const scope = nock(url)
+      .get('/')
+      .reply(500)
+      .get('/')
+      .reply(500)
+      .get('/')
+      .reply(200, {});
+
+    const start = Date.now();
+    await request({
+      url,
+      retryConfig: {
+        retryDelayMultiplier: 100,
+        maxRetryDelay: 4000,
+      },
+    });
+    const delay = Date.now() - start;
+    assert.ok(delay > 4000 && delay < 4999);
+    scope.done();
+  });
 });
