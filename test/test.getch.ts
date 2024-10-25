@@ -717,7 +717,7 @@ describe('🥁 configuration options', () => {
       const gaxios = new Gaxios();
       const ac = new AbortController();
       const signal = ac.signal;
-      const timeout = Number.MAX_SAFE_INTEGER;
+      const timeout = 4000; // after network delay, so this shouldn't trigger
       const message = 'Changed my mind - no request please';
 
       setTimeout(() => ac.abort(new Error(message)), 10);
