@@ -42,7 +42,7 @@
     "@types/express": "^5.0.0",
     "@types/extend": "^3.0.1",
     "@types/mocha": "^9.0.0",
-    "@types/multiparty": "0.0.36",
+    "@types/multiparty": "4.2.1",
     "@types/mv": "^2.1.0",
     "@types/ncp": "^2.0.1",
     "@types/node": "^20.0.0",
