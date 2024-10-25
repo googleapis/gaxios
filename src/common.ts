@@ -234,6 +234,9 @@ export interface GaxiosOptions extends RequestInit {
    * @deprecated Use {@link URLSearchParams} instead and pass this directly to {@link GaxiosOptions.data `data`}.
    */
   paramsSerializer?: (params: {[index: string]: string | number}) => string;
+  /**
+   * A timeout for the request, in milliseconds. No timeout by default.
+   */
   timeout?: number;
   /**
    * @deprecated ignored
