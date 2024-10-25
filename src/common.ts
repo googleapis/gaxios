@@ -122,8 +122,10 @@ export class GaxiosError<T = any> extends Error {
 
     if (this.cause instanceof Error) {
       if (this.cause instanceof DOMException) {
-        // 'code' is legacy for DOMExceptions, use the `name` instead
-        // https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
+        // 'code' is a legacy `number` for DOMExceptions, use the `name` instead:
+        // - https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
+        // Notably, useful for `AbortError`:
+        // - https://developer.mozilla.org/en-US/docs/Web/API/DOMException#aborterror
         this.code = this.cause.name;
       } else if ('code' in this.cause && typeof this.cause.code === 'string') {
         this.code = this.cause.code;
@@ -240,6 +242,9 @@ export interface GaxiosOptions extends RequestInit {
    * @deprecated Use {@link URLSearchParams} instead and pass this directly to {@link GaxiosOptions.data `data`}.
    */
   paramsSerializer?: (params: {[index: string]: string | number}) => string;
+  /**
+   * A timeout for the request, in milliseconds. No timeout by default.
+   */
   timeout?: number;
   /**
    * @deprecated ignored

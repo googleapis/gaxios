@@ -102,7 +102,10 @@ export async function getRetryConfig(err: GaxiosError) {
 function shouldRetryRequest(err: GaxiosError) {
   const config = getConfig(err);
 
-  if (err.config.signal?.aborted || err.code === 'AbortError') {
+  if (
+    (err.config.signal?.aborted && err.code !== 'TimeoutError') ||
+    err.code === 'AbortError'
+  ) {
     return false;
   }
 

@@ -367,4 +367,31 @@ describe('🛸 retry & exponential backoff', () => {
     assert.ok(delay > 4000 && delay < 4999);
     scope.done();
   });
+
+  it('should retry on `timeout`', async () => {
+    let scope = nock(url).get('/').delay(2000).reply(400);
+
+    const gaxios = new Gaxios();
+    const timeout = 10;
+
+    function onRetryAttempt() {
+      // prepare nock for next request
+      scope = nock(url).get('/').reply(204);
+    }
+
+    const res = await gaxios.request({
+      url,
+      timeout,
+      // NOTE: `node-fetch` does not yet support `TimeoutError` - testing with native `fetch` for now.
+      fetchImplementation: fetch,
+      retryConfig: {
+        onRetryAttempt,
+      },
+    });
+
+    assert.equal(res.status, 204);
+    assert.equal(res.config?.retryConfig?.currentRetryAttempt, 1);
+
+    scope.done();
+  });
 });

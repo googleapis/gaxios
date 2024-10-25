@@ -690,6 +690,49 @@ describe('🥁 configuration options', () => {
 
     assert.equal(instance.defaults.errorRedactor, errorRedactor);
   });
+
+  describe('timeout', () => {
+    it('should accept and use a `timeout`', async () => {
+      nock(url).get('/').delay(2000).reply(204);
+      const gaxios = new Gaxios();
+      const timeout = 10;
+
+      await assert.rejects(() => gaxios.request({url, timeout}), /abort/);
+    });
+
+    it('should a `timeout`, an existing `signal`, and be triggered by timeout', async () => {
+      nock(url).get('/').delay(2000).reply(204);
+      const gaxios = new Gaxios();
+      const signal = new AbortController().signal;
+      const timeout = 10;
+
+      await assert.rejects(
+        () => gaxios.request({url, timeout, signal}),
+        /abort/,
+      );
+    });
+
+    it('should use a `timeout`, a `signal`, and be triggered by signal', async () => {
+      nock(url).get('/').delay(2000).reply(204);
+      const gaxios = new Gaxios();
+      const ac = new AbortController();
+      const signal = ac.signal;
+      const timeout = 4000; // after network delay, so this shouldn't trigger
+      const message = 'Changed my mind - no request please';
+
+      setTimeout(() => ac.abort(message), 10);
+
+      // await gaxios.request({url, timeout, signal});
+
+      await assert.rejects(
+        () => gaxios.request({url, timeout, signal}),
+        // `node-fetch` always rejects with the generic 'abort' error:
+        /abort/,
+        // native `fetch` matches the error properly:
+        // new RegExp(message)
+      );
+    });
+  });
 });
 
 describe('🎏 data handling', () => {
