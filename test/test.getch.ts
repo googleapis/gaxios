@@ -708,7 +708,7 @@ describe('🥁 configuration options', () => {
 
       await assert.rejects(
         () => gaxios.request({url, timeout, signal}),
-        /abort/
+        /abort/,
       );
     });
 
@@ -727,7 +727,7 @@ describe('🥁 configuration options', () => {
       await assert.rejects(
         () => gaxios.request({url, timeout, signal}),
         // `node-fetch` always rejects with the generic 'abort' error:
-        /abort/
+        /abort/,
         // native `fetch` matches the error properly:
         // new RegExp(message)
       );
