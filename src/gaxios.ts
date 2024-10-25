@@ -529,7 +529,7 @@ export class Gaxios {
       const headers =
         currentPart.headers instanceof Headers
           ? currentPart.headers
-          : new Headers(currentPart.headers);
+          : new Headers(currentPart.headers as HeadersInit);
       const partContentType =
         headers.get('Content-Type') || 'application/octet-stream';
       const preamble = `--${boundary}\r\nContent-Type: ${partContentType}\r\n\r\n`;

@@ -19,6 +19,20 @@ import extend from 'extend';
 import {Readable} from 'stream';
 
 /**
+ * TypeScript does not have this type available globally - however `@types/node` includes `undici-types`, which has it:
+ * - https://www.npmjs.com/package/@types/node/v/18.19.59?activeTab=dependencies
+ *
+ * Additionally, this is the TypeScript pattern for type sniffing and `import("undici-types")` is pretty common:
+ * - https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/node/globals.d.ts
+ */
+type _BodyInit = typeof globalThis extends {BodyInit: infer T}
+  ? T
+  : import('undici-types').BodyInit;
+type _HeadersInit = typeof globalThis extends {HeadersInit: infer T}
+  ? T
+  : import('undici-types').HeadersInit;
+
+/**
  * Support `instanceof` operator for `GaxiosError`s in different versions of this library.
  *
  * @see {@link GaxiosError[Symbol.hasInstance]}
@@ -131,7 +145,7 @@ export interface GaxiosResponse<T = GaxiosResponseData> extends Response {
 }
 
 export interface GaxiosMultipartOptions {
-  headers: HeadersInit;
+  headers: _HeadersInit;
   content: string | Readable;
 }
 
@@ -182,6 +196,7 @@ export interface GaxiosOptions extends RequestInit {
    * ```
    */
   data?:
+    | _BodyInit
     | ArrayBuffer
     | Blob
     | Buffer
@@ -192,10 +207,8 @@ export interface GaxiosOptions extends RequestInit {
     | Readable
     | string
     | ArrayBufferView
-    | {buffer: ArrayBufferLike}
     | URLSearchParams
-    | {}
-    | BodyInit;
+    | {};
   /**
    * The maximum size of the http response `Content-Length` in bytes allowed.
    */
