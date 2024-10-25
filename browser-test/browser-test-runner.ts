@@ -21,7 +21,7 @@ const port = 7172;
 
 async function listen(
   app: express.Express,
-  port: number
+  port: number,
 ): Promise<http.Server> {
   return new Promise((resolve, reject) => {
     const server = app.listen(port, (err?: Error) => {
@@ -72,7 +72,7 @@ async function main() {
   const result = await execa('karma', ['start'], {stdio: 'inherit'});
   server.close();
   console.log(
-    `[http server] Karma has finished! I'm no longer listening on port ${port}!`
+    `[http server] Karma has finished! I'm no longer listening on port ${port}!`,
   );
   if (result.failed) {
     throw new Error('Tests failed.');
