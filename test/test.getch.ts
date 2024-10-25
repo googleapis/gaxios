@@ -75,7 +75,7 @@ describe('🚙 error handling', () => {
           err.message === 'Request failed with status code 404' &&
           err.response?.data.error.message === 'File not found'
         );
-      }
+      },
     );
   });
 
@@ -97,7 +97,7 @@ describe('🚙 error handling', () => {
           err.message === 'Request failed with status code 404' &&
           err.response?.data.error.message === 'File not found'
         );
-      }
+      },
     );
   });
 
@@ -118,7 +118,7 @@ describe('🚙 error handling', () => {
     const error = new GaxiosError(
       'translation test',
       {} as GaxiosOptionsPrepared,
-      response
+      response,
     );
 
     assert(error.response);
@@ -290,7 +290,7 @@ describe('🥁 configuration options', () => {
     assert.strictEqual(res.status, 200);
     assert.strictEqual(
       res.config.url?.toString(),
-      new URL(url + qs).toString()
+      new URL(url + qs).toString(),
     );
     scope.done();
   });
@@ -802,7 +802,7 @@ describe('🎏 data handling', () => {
     assert(res.data instanceof ArrayBuffer);
     assert.deepStrictEqual(
       Buffer.from(JSON.stringify(body)),
-      Buffer.from(res.data)
+      Buffer.from(res.data),
     );
   });
 
@@ -897,11 +897,11 @@ describe('🎏 data handling', () => {
     const scope = nock(url)
       .matchHeader(
         'Content-Type',
-        /multipart\/related; boundary=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/
+        /multipart\/related; boundary=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/,
       )
       .post(
         '/',
-        /^(--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}[\r\n]+Content-Type: application\/json[\r\n\r\n]+{"hello":"🌎"}[\r\n]+--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}--)$/
+        /^(--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}[\r\n]+Content-Type: application\/json[\r\n\r\n]+{"hello":"🌎"}[\r\n]+--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}--)$/,
       )
       .reply(200, {});
     const res = await request({
@@ -927,11 +927,11 @@ describe('🎏 data handling', () => {
     const scope = nock(url)
       .matchHeader(
         'Content-Type',
-        /multipart\/related; boundary=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/
+        /multipart\/related; boundary=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/,
       )
       .post(
         '/',
-        /^(--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}[\r\n]+Content-Type: application\/json[\r\n\r\n]+{"hello":"🌎"}[\r\n]+--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}[\r\n]+Content-Type: text\/plain[\r\n\r\n]+hello world[\r\n]+--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}--)$/
+        /^(--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}[\r\n]+Content-Type: application\/json[\r\n\r\n]+{"hello":"🌎"}[\r\n]+--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}[\r\n]+Content-Type: text\/plain[\r\n\r\n]+hello world[\r\n]+--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}--)$/,
       )
       .reply(200, {});
     const res = await request({
@@ -1038,7 +1038,7 @@ describe('🎏 data handling', () => {
           grant_type: REDACT,
           assertion: REDACT,
           client_secret: REDACT,
-        }
+        },
       );
 
       expectedRequestHeaders.forEach((value, key) => {
@@ -1135,7 +1135,7 @@ describe('🍂 defaults & instances', () => {
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       protected async _request<T = any>(
-        opts: GaxiosOptionsPrepared
+        opts: GaxiosOptionsPrepared,
       ): GaxiosPromise<T> {
         assert(opts.agent);
         return super._request(opts);
@@ -1200,7 +1200,7 @@ describe('interceptors', () => {
             validateStatus: () => {
               return true;
             },
-          }) as unknown as Promise<GaxiosOptionsPrepared>
+          }) as unknown as Promise<GaxiosOptionsPrepared>,
       );
       const instance = new Gaxios();
       const interceptor = {resolved: spyFunc};
@@ -1254,7 +1254,7 @@ describe('interceptors', () => {
             validateStatus: () => {
               return true;
             },
-          }) as unknown as Promise<GaxiosOptionsPrepared>
+          }) as unknown as Promise<GaxiosOptionsPrepared>,
       );
       const instance = new Gaxios();
       instance.interceptors.request.add({
@@ -1290,7 +1290,7 @@ describe('interceptors', () => {
         },
       });
       // Because the options wind up being invalid the call will reject with a URL problem.
-      assert.rejects(instance.request({url}));
+      await assert.rejects(instance.request({url}));
     });
   });
 
@@ -1318,7 +1318,7 @@ describe('interceptors', () => {
             validateStatus: () => {
               return true;
             },
-          }) as unknown as Promise<GaxiosResponse>
+          }) as unknown as Promise<GaxiosResponse>,
       );
       const instance = new Gaxios();
       const interceptor = {resolved: spyFunc};
@@ -1370,7 +1370,7 @@ describe('interceptors', () => {
             validateStatus: () => {
               return true;
             },
-          }) as unknown as Promise<GaxiosResponse>
+          }) as unknown as Promise<GaxiosResponse>,
       );
       const instance = new Gaxios();
       instance.interceptors.response.add({
