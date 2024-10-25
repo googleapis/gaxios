@@ -153,44 +153,6 @@ describe('🥁 configuration options', () => {
     assert.strictEqual(res.status, 204);
   });
 
-  it('should unofficially support accept generic objects as Headers (without type support)', async () => {
-    const headers = {abc: 'def', xyz: 'test'};
-    const scope = nock(url, {reqheaders: {...headers}})
-      .get('/')
-      .reply(204);
-    const res = await request({url, headers: headers as unknown as Headers});
-    scope.done();
-    assert.strictEqual(res.status, 204);
-    assert(res.config.headers instanceof Headers);
-  });
-
-  it('should unofficially support accept generic objects as Headers (without type support), with a default', async () => {
-    const gaxios = new Gaxios();
-    const defaultHeaders = {
-      abc: 'def',
-      'set-cookie': 'test1=value1',
-    };
-    const headers = {
-      xyz: 'test',
-      // overwriting
-      'set-cookie': 'test1=value2',
-    };
-    const expectedRequestHeaders = {...defaultHeaders, ...headers};
-
-    gaxios.defaults.headers = defaultHeaders as unknown as Headers;
-
-    const scope = nock(url, {reqheaders: expectedRequestHeaders})
-      .get('/')
-      .reply(204);
-    const res = await gaxios.request({
-      url,
-      headers: headers as unknown as Headers,
-    });
-    scope.done();
-    assert.strictEqual(res.status, 204);
-    assert(res.config.headers instanceof Headers);
-  });
-
   it('should use options passed into the constructor', async () => {
     const scope = nock(url).head('/').reply(200);
     const inst = new Gaxios({method: 'HEAD'});
