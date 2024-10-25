@@ -720,11 +720,11 @@ describe('🥁 configuration options', () => {
       const timeout = Number.MAX_SAFE_INTEGER;
       const message = 'Changed my mind - no request please';
 
-      setTimeout(() => ac.abort(message), 10);
+      setTimeout(() => ac.abort(new Error(message)), 10);
 
       await assert.rejects(
         () => gaxios.request({url, timeout, signal}),
-        message
+        new RegExp(message)
       );
     });
   });
