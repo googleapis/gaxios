@@ -11,12 +11,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GaxiosError, GaxiosOptions, GaxiosResponse} from './common';
+import {GaxiosError, GaxiosOptionsPrepared, GaxiosResponse} from './common';
 
 /**
  * Interceptors that can be run for requests or responses. These interceptors run asynchronously.
  */
-export interface GaxiosInterceptor<T extends GaxiosOptions | GaxiosResponse> {
+export interface GaxiosInterceptor<
+  T extends GaxiosOptionsPrepared | GaxiosResponse,
+> {
   /**
    * Function to be run when applying an interceptor.
    *
@@ -37,5 +39,5 @@ export interface GaxiosInterceptor<T extends GaxiosOptions | GaxiosResponse> {
  * Class to manage collections of GaxiosInterceptors for both requests and responses.
  */
 export class GaxiosInterceptorManager<
-  T extends GaxiosOptions | GaxiosResponse,
+  T extends GaxiosOptionsPrepared | GaxiosResponse,
 > extends Set<GaxiosInterceptor<T> | null> {}
