@@ -14,7 +14,7 @@
 import {Agent} from 'http';
 import {URL} from 'url';
 
-import {pkg} from './util';
+import {pkg} from './util.cjs';
 import extend from 'extend';
 import {Readable} from 'stream';
 

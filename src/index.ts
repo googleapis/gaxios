@@ -11,8 +11,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GaxiosOptions} from './common';
-import {Gaxios} from './gaxios';
+import {GaxiosOptions} from './common.js';
+import {Gaxios} from './gaxios.js';
 
 export {
   GaxiosError,
@@ -20,9 +20,9 @@ export {
   GaxiosResponse,
   GaxiosOptionsPrepared,
   RetryConfig,
-} from './common';
+} from './common.js';
 export {Gaxios, GaxiosOptions};
-export * from './interceptor';
+export * from './interceptor.js';
 
 /**
  * The default instance used when the `request` method is directly

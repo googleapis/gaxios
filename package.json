@@ -4,6 +4,7 @@
   "description": "A simple common HTTP client specifically for Google APIs and services.",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
+  "type": "module",
   "files": [
     "build/src"
   ],
