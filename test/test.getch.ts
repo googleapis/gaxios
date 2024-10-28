@@ -722,8 +722,6 @@ describe('🥁 configuration options', () => {
 
       setTimeout(() => ac.abort(message), 10);
 
-      // await gaxios.request({url, timeout, signal});
-
       await assert.rejects(
         () => gaxios.request({url, timeout, signal}),
         // `node-fetch` always rejects with the generic 'abort' error:
