@@ -110,7 +110,7 @@ describe('🚙 error handling', () => {
       data: notJSON,
       status: 500,
       statusText: '',
-      headers: {},
+      headers: new Headers(),
       // workaround for `node-fetch`'s `.data` deprecation...
       bodyUsed: true,
     } as GaxiosResponse;
@@ -163,8 +163,11 @@ describe('🥁 configuration options', () => {
 
   it('should handle nested options passed into the constructor', async () => {
     const scope = nock(url).get('/').reply(200);
-    const inst = new Gaxios({headers: {apple: 'juice'}});
-    const res = await inst.request({url, headers: {figgy: 'pudding'}});
+    const inst = new Gaxios({headers: new Headers({apple: 'juice'})});
+    const res = await inst.request({
+      url,
+      headers: new Headers({figgy: 'pudding'}),
+    });
     scope.done();
     assert.strictEqual(res.config.headers.get('apple'), 'juice');
     assert.strictEqual(res.config.headers.get('figgy'), 'pudding');
@@ -714,7 +717,9 @@ describe('🎏 data handling', () => {
       url,
       method: 'POST',
       data: encoded,
-      headers: {'content-type': 'application/x-www-form-urlencoded'},
+      headers: new Headers({
+        'content-type': 'application/x-www-form-urlencoded',
+      }),
     });
     scope.done();
     assert.deepStrictEqual(res.data, {});
@@ -745,9 +750,9 @@ describe('🎏 data handling', () => {
       url,
       method: 'POST',
       data: body,
-      headers: {
+      headers: new Headers({
         'Content-Type': 'application/json-patch+json',
-      },
+      }),
     });
     scope.done();
     assert.deepStrictEqual(res.data, {});
@@ -763,9 +768,9 @@ describe('🎏 data handling', () => {
       url,
       method: 'POST',
       data: body,
-      headers: {
+      headers: new Headers({
         'Content-Type': 'application/x-www-form-urlencoded',
-      },
+      }),
     });
     scope.done();
     assert.deepStrictEqual(res.data, {});
@@ -909,7 +914,7 @@ describe('🎏 data handling', () => {
       method: 'POST',
       multipart: [
         {
-          headers: {'Content-Type': 'application/json'},
+          headers: new Headers({'Content-Type': 'application/json'}),
           content: body,
         },
       ],
@@ -939,11 +944,11 @@ describe('🎏 data handling', () => {
       method: 'POST',
       multipart: [
         {
-          headers: {'Content-Type': 'application/json'},
+          headers: new Headers({'Content-Type': 'application/json'}),
           content: body,
         },
         {
-          headers: {'Content-Type': 'text/plain'},
+          headers: new Headers({'Content-Type': 'text/plain'}),
           content: textContent,
         },
       ],
@@ -1106,7 +1111,7 @@ describe('🍂 defaults & instances', () => {
       url,
       method: 'POST',
       data: pkg,
-      headers: {'content-type': 'application/dicom'},
+      headers: new Headers({'content-type': 'application/dicom'}),
     });
     scope.done();
     assert.deepStrictEqual(res.data, {});
@@ -1145,11 +1150,14 @@ describe('🍂 defaults & instances', () => {
       const key = fs.readFileSync('./test/fixtures/fake.key', 'utf8');
       const scope = nock(url).get('/').reply(200);
       const inst = new GaxiosAssertAgentCache({
-        headers: {apple: 'juice'},
+        headers: new Headers({apple: 'juice'}),
         cert: fs.readFileSync('./test/fixtures/fake.cert', 'utf8'),
         key,
       });
-      const res = await inst.request({url, headers: {figgy: 'pudding'}});
+      const res = await inst.request({
+        url,
+        headers: new Headers({figgy: 'pudding'}),
+      });
       scope.done();
       assert.strictEqual(res.config.headers.get('apple'), 'juice');
       assert.strictEqual(res.config.headers.get('figgy'), 'pudding');
@@ -1160,12 +1168,12 @@ describe('🍂 defaults & instances', () => {
       const key = fs.readFileSync('./test/fixtures/fake.key', 'utf8');
       const scope = nock(url).get('/').reply(200).get('/').reply(200);
       const inst = new GaxiosAssertAgentCache({
-        headers: {apple: 'juice'},
+        headers: new Headers({apple: 'juice'}),
         cert: fs.readFileSync('./test/fixtures/fake.cert', 'utf8'),
         key,
       });
-      await inst.request({url, headers: {figgy: 'pudding'}});
-      await inst.request({url, headers: {figgy: 'pudding'}});
+      await inst.request({url, headers: new Headers({figgy: 'pudding'})});
+      await inst.request({url, headers: new Headers({figgy: 'pudding'})});
       scope.done();
       const agentCache = inst.getAgentCache();
       assert(agentCache.get(key));
@@ -1241,7 +1249,7 @@ describe('interceptors', () => {
           return Promise.resolve(config);
         },
       });
-      await instance.request({url, headers: {}});
+      await instance.request({url});
       scope.done();
     });
 
@@ -1354,7 +1362,7 @@ describe('interceptors', () => {
           return Promise.resolve(response);
         },
       });
-      const resp = await instance.request({url, headers: {}});
+      const resp = await instance.request({url});
       scope.done();
       assert.strictEqual(resp.headers.get('foo'), 'bar');
       assert.strictEqual(resp.headers.get('bar'), 'baz');

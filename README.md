@@ -27,9 +27,9 @@ Gaxios supports setting default properties both on the default instance, and on 
 const gaxios = require('gaxios');
 gaxios.instance.defaults = {
   baseURL: 'https://example.com'
-  headers: {
+  headers: new Headers({
     Authorization: 'SOME_TOKEN'
-  }
+  })
 }
 gaxios.request({url: '/data'}).then(...);
 ```
@@ -51,7 +51,7 @@ interface GaxiosOptions = {
   baseURL: 'https://example.com';
 
   // The HTTP methods to be sent with the request.
-  headers: { 'some': 'header' } || new Headers(),
+  headers: new Headers(),
 
   // The data to send in the body of the request. Objects will be serialized as JSON
   // except for:
