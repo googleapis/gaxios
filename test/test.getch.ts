@@ -697,11 +697,12 @@ describe('🥁 configuration options', () => {
 
 describe('🎏 data handling', () => {
   it('should accpet a ReadableStream as request data', async () => {
-    const body = fs.createReadStream('package.json');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const contents = require('../../package.json');
-    const scope = nock(url).post('/', contents).reply(200, {});
-    const res = await request({url, method: 'POST', data: body});
+    const scope = nock(url).post('/', 'test').reply(200, {});
+    const res = await request({
+      url,
+      method: 'POST',
+      data: Readable.from('test'),
+    });
     scope.done();
     assert.deepStrictEqual(res.data, {});
   });
