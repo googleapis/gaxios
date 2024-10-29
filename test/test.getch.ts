@@ -14,9 +14,8 @@
 import assert from 'assert';
 import nock from 'nock';
 import sinon from 'sinon';
-import stream from 'stream';
+import stream, {Readable} from 'stream';
 import {describe, it, afterEach} from 'mocha';
-import fetch from 'node-fetch';
 import {HttpsProxyAgent} from 'https-proxy-agent';
 import {
   Gaxios,
@@ -26,12 +25,9 @@ import {
   GaxiosResponse,
   GaxiosPromise,
 } from '../src';
-import {GAXIOS_ERROR_SYMBOL} from '../src/common';
+import {GAXIOS_ERROR_SYMBOL, GaxiosOptionsPrepared} from '../src/common';
 import {pkg} from '../src/util';
-import qs from 'querystring';
 import fs from 'fs';
-import {Blob} from 'node-fetch';
-global.FormData = require('form-data');
 
 nock.disableNetConnect();
 
@@ -42,6 +38,10 @@ afterEach(() => {
 });
 
 const url = 'https://example.com';
+
+function setEnv(obj: {}) {
+  return sandbox.stub(process, 'env').value(obj);
+}
 
 describe('🦖 option validation', () => {
   it('should throw an error if a url is not provided', async () => {
@@ -75,7 +75,7 @@ describe('🚙 error handling', () => {
           err.message === 'Request failed with status code 404' &&
           err.response?.data.error.message === 'File not found'
         );
-      }
+      },
     );
   });
 
@@ -97,28 +97,31 @@ describe('🚙 error handling', () => {
           err.message === 'Request failed with status code 404' &&
           err.response?.data.error.message === 'File not found'
         );
-      }
+      },
     );
   });
 
   it('should not throw an error during a translation error', () => {
     const notJSON = '.';
-    const response: GaxiosResponse = {
+    const response = {
       config: {
         responseType: 'json',
       },
       data: notJSON,
       status: 500,
       statusText: '',
-      headers: {},
-      request: {
-        responseURL: url,
-      },
-    };
+      headers: new Headers(),
+      // workaround for `node-fetch`'s `.data` deprecation...
+      bodyUsed: true,
+    } as GaxiosResponse;
 
-    const error = new GaxiosError('translation test', {}, response);
+    const error = new GaxiosError(
+      'translation test',
+      {} as GaxiosOptionsPrepared,
+      response,
+    );
 
-    assert(error.response, undefined);
+    assert(error.response);
     assert.equal(error.response.data, notJSON);
   });
 
@@ -127,7 +130,7 @@ describe('🚙 error handling', () => {
 
     const wrongVersion = {[GAXIOS_ERROR_SYMBOL]: '0.0.0'};
     const correctVersion = {[GAXIOS_ERROR_SYMBOL]: pkg.version};
-    const child = new A('', {});
+    const child = new A('', {} as GaxiosOptionsPrepared);
 
     assert.equal(wrongVersion instanceof GaxiosError, false);
     assert.equal(correctVersion instanceof GaxiosError, true);
@@ -136,11 +139,18 @@ describe('🚙 error handling', () => {
 });
 
 describe('🥁 configuration options', () => {
-  it('should accept URL objects', async () => {
+  it('should accept `URL` objects', async () => {
     const scope = nock(url).get('/').reply(204);
     const res = await request({url: new URL(url)});
     scope.done();
-    assert.strictEqual(res.config.method, 'GET');
+    assert.strictEqual(res.status, 204);
+  });
+
+  it('should accept `Request` objects', async () => {
+    const scope = nock(url).get('/').reply(204);
+    const res = await request(new Request(url));
+    scope.done();
+    assert.strictEqual(res.status, 204);
   });
 
   it('should use options passed into the constructor', async () => {
@@ -153,11 +163,14 @@ describe('🥁 configuration options', () => {
 
   it('should handle nested options passed into the constructor', async () => {
     const scope = nock(url).get('/').reply(200);
-    const inst = new Gaxios({headers: {apple: 'juice'}});
-    const res = await inst.request({url, headers: {figgy: 'pudding'}});
+    const inst = new Gaxios({headers: new Headers({apple: 'juice'})});
+    const res = await inst.request({
+      url,
+      headers: new Headers({figgy: 'pudding'}),
+    });
     scope.done();
-    assert.strictEqual(res.config.headers!.apple, 'juice');
-    assert.strictEqual(res.config.headers!.figgy, 'pudding');
+    assert.strictEqual(res.config.headers.get('apple'), 'juice');
+    assert.strictEqual(res.config.headers.get('figgy'), 'pudding');
   });
 
   it('should allow setting a base url in the options', async () => {
@@ -177,9 +190,14 @@ describe('🥁 configuration options', () => {
 
   it('should allow setting maxContentLength', async () => {
     const body = {hello: '🌎'};
-    const scope = nock(url).get('/').reply(200, body);
+    const scope = nock(url)
+      .get('/')
+      .reply(200, body, {'content-length': body.toString().length.toString()});
     const maxContentLength = 1;
-    await assert.rejects(request({url, maxContentLength}), /over limit/);
+    await assert.rejects(request({url, maxContentLength}), (err: Error) => {
+      return err instanceof GaxiosError && /limit/.test(err.message);
+    });
+
     scope.done();
   });
 
@@ -192,27 +210,17 @@ describe('🥁 configuration options', () => {
     const res = await request({url});
     scopes.forEach(x => x.done());
     assert.deepStrictEqual(res.data, body);
-    assert.strictEqual(res.request.responseURL, `${url}/foo`);
-  });
-
-  it('should support disabling redirects', async () => {
-    const scope = nock(url).get('/').reply(302, undefined, {location: '/foo'});
-    const maxRedirects = 0;
-    await assert.rejects(request({url, maxRedirects}), /maximum redirect/);
-    scope.done();
+    assert.strictEqual(res.url, `${url}/foo`);
   });
 
   it('should allow overriding the adapter', async () => {
-    const response: GaxiosResponse = {
+    const response = {
       data: {hello: '🌎'},
       config: {},
       status: 200,
       statusText: 'OK',
-      headers: {},
-      request: {
-        responseURL: url,
-      },
-    };
+      headers: new Headers(),
+    } as GaxiosResponse;
     const adapter = () => Promise.resolve(response);
     const res = await request({url, adapter});
     assert.strictEqual(response, res);
@@ -252,7 +260,7 @@ describe('🥁 configuration options', () => {
     const scope = nock(url).get(path).reply(200, {});
     const res = await request(opts);
     assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.config.url, url + path);
+    assert.strictEqual(res.config.url?.toString(), url + path);
     scope.done();
   });
 
@@ -262,7 +270,7 @@ describe('🥁 configuration options', () => {
     const scope = nock(url).get(path).reply(200, {});
     const res = await request(opts);
     assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.config.url, url + path);
+    assert.strictEqual(res.config.url?.toString(), url + path);
     scope.done();
   });
 
@@ -283,7 +291,10 @@ describe('🥁 configuration options', () => {
     const scope = nock(url).get(path).reply(200, {});
     const res = await request(opts);
     assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.config.url, url + qs);
+    assert.strictEqual(
+      res.config.url?.toString(),
+      new URL(url + qs).toString(),
+    );
     scope.done();
   });
 
@@ -296,7 +307,7 @@ describe('🥁 configuration options', () => {
     const scope = nock(url).get(path).reply(200, {});
     const res = await request(opts);
     assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.config.url, url + path);
+    assert.strictEqual(res.config.url?.toString(), url + path);
     scope.done();
   });
 
@@ -314,7 +325,7 @@ describe('🥁 configuration options', () => {
     const scope = nock(url).get(`/${qs}`).reply(200, {});
     const res = await request(opts);
     assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.config.url, url + qs);
+    assert.strictEqual(res.config.url.toString(), new URL(url + qs).toString());
     scope.done();
   });
 
@@ -337,125 +348,258 @@ describe('🥁 configuration options', () => {
   });
 
   describe('proxying', () => {
-    it('should use an https proxy if asked nicely', async () => {
-      const url = 'https://fake.proxy';
-      sandbox.stub(process, 'env').value({https_proxy: 'https://fake.proxy'});
-      const body = {hello: '🌎'};
-      const scope = nock(url).get('/').reply(200, body);
-      const res = await request({url});
+    const url = 'https://domain.example.com/with-path';
+    const proxy = 'https://fake.proxy/';
+    let gaxios: Gaxios;
+    let request: Gaxios['request'];
+    let responseBody: {};
+    let scope: nock.Scope;
+
+    beforeEach(() => {
+      gaxios = new Gaxios();
+      request = gaxios.request.bind(gaxios);
+      responseBody = {hello: '🌎'};
+
+      const direct = new URL(url);
+      scope = nock(direct.origin).get(direct.pathname).reply(200, responseBody);
+    });
+
+    function expectDirect(res: GaxiosResponse) {
       scope.done();
-      assert.deepStrictEqual(res.data, body);
+      assert.deepStrictEqual(res.data, responseBody);
+      assert.strictEqual(res.config.agent, undefined);
+    }
+
+    function expectProxy(res: GaxiosResponse) {
+      scope.done();
+      assert.deepStrictEqual(res.data, responseBody);
       assert.ok(res.config.agent instanceof HttpsProxyAgent);
+      assert.equal(res.config.agent.proxy.toString(), proxy);
+    }
+
+    it('should use an https proxy if asked nicely (config)', async () => {
+      const res = await request({url, proxy});
+      expectProxy(res);
     });
 
-    it('should not proxy when url matches no_proxy', async () => {
-      const url = 'https://example.com';
-      sandbox.stub(process, 'env').value({
-        https_proxy: 'https://fake.proxy',
-        no_proxy: 'https://example.com',
-      });
-      const body = {hello: '🌎'};
-      const scope = nock(url).get('/').reply(200, body);
+    it('should use an https proxy if asked nicely (env)', async () => {
+      setEnv({https_proxy: proxy});
+
       const res = await request({url});
-      scope.done();
-      assert.deepStrictEqual(res.data, body);
-      assert.strictEqual(res.config.agent, undefined);
+      expectProxy(res);
     });
 
-    it('should proxy if url does not match no_proxy env variable', async () => {
-      const url = 'https://example2.com';
-      sandbox.stub(process, 'env').value({
-        https_proxy: 'https://fake.proxy',
-        no_proxy: 'https://example.com',
+    it('should use mTLS with proxy', async () => {
+      const cert = 'cert';
+      const key = 'key';
+      const res = await request({url, proxy, cert, key});
+      expectProxy(res);
+
+      assert(res.config.agent instanceof HttpsProxyAgent);
+      assert.equal(res.config.agent.connectOpts.cert, cert);
+      assert.equal(res.config.agent.connectOpts.key, key);
+    });
+
+    it('should load the proxy from the cache', async () => {
+      const res1 = await request({url, proxy});
+      const agent = res1.config.agent;
+      expectProxy(res1);
+
+      const direct = new URL(url);
+
+      scope = nock(direct.origin).get(direct.pathname).reply(200, responseBody);
+
+      const res2 = await request({url, proxy});
+      assert.strictEqual(agent, res2.config.agent);
+      expectProxy(res2);
+    });
+
+    it('should load the proxy from the cache with mTLS', async () => {
+      const cert = 'cert';
+      const key = 'key';
+      const res1 = await request({url, proxy, cert, key});
+
+      const agent = res1.config.agent;
+      expectProxy(res1);
+
+      const direct = new URL(url);
+
+      scope = nock(direct.origin).get(direct.pathname).reply(200, responseBody);
+
+      const res2 = await request({url, proxy});
+      assert.strictEqual(agent, res2.config.agent);
+      expectProxy(res2);
+
+      assert(res2.config.agent instanceof HttpsProxyAgent);
+      assert.equal(res2.config.agent.connectOpts.cert, cert);
+      assert.equal(res2.config.agent.connectOpts.key, key);
+    });
+
+    describe('noProxy', () => {
+      it('should not proxy when url matches `noProxy` (config > string)', async () => {
+        const noProxy = [new URL(url).host];
+
+        const res = await request({url, proxy, noProxy});
+        expectDirect(res);
       });
-      const body = {hello: '🌎'};
-      const scope = nock(url).get('/').reply(200, body);
-      const res = await request({url});
-      scope.done();
-      assert.deepStrictEqual(res.data, body);
-      assert.ok(res.config.agent instanceof HttpsProxyAgent);
-    });
 
-    it('should not proxy if no_proxy env var matches the origin or hostname of the URL', async () => {
-      const url = 'https://example2.com';
-      sandbox.stub(process, 'env').value({
-        https_proxy: 'https://fake.proxy',
-        no_proxy: 'example2.com',
+      it('should not proxy when url matches `noProxy` (config > URL)', async () => {
+        // should match by `URL#origin`
+        const noProxyURL = new URL(url);
+        noProxyURL.pathname = '/some-other-path';
+        const noProxy = [noProxyURL];
+
+        const res = await request({url, proxy, noProxy});
+        expectDirect(res);
       });
-      const body = {hello: '🌎'};
-      const scope = nock(url).get('/').reply(200, body);
-      const res = await request({url});
-      scope.done();
-      assert.deepStrictEqual(res.data, body);
-      assert.strictEqual(res.config.agent, undefined);
-    });
 
-    it('should not proxy if no_proxy env variable has asterisk, and URL partially matches', async () => {
-      const url = 'https://domain.example.com';
-      sandbox.stub(process, 'env').value({
-        https_proxy: 'https://fake.proxy',
-        no_proxy: '*.example.com',
+      it('should not proxy when url matches `noProxy` (config > RegExp)', async () => {
+        const noProxy = [/example.com/];
+
+        const res = await request({url, proxy, noProxy});
+        expectDirect(res);
       });
-      const body = {hello: '🌎'};
-      const scope = nock(url).get('/').reply(200, body);
-      const res = await request({url});
-      scope.done();
-      assert.deepStrictEqual(res.data, body);
-      assert.strictEqual(res.config.agent, undefined);
-    });
 
-    it('should proxy if no_proxy env variable has asterisk, but URL is not matching', async () => {
-      const url = 'https://domain.example2.com';
-      sandbox.stub(process, 'env').value({
-        https_proxy: 'https://fake.proxy',
-        no_proxy: '*.example.com',
+      it('should not proxy when url matches `noProxy` (config + env > match config)', async () => {
+        const noProxy = [url];
+        setEnv({no_proxy: 'https://foo.bar'});
+
+        const res = await request({url, proxy, noProxy});
+        expectDirect(res);
       });
-      const body = {hello: '🌎'};
-      const scope = nock(url).get('/').reply(200, body);
-      const res = await request({url});
-      scope.done();
-      assert.deepStrictEqual(res.data, body);
-      assert.ok(res.config.agent instanceof HttpsProxyAgent);
-    });
 
-    it('should not proxy if no_proxy env variable starts with a dot, and URL partially matches', async () => {
-      const url = 'https://domain.example.com';
-      sandbox.stub(process, 'env').value({
-        https_proxy: 'https://fake.proxy',
-        no_proxy: '.example.com',
+      it('should not proxy when url matches `noProxy` (config + env > match env)', async () => {
+        const noProxy = ['https://foo.bar'];
+        setEnv({no_proxy: url});
+
+        const res = await request({url, proxy, noProxy});
+        expectDirect(res);
       });
-      const body = {hello: '🌎'};
-      const scope = nock(url).get('/').reply(200, body);
-      const res = await request({url});
-      scope.done();
-      assert.deepStrictEqual(res.data, body);
-      assert.strictEqual(res.config.agent, undefined);
-    });
 
-    it('should allow comma-separated lists for no_proxy env variables', async () => {
-      const url = 'https://api.google.com';
-      sandbox.stub(process, 'env').value({
-        https_proxy: 'https://fake.proxy',
-        no_proxy: 'example.com,*.google.com,hello.com',
+      it('should proxy when url does not match `noProxy` (config > string)', async () => {
+        const noProxy = [url];
+
+        const res = await request({url, proxy, noProxy});
+        expectDirect(res);
       });
-      const body = {hello: '🌎'};
-      const scope = nock(url).get('/').reply(200, body);
-      const res = await request({url});
-      scope.done();
-      assert.deepStrictEqual(res.data, body);
-      assert.strictEqual(res.config.agent, undefined);
-    });
-  });
 
-  it('should load the proxy from the cache', async () => {
-    sandbox.stub(process, 'env').value({HTTPS_PROXY: 'https://fake.proxy'});
-    const body = {hello: '🌎'};
-    const scope = nock(url).get('/').twice().reply(200, body);
-    const res1 = await request({url});
-    const agent = res1.config.agent;
-    const res2 = await request({url});
-    assert.deepStrictEqual(agent, res2.config.agent);
-    scope.done();
+      it('should proxy if url does not match `noProxy` (config > URL > diff origin > protocol)', async () => {
+        const noProxyURL = new URL(url);
+        noProxyURL.protocol = 'http:';
+        const noProxy = [noProxyURL];
+
+        const res = await request({url, proxy, noProxy});
+        expectProxy(res);
+      });
+
+      it('should proxy if url does not match `noProxy` (config > URL > diff origin > port)', async () => {
+        const noProxyURL = new URL(url);
+        noProxyURL.port = '8443';
+        const noProxy = [noProxyURL];
+
+        const res = await request({url, proxy, noProxy});
+        expectProxy(res);
+      });
+
+      it('should proxy if url does not match `noProxy` (env)', async () => {
+        setEnv({https_proxy: proxy, no_proxy: 'https://blah'});
+
+        const res = await request({url});
+        expectProxy(res);
+      });
+
+      it('should not proxy if `noProxy` env var matches the origin or hostname of the URL (config > string)', async () => {
+        const noProxy = [new URL(url).hostname];
+
+        const res = await request({url, proxy, noProxy});
+        expectDirect(res);
+      });
+
+      it('should not proxy if `noProxy` env var matches the origin or hostname of the URL (env)', async () => {
+        setEnv({https_proxy: proxy, no_proxy: new URL(url).hostname});
+
+        const res = await request({url});
+        expectDirect(res);
+      });
+
+      it('should not proxy if `noProxy` env variable has asterisk, and URL partially matches (config)', async () => {
+        const parentHost = new URL(url).hostname.split('.').slice(1).join('.');
+        // ensure we have a host for a valid test
+        assert(parentHost);
+        const noProxy = [`*.${parentHost}`];
+
+        const res = await request({url, proxy, noProxy});
+        expectDirect(res);
+      });
+
+      it('should not proxy if `noProxy` env variable has asterisk, and URL partially matches (env)', async () => {
+        const parentHost = new URL(url).hostname.split('.').slice(1).join('.');
+        // ensure we have a host for a valid test
+        assert(parentHost);
+        setEnv({https_proxy: proxy, no_proxy: `*.${parentHost}`});
+
+        const res = await request({url});
+        expectDirect(res);
+      });
+
+      it('should not proxy if `noProxy` env variable starts with a dot, and URL partially matches (config)', async () => {
+        const parentHost = new URL(url).hostname.split('.').slice(1).join('.');
+        // ensure we have a host for a valid test
+        assert(parentHost);
+        const noProxy = [`.${parentHost}`];
+
+        const res = await request({url, proxy, noProxy});
+        expectDirect(res);
+      });
+
+      it('should not proxy if `noProxy` env variable starts with a dot, and URL partially matches (env)', async () => {
+        const parentHost = new URL(url).hostname.split('.').slice(1).join('.');
+        // ensure we have a host for a valid test
+        assert(parentHost);
+
+        setEnv({https_proxy: proxy, no_proxy: '.example.com'});
+
+        const res = await request({url});
+        expectDirect(res);
+      });
+
+      it('should proxy if `noProxy` env variable has asterisk, but URL is not matching (config)', async () => {
+        const noProxy = ['*.no.match'];
+
+        const res = await request({url, proxy, noProxy});
+        expectProxy(res);
+      });
+
+      it('should proxy if `noProxy` env variable has asterisk, but URL is not matching (env)', async () => {
+        setEnv({https_proxy: proxy, no_proxy: '*.no.match'});
+
+        const res = await request({url});
+        expectProxy(res);
+      });
+
+      it('should allow comma-separated lists for `noProxy` env variables (config)', async () => {
+        const parentHost = new URL(url).hostname.split('.').slice(1).join('.');
+        // ensure we have a host for a valid test
+        assert(parentHost);
+
+        const noProxy = ['google.com', `*.${parentHost}`, 'hello.com'];
+
+        const res = await request({url, proxy, noProxy});
+        expectDirect(res);
+      });
+
+      it('should allow comma-separated lists for `noProxy` env variables (env)', async () => {
+        const parentHost = new URL(url).hostname.split('.').slice(1).join('.');
+        // ensure we have a host for a valid test
+        assert(parentHost);
+        // added spaces to ensure trimming works as expected
+        const noProxy = [' google.com ', ` *.${parentHost} `, ' hello.com '];
+        setEnv({https_proxy: proxy, no_proxy: noProxy.join(',')});
+
+        const res = await request({url});
+        expectDirect(res);
+      });
+    });
   });
 
   it('should include the request data in the response config', async () => {
@@ -469,8 +613,30 @@ describe('🥁 configuration options', () => {
   it('should not stringify the data if it is appended by a form', async () => {
     const formData = new FormData();
     formData.append('test', '123');
-    // I don't think matching formdata is supported in nock, so skipping: https://github.com/nock/nock/issues/887
-    const scope = nock(url).post('/').reply(200);
+
+    const scope = nock(url)
+      .post('/', body => {
+        /**
+         * Sample from native `node-fetch`
+         * body: '------3785545705014550845559551617\r\n' +
+         * 'Content-Disposition: form-data; name="test"\r\n' +
+         * '\r\n' +
+         * '123\r\n' +
+         * '------3785545705014550845559551617--',
+         */
+
+        /**
+         * Sample from native `fetch`
+         * body: '------formdata-undici-0.39470493152687736\r\n' +
+         * 'Content-Disposition: form-data; name="test"\r\n' +
+         * '\r\n' +
+         * '123\r\n' +
+         * '------formdata-undici-0.39470493152687736--',
+         */
+
+        return body.match('Content-Disposition: form-data;');
+      })
+      .reply(200);
     const res = await request({
       url,
       method: 'POST',
@@ -478,15 +644,28 @@ describe('🥁 configuration options', () => {
     });
     scope.done();
     assert.deepStrictEqual(res.config.data, formData);
+    assert.ok(res.config.body instanceof FormData);
     assert.ok(res.config.data instanceof FormData);
-    assert.deepEqual(res.config.body, undefined);
   });
 
-  it('should allow explicitly setting the fetch implementation to node-fetch', async () => {
-    const scope = nock(url).get('/').reply(200);
-    const res = await request({url, fetchImplementation: fetch});
+  it('should allow explicitly setting the fetch implementation', async () => {
+    let customFetchCalled = false;
+    const myFetch = (...args: Parameters<typeof fetch>) => {
+      customFetchCalled = true;
+      return fetch(...args);
+    };
+
+    const scope = nock(url).post('/').reply(204);
+    const res = await request({
+      url,
+      method: 'POST',
+      fetchImplementation: myFetch,
+      // This `data` ensures the 'duplex' option has been set
+      data: {sample: 'data'},
+    });
+    assert(customFetchCalled);
+    assert.equal(res.status, 204);
     scope.done();
-    assert.deepStrictEqual(res.status, 200);
   });
 
   it('should be able to disable the `errorRedactor`', async () => {
@@ -529,16 +708,18 @@ describe('🎏 data handling', () => {
 
   it('should accept a string in the request data', async () => {
     const body = {hello: '🌎'};
-    const encoded = qs.stringify(body);
+    const encoded = new URLSearchParams(body);
     const scope = nock(url)
       .matchHeader('content-type', 'application/x-www-form-urlencoded')
-      .post('/', encoded)
+      .post('/', encoded.toString())
       .reply(200, {});
     const res = await request({
       url,
       method: 'POST',
       data: encoded,
-      headers: {'content-type': 'application/x-www-form-urlencoded'},
+      headers: new Headers({
+        'content-type': 'application/x-www-form-urlencoded',
+      }),
     });
     scope.done();
     assert.deepStrictEqual(res.data, {});
@@ -569,9 +750,9 @@ describe('🎏 data handling', () => {
       url,
       method: 'POST',
       data: body,
-      headers: {
+      headers: new Headers({
         'Content-Type': 'application/json-patch+json',
-      },
+      }),
     });
     scope.done();
     assert.deepStrictEqual(res.data, {});
@@ -581,15 +762,15 @@ describe('🎏 data handling', () => {
     const body = {hello: '🌎'};
     const scope = nock(url)
       .matchHeader('Content-Type', 'application/x-www-form-urlencoded')
-      .post('/', qs.stringify(body))
+      .post('/', new URLSearchParams(body).toString())
       .reply(200, {});
     const res = await request({
       url,
       method: 'POST',
       data: body,
-      headers: {
+      headers: new Headers({
         'Content-Type': 'application/x-www-form-urlencoded',
-      },
+      }),
     });
     scope.done();
     assert.deepStrictEqual(res.data, {});
@@ -603,6 +784,18 @@ describe('🎏 data handling', () => {
     assert(res.data instanceof stream.Readable);
   });
 
+  it('should return a `ReadableStream` when `fetch` has been provided ', async () => {
+    const body = {hello: '🌎'};
+    const scope = nock(url).get('/').reply(200, body);
+    const res = await request<ReadableStream>({
+      url,
+      responseType: 'stream',
+      fetchImplementation: fetch,
+    });
+    scope.done();
+    assert(res.data instanceof ReadableStream);
+  });
+
   it('should return an ArrayBuffer if asked nicely', async () => {
     const body = {hello: '🌎'};
     const scope = nock(url).get('/').reply(200, body);
@@ -614,7 +807,7 @@ describe('🎏 data handling', () => {
     assert(res.data instanceof ArrayBuffer);
     assert.deepStrictEqual(
       Buffer.from(JSON.stringify(body)),
-      Buffer.from(res.data)
+      Buffer.from(res.data),
     );
   });
 
@@ -640,7 +833,10 @@ describe('🎏 data handling', () => {
     const res = await request({url});
     scope.done();
     assert.ok(res.data);
-    assert.strictEqual(res.statusText, 'OK');
+    // node-fetch and native fetch specs differ...
+    // https://github.com/node-fetch/node-fetch/issues/1066
+    assert.strictEqual(typeof res.statusText, 'string');
+    // assert.strictEqual(res.statusText, 'OK');
   });
 
   it('should return JSON when response Content-Type=application/json', async () => {
@@ -698,17 +894,85 @@ describe('🎏 data handling', () => {
     assert.notEqual(res.data, body);
   });
 
+  it('should handle multipart/related when options.multipart is set and a single part', async () => {
+    const bodyContent = {hello: '🌎'};
+    const body = new Readable();
+    body.push(JSON.stringify(bodyContent));
+    body.push(null);
+    const scope = nock(url)
+      .matchHeader(
+        'Content-Type',
+        /multipart\/related; boundary=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/,
+      )
+      .post(
+        '/',
+        /^(--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}[\r\n]+Content-Type: application\/json[\r\n\r\n]+{"hello":"🌎"}[\r\n]+--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}--)$/,
+      )
+      .reply(200, {});
+    const res = await request({
+      url,
+      method: 'POST',
+      multipart: [
+        {
+          headers: new Headers({'Content-Type': 'application/json'}),
+          content: body,
+        },
+      ],
+    });
+    scope.done();
+    assert.ok(res.data);
+  });
+
+  it('should handle multipart/related when options.multipart is set and a multiple parts', async () => {
+    const jsonContent = {hello: '🌎'};
+    const textContent = 'hello world';
+    const body = new Readable();
+    body.push(JSON.stringify(jsonContent));
+    body.push(null);
+    const scope = nock(url)
+      .matchHeader(
+        'Content-Type',
+        /multipart\/related; boundary=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/,
+      )
+      .post(
+        '/',
+        /^(--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}[\r\n]+Content-Type: application\/json[\r\n\r\n]+{"hello":"🌎"}[\r\n]+--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}[\r\n]+Content-Type: text\/plain[\r\n\r\n]+hello world[\r\n]+--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}--)$/,
+      )
+      .reply(200, {});
+    const res = await request({
+      url,
+      method: 'POST',
+      multipart: [
+        {
+          headers: new Headers({'Content-Type': 'application/json'}),
+          content: body,
+        },
+        {
+          headers: new Headers({'Content-Type': 'text/plain'}),
+          content: textContent,
+        },
+      ],
+    });
+    scope.done();
+    assert.ok(res.data);
+  });
+
   it('should redact sensitive props via the `errorRedactor` by default', async () => {
     const REDACT =
       '<<REDACTED> - See `errorRedactor` option in `gaxios` for configuration>.';
 
     const customURL = new URL(url);
     customURL.searchParams.append('token', 'sensitive');
+    customURL.searchParams.append('client_secret', 'data');
     customURL.searchParams.append('random', 'non-sensitive');
 
-    const config: GaxiosOptions = {
+    const config = {
       headers: {
-        authentication: 'My Auth',
+        Authentication: 'My Auth',
+        /**
+         * Ensure casing is properly handled
+         */
+        AUTHORIZATION: 'My Auth',
         'content-type': 'application/x-www-form-urlencoded',
         random: 'data',
       },
@@ -716,9 +980,10 @@ describe('🎏 data handling', () => {
         grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
         assertion: 'somesensitivedata',
         unrelated: 'data',
+        client_secret: 'data',
       },
-      body: 'grant_type=somesensitivedata&assertion=somesensitivedata',
-    };
+      body: 'grant_type=somesensitivedata&assertion=somesensitivedata&client_secret=data',
+    } as const;
 
     // simulate JSON response
     const responseHeaders = {
@@ -752,10 +1017,15 @@ describe('🎏 data handling', () => {
       assert.notStrictEqual(e.config, config);
 
       // config redactions - headers
-      assert(e.config.headers);
-      assert.deepStrictEqual(e.config.headers, {
+      const expectedRequestHeaders = new Headers({
         ...config.headers, // non-redactables should be present
-        authentication: REDACT,
+        Authentication: REDACT,
+        AUTHORIZATION: REDACT,
+      });
+      const actualHeaders = e.config.headers;
+
+      expectedRequestHeaders.forEach((value, key) => {
+        assert.equal(actualHeaders.get(key), value);
       });
 
       // config redactions - data
@@ -763,29 +1033,51 @@ describe('🎏 data handling', () => {
         ...config.data, // non-redactables should be present
         grant_type: REDACT,
         assertion: REDACT,
+        client_secret: REDACT,
       });
 
-      // config redactions - body
-      assert.deepStrictEqual(e.config.body, REDACT);
+      assert.deepStrictEqual(
+        Object.fromEntries(e.config.body as URLSearchParams),
+        {
+          ...config.data, // non-redactables should be present
+          grant_type: REDACT,
+          assertion: REDACT,
+          client_secret: REDACT,
+        },
+      );
+
+      expectedRequestHeaders.forEach((value, key) => {
+        assert.equal(actualHeaders.get(key), value);
+      });
 
       // config redactions - url
       assert(e.config.url);
       const resultURL = new URL(e.config.url);
       assert.notDeepStrictEqual(resultURL.toString(), customURL.toString());
       customURL.searchParams.set('token', REDACT);
+      customURL.searchParams.set('client_secret', REDACT);
       assert.deepStrictEqual(resultURL.toString(), customURL.toString());
 
       // response redactions
       assert(e.response);
       assert.deepStrictEqual(e.response.config, e.config);
-      assert.deepStrictEqual(e.response.headers, {
+
+      const expectedResponseHeaders = new Headers({
         ...responseHeaders, // non-redactables should be present
-        authentication: REDACT,
       });
+
+      expectedResponseHeaders.set('authentication', REDACT);
+      expectedResponseHeaders.set('authorization', REDACT);
+
+      expectedResponseHeaders.forEach((value, key) => {
+        assert.equal(e.response?.headers.get(key), value);
+      });
+
       assert.deepStrictEqual(e.response.data, {
         ...response, // non-redactables should be present
-        grant_type: REDACT,
         assertion: REDACT,
+        client_secret: REDACT,
+        grant_type: REDACT,
       });
     } finally {
       scope.done();
@@ -819,7 +1111,7 @@ describe('🍂 defaults & instances', () => {
       url,
       method: 'POST',
       data: pkg,
-      headers: {'content-type': 'application/dicom'},
+      headers: new Headers({'content-type': 'application/dicom'}),
     });
     scope.done();
     assert.deepStrictEqual(res.data, {});
@@ -848,7 +1140,7 @@ describe('🍂 defaults & instances', () => {
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       protected async _request<T = any>(
-        opts: GaxiosOptions = {}
+        opts: GaxiosOptionsPrepared,
       ): GaxiosPromise<T> {
         assert(opts.agent);
         return super._request(opts);
@@ -858,14 +1150,17 @@ describe('🍂 defaults & instances', () => {
       const key = fs.readFileSync('./test/fixtures/fake.key', 'utf8');
       const scope = nock(url).get('/').reply(200);
       const inst = new GaxiosAssertAgentCache({
-        headers: {apple: 'juice'},
+        headers: new Headers({apple: 'juice'}),
         cert: fs.readFileSync('./test/fixtures/fake.cert', 'utf8'),
         key,
       });
-      const res = await inst.request({url, headers: {figgy: 'pudding'}});
+      const res = await inst.request({
+        url,
+        headers: new Headers({figgy: 'pudding'}),
+      });
       scope.done();
-      assert.strictEqual(res.config.headers!.apple, 'juice');
-      assert.strictEqual(res.config.headers!.figgy, 'pudding');
+      assert.strictEqual(res.config.headers.get('apple'), 'juice');
+      assert.strictEqual(res.config.headers.get('figgy'), 'pudding');
       const agentCache = inst.getAgentCache();
       assert(agentCache.get(key));
     });
@@ -873,15 +1168,246 @@ describe('🍂 defaults & instances', () => {
       const key = fs.readFileSync('./test/fixtures/fake.key', 'utf8');
       const scope = nock(url).get('/').reply(200).get('/').reply(200);
       const inst = new GaxiosAssertAgentCache({
-        headers: {apple: 'juice'},
+        headers: new Headers({apple: 'juice'}),
         cert: fs.readFileSync('./test/fixtures/fake.cert', 'utf8'),
         key,
       });
-      await inst.request({url, headers: {figgy: 'pudding'}});
-      await inst.request({url, headers: {figgy: 'pudding'}});
+      await inst.request({url, headers: new Headers({figgy: 'pudding'})});
+      await inst.request({url, headers: new Headers({figgy: 'pudding'})});
       scope.done();
       const agentCache = inst.getAgentCache();
       assert(agentCache.get(key));
+    });
+  });
+});
+
+describe('interceptors', () => {
+  describe('request', () => {
+    it('should invoke a request interceptor when one is provided', async () => {
+      const scope = nock(url)
+        .matchHeader('hello', 'world')
+        .get('/')
+        .reply(200, {});
+      const instance = new Gaxios();
+      instance.interceptors.request.add({
+        resolved: config => {
+          config.headers.set('hello', 'world');
+          return Promise.resolve(config);
+        },
+      });
+      await instance.request({url});
+      scope.done();
+    });
+
+    it('should not invoke a request interceptor after it is removed', async () => {
+      const scope = nock(url).persist().get('/').reply(200, {});
+      const spyFunc = sinon.fake(
+        () =>
+          Promise.resolve({
+            url,
+            validateStatus: () => {
+              return true;
+            },
+          }) as unknown as Promise<GaxiosOptionsPrepared>,
+      );
+      const instance = new Gaxios();
+      const interceptor = {resolved: spyFunc};
+      instance.interceptors.request.add(interceptor);
+      await instance.request({url});
+      instance.interceptors.request.delete(interceptor);
+      await instance.request({url});
+      scope.done();
+      assert.strictEqual(spyFunc.callCount, 1);
+    });
+
+    it('should invoke multiple request interceptors in the order they were added', async () => {
+      const scope = nock(url)
+        .matchHeader('foo', 'bar')
+        .matchHeader('bar', 'baz')
+        .matchHeader('baz', 'buzz')
+        .get('/')
+        .reply(200, {});
+      const instance = new Gaxios();
+      instance.interceptors.request.add({
+        resolved: config => {
+          config.headers.set('foo', 'bar');
+          return Promise.resolve(config);
+        },
+      });
+      instance.interceptors.request.add({
+        resolved: config => {
+          assert.strictEqual(config.headers.get('foo'), 'bar');
+          config.headers.set('bar', 'baz');
+          return Promise.resolve(config);
+        },
+      });
+      instance.interceptors.request.add({
+        resolved: config => {
+          assert.strictEqual(config.headers.get('foo'), 'bar');
+          assert.strictEqual(config.headers.get('bar'), 'baz');
+          config.headers.set('baz', 'buzz');
+          return Promise.resolve(config);
+        },
+      });
+      await instance.request({url});
+      scope.done();
+    });
+
+    it('should not invoke a any request interceptors after they are removed', async () => {
+      const scope = nock(url).persist().get('/').reply(200, {});
+      const spyFunc = sinon.fake(
+        () =>
+          Promise.resolve({
+            url,
+            validateStatus: () => {
+              return true;
+            },
+          }) as unknown as Promise<GaxiosOptionsPrepared>,
+      );
+      const instance = new Gaxios();
+      instance.interceptors.request.add({
+        resolved: spyFunc,
+      });
+      instance.interceptors.request.add({
+        resolved: spyFunc,
+      });
+      instance.interceptors.request.add({
+        resolved: spyFunc,
+      });
+      await instance.request({url});
+      instance.interceptors.request.clear();
+      await instance.request({url});
+      scope.done();
+      assert.strictEqual(spyFunc.callCount, 3);
+    });
+
+    it('should invoke the rejected function when a previous request interceptor rejects', async () => {
+      const instance = new Gaxios();
+      instance.interceptors.request.add({
+        resolved: () => {
+          throw new Error('Something went wrong');
+        },
+      });
+      instance.interceptors.request.add({
+        resolved: config => {
+          config.headers.set('hello', 'world');
+          return Promise.resolve(config);
+        },
+        rejected: err => {
+          assert.strictEqual(err.message, 'Something went wrong');
+        },
+      });
+      // Because the options wind up being invalid the call will reject with a URL problem.
+      await assert.rejects(instance.request({url}));
+    });
+  });
+
+  describe('response', () => {
+    it('should invoke a response interceptor when one is provided', async () => {
+      const scope = nock(url).get('/').reply(200, {});
+      const instance = new Gaxios();
+      instance.interceptors.response.add({
+        resolved(response) {
+          response.headers.set('hello', 'world');
+          return Promise.resolve(response);
+        },
+      });
+      const resp = await instance.request({url});
+      scope.done();
+      assert.strictEqual(resp.headers.get('hello'), 'world');
+    });
+
+    it('should not invoke a response interceptor after it is removed', async () => {
+      const scope = nock(url).persist().get('/').reply(200, {});
+      const spyFunc = sinon.fake(
+        () =>
+          Promise.resolve({
+            url,
+            validateStatus: () => {
+              return true;
+            },
+          }) as unknown as Promise<GaxiosResponse>,
+      );
+      const instance = new Gaxios();
+      const interceptor = {resolved: spyFunc};
+      instance.interceptors.response.add(interceptor);
+      await instance.request({url});
+      instance.interceptors.response.delete(interceptor);
+      await instance.request({url});
+      scope.done();
+      assert.strictEqual(spyFunc.callCount, 1);
+    });
+
+    it('should invoke multiple response interceptors in the order they were added', async () => {
+      const scope = nock(url).get('/').reply(200, {});
+      const instance = new Gaxios();
+      instance.interceptors.response.add({
+        resolved: response => {
+          response.headers.set('foo', 'bar');
+          return Promise.resolve(response);
+        },
+      });
+      instance.interceptors.response.add({
+        resolved: response => {
+          assert.strictEqual(response.headers.get('foo'), 'bar');
+          response.headers.set('bar', 'baz');
+          return Promise.resolve(response);
+        },
+      });
+      instance.interceptors.response.add({
+        resolved: response => {
+          assert.strictEqual(response.headers.get('foo'), 'bar');
+          assert.strictEqual(response.headers.get('bar'), 'baz');
+          response.headers.set('baz', 'buzz');
+          return Promise.resolve(response);
+        },
+      });
+      const resp = await instance.request({url});
+      scope.done();
+      assert.strictEqual(resp.headers.get('foo'), 'bar');
+      assert.strictEqual(resp.headers.get('bar'), 'baz');
+      assert.strictEqual(resp.headers.get('baz'), 'buzz');
+    });
+
+    it('should not invoke a any response interceptors after they are removed', async () => {
+      const scope = nock(url).persist().get('/').reply(200, {});
+      const spyFunc = sinon.fake(
+        () =>
+          Promise.resolve({
+            url,
+            validateStatus: () => {
+              return true;
+            },
+          }) as unknown as Promise<GaxiosResponse>,
+      );
+      const instance = new Gaxios();
+      instance.interceptors.response.add({
+        resolved: spyFunc,
+      });
+      instance.interceptors.response.add({
+        resolved: spyFunc,
+      });
+      instance.interceptors.response.add({
+        resolved: spyFunc,
+      });
+      await instance.request({url});
+      instance.interceptors.response.clear();
+      await instance.request({url});
+      scope.done();
+      assert.strictEqual(spyFunc.callCount, 3);
+    });
+
+    it('should invoke the rejected function when a request has an error', async () => {
+      const scope = nock(url).get('/').reply(404, {});
+      const instance = new Gaxios();
+      instance.interceptors.response.add({
+        rejected: err => {
+          assert.strictEqual(err.status, 404);
+        },
+      });
+
+      await instance.request({url});
+      scope.done();
     });
   });
 });

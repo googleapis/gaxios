@@ -1,5 +1,59 @@
 # Changelog
 
+## [6.7.1](https://github.com/googleapis/gaxios/compare/v6.7.0...v6.7.1) (2024-08-13)
+
+
+### Bug Fixes
+
+* Release uuid rollback ([#641](https://github.com/googleapis/gaxios/issues/641)) ([2e21115](https://github.com/googleapis/gaxios/commit/2e211158d5351d81de4e84f999ec3b41475ec0cd))
+
+## [6.7.0](https://github.com/googleapis/gaxios/compare/v6.6.0...v6.7.0) (2024-06-27)
+
+
+### Features
+
+* Add additional retry configuration options ([#634](https://github.com/googleapis/gaxios/issues/634)) ([cb5c833](https://github.com/googleapis/gaxios/commit/cb5c833a9750bf6d0c0f8e27992bb44bd953566c))
+
+
+### Bug Fixes
+
+* **deps:** Update dependency uuid to v10 ([#629](https://github.com/googleapis/gaxios/issues/629)) ([6ff684e](https://github.com/googleapis/gaxios/commit/6ff684e6e6e5f4e5e6d270685b2ac0e4d28bc964))
+
+## [6.6.0](https://github.com/googleapis/gaxios/compare/v6.5.0...v6.6.0) (2024-05-15)
+
+
+### Features
+
+* Add request and response interceptors ([#619](https://github.com/googleapis/gaxios/issues/619)) ([059fe77](https://github.com/googleapis/gaxios/commit/059fe7708e6d98cc44814ec1fad7d412668a05b9))
+
+## [6.5.0](https://github.com/googleapis/gaxios/compare/v6.4.0...v6.5.0) (2024-04-09)
+
+
+### Features
+
+* Retry `408` by Default ([#616](https://github.com/googleapis/gaxios/issues/616)) ([9331f79](https://github.com/googleapis/gaxios/commit/9331f79f9c9d0c1f4f1f995e1928323f4feb5427))
+* Support `proxy` option ([#614](https://github.com/googleapis/gaxios/issues/614)) ([2d14b3f](https://github.com/googleapis/gaxios/commit/2d14b3f54bc97111cb184cecf2379b55ceaca3c2))
+
+## [6.4.0](https://github.com/googleapis/gaxios/compare/v6.3.0...v6.4.0) (2024-04-03)
+
+
+### Features
+
+* Enhance Error Redaction ([#609](https://github.com/googleapis/gaxios/issues/609)) ([b1d2875](https://github.com/googleapis/gaxios/commit/b1d28759110f91b37746f9b88aba92bf52df2fcc))
+* Support multipart/related requests ([#610](https://github.com/googleapis/gaxios/issues/610)) ([086c824](https://github.com/googleapis/gaxios/commit/086c8240652bd893dff0dd4c097ef00f5777564e))
+
+
+### Bug Fixes
+
+* Error Redactor Case-Insensitive Matching ([#613](https://github.com/googleapis/gaxios/issues/613)) ([05e65ef](https://github.com/googleapis/gaxios/commit/05e65efda6d13e760d4f7f87be7d6cebeba3cc64))
+
+## [6.3.0](https://github.com/googleapis/gaxios/compare/v6.2.0...v6.3.0) (2024-02-01)
+
+
+### Features
+
+* Support URL objects ([#598](https://github.com/googleapis/gaxios/issues/598)) ([ef40c61](https://github.com/googleapis/gaxios/commit/ef40c61fabf0a48b2f08be085ee0c56dc32cf78c))
+
 ## [6.2.0](https://github.com/googleapis/gaxios/compare/v6.1.1...v6.2.0) (2024-01-31)
 
 

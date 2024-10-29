@@ -14,7 +14,6 @@
 import assert from 'assert';
 import {describe, it} from 'mocha';
 import {request} from '../src/index';
-import * as uuid from 'uuid';
 const port = 7172; // should match the port defined in `webserver.ts`
 
 describe('💻 browser tests', () => {
@@ -42,7 +41,7 @@ describe('💻 browser tests', () => {
   });
 
   it('should support multipart post from the browser', async () => {
-    const headers: {[key: string]: string} = {};
+    const headers = new Headers();
     const multipart = [
       {
         'Content-Type': 'application/json',
@@ -53,9 +52,10 @@ describe('💻 browser tests', () => {
         body: 'hello world!',
       },
     ];
-    const boundary = uuid.v4();
+    const boundary =
+      globalThis?.crypto.randomUUID() || (await import('crypto')).randomUUID();
     const finale = `--${boundary}--`;
-    headers['Content-Type'] = `multipart/related; boundary=${boundary}`;
+    headers.set('Content-Type', `multipart/related; boundary=${boundary}`);
 
     let content = '';
     for (const part of multipart) {

@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GaxiosError} from './common';
+import {GaxiosError, RetryConfig} from './common';
 
 export async function getRetryConfig(err: GaxiosError) {
   let config = getConfig(err);
@@ -33,6 +33,18 @@ export async function getRetryConfig(err: GaxiosError) {
     config.noResponseRetries === undefined || config.noResponseRetries === null
       ? 2
       : config.noResponseRetries;
+  config.retryDelayMultiplier = config.retryDelayMultiplier
+    ? config.retryDelayMultiplier
+    : 2;
+  config.timeOfFirstRequest = config.timeOfFirstRequest
+    ? config.timeOfFirstRequest
+    : Date.now();
+  config.totalTimeout = config.totalTimeout
+    ? config.totalTimeout
+    : Number.MAX_SAFE_INTEGER;
+  config.maxRetryDelay = config.maxRetryDelay
+    ? config.maxRetryDelay
+    : Number.MAX_SAFE_INTEGER;
 
   // If this wasn't in the list of status codes where we want
   // to automatically retry, return.
@@ -42,9 +54,11 @@ export async function getRetryConfig(err: GaxiosError) {
     // 2xx - Do not retry (Success)
     // 3xx - Do not retry (Redirect)
     // 4xx - Do not retry (Client errors)
+    // 408 - Retry ("Request Timeout")
     // 429 - Retry ("Too Many Requests")
     // 5xx - Retry (Server errors)
     [100, 199],
+    [408, 408],
     [429, 429],
     [500, 599],
   ];
@@ -59,14 +73,9 @@ export async function getRetryConfig(err: GaxiosError) {
     return {shouldRetry: false, config: err.config};
   }
 
-  // Calculate time to wait with exponential backoff.
-  // If this is the first retry, look for a configured retryDelay.
-  const retryDelay = config.currentRetryAttempt ? 0 : config.retryDelay ?? 100;
-  // Formula: retryDelay + ((2^c - 1 / 2) * 1000)
-  const delay =
-    retryDelay + ((Math.pow(2, config.currentRetryAttempt) - 1) / 2) * 1000;
+  const delay = getNextRetryDelay(config);
 
-  // We're going to retry!  Incremenent the counter.
+  // We're going to retry!  Increment the counter.
   err.config.retryConfig!.currentRetryAttempt! += 1;
 
   // Create a promise that invokes the retry after the backOffDelay
@@ -78,7 +87,7 @@ export async function getRetryConfig(err: GaxiosError) {
 
   // Notify the user if they added an `onRetryAttempt` handler
   if (config.onRetryAttempt) {
-    config.onRetryAttempt(err);
+    await config.onRetryAttempt(err);
   }
 
   // Return the promise in which recalls Gaxios to retry the request
@@ -93,9 +102,11 @@ export async function getRetryConfig(err: GaxiosError) {
 function shouldRetryRequest(err: GaxiosError) {
   const config = getConfig(err);
 
-  // node-fetch raises an AbortError if signaled:
-  // https://github.com/bitinn/node-fetch#request-cancellation-with-abortsignal
-  if (err.name === 'AbortError' || err.error?.name === 'AbortError') {
+  if (
+    err.config.signal?.aborted ||
+    err.name === 'AbortError' ||
+    err.error?.name === 'AbortError'
+  ) {
     return false;
   }
 
@@ -114,8 +125,10 @@ function shouldRetryRequest(err: GaxiosError) {
 
   // Only retry with configured HttpMethods.
   if (
-    !err.config.method ||
-    config.httpMethodsToRetry!.indexOf(err.config.method.toUpperCase()) < 0
+    !config.httpMethodsToRetry ||
+    !config.httpMethodsToRetry.includes(
+      err.config.method?.toUpperCase() || 'GET',
+    )
   ) {
     return false;
   }
@@ -154,4 +167,28 @@ function getConfig(err: GaxiosError) {
     return err.config.retryConfig;
   }
   return;
+}
+
+/**
+ * Gets the delay to wait before the next retry.
+ *
+ * @param {RetryConfig} config The current set of retry options
+ * @returns {number} the amount of ms to wait before the next retry attempt.
+ */
+function getNextRetryDelay(config: RetryConfig) {
+  // Calculate time to wait with exponential backoff.
+  // If this is the first retry, look for a configured retryDelay.
+  const retryDelay = config.currentRetryAttempt
+    ? 0
+    : (config.retryDelay ?? 100);
+  // Formula: retryDelay + ((retryDelayMultiplier^currentRetryAttempt - 1 / 2) * 1000)
+  const calculatedDelay =
+    retryDelay +
+    ((Math.pow(config.retryDelayMultiplier!, config.currentRetryAttempt!) - 1) /
+      2) *
+      1000;
+  const maxAllowableDelay =
+    config.totalTimeout! - (Date.now() - config.timeOfFirstRequest!);
+
+  return Math.min(calculatedDelay, maxAllowableDelay, config.maxRetryDelay!);
 }
