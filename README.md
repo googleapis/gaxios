@@ -15,8 +15,8 @@ $ npm install gaxios
 ## Example
 
 ```js
-const {request} = require('gaxios');
-const res = await request('https://www.googleapis.com/discovery/v1/apis/');
+import {request} from 'gaxios';
+const res = await request({url: 'https://google.com/'});
 ```
 
 ## Setting Defaults
@@ -24,14 +24,16 @@ const res = await request('https://www.googleapis.com/discovery/v1/apis/');
 Gaxios supports setting default properties both on the default instance, and on additional instances. This is often useful when making many requests to the same domain with the same base settings. For example:
 
 ```js
-const gaxios = require('gaxios');
-gaxios.instance.defaults = {
+import {request, instance} from 'gaxios';
+
+instance.defaults = {
   baseURL: 'https://example.com'
   headers: {
     Authorization: 'SOME_TOKEN'
   }
 }
-gaxios.request({url: '/data'}).then(...);
+
+await request({url: '/data'});
 ```
 
 Note that setting default values will take precedence
