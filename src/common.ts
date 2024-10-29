@@ -90,7 +90,7 @@ export class GaxiosError<T = any> extends Error {
     message: string,
     public config: GaxiosOptionsPrepared,
     public response?: GaxiosResponse<T>,
-    public error?: Error | NodeJS.ErrnoException
+    public error?: Error | NodeJS.ErrnoException,
   ) {
     super(message);
 
@@ -106,7 +106,7 @@ export class GaxiosError<T = any> extends Error {
         this.response.data = translateData(
           this.config.responseType,
           // workaround for `node-fetch`'s `.data` deprecation...
-          this.response?.bodyUsed ? this.response?.data : undefined
+          this.response?.bodyUsed ? this.response?.data : undefined,
         );
       } catch {
         // best effort - don't throw an error within an error
@@ -158,7 +158,7 @@ export interface GaxiosOptions extends RequestInit {
    */
   adapter?: <T = GaxiosResponseData>(
     options: GaxiosOptionsPrepared,
-    defaultAdapter: (options: GaxiosOptionsPrepared) => GaxiosPromise<T>
+    defaultAdapter: (options: GaxiosOptionsPrepared) => GaxiosPromise<T>,
   ) => GaxiosPromise<T>;
   url?: string | URL;
   /**
@@ -426,7 +426,7 @@ export interface RetryConfig {
 
 function translateData(
   responseType: string | undefined,
-  data: GaxiosResponseData
+  data: GaxiosResponseData,
 ) {
   switch (responseType) {
     case 'stream':
