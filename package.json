@@ -25,7 +25,7 @@
     "presystem-test": "npm run compile",
     "system-test": "mocha build/esm/system-test --timeout 80000",
     "compile": "tsc -b ./tsconfig.json ./tsconfig.cjs.json",
-    "postcompile": "node -e 'fs.writeFileSync(`./build/esm/package.json`, JSON.stringify({type: \"module\"}))'",
+    "postcompile": "node -e 'fs.writeFileSync(\"./build/esm/package.json\", JSON.stringify({type: \"module\"}))'",
     "fix": "gts fix",
     "prepare": "npm run compile",
     "pretest": "npm run compile",
