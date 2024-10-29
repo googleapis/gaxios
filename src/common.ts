@@ -19,6 +19,20 @@ import extend from 'extend';
 import {Readable} from 'stream';
 
 /**
+ * TypeScript does not have this type available globally - however `@types/node` includes `undici-types`, which has it:
+ * - https://www.npmjs.com/package/@types/node/v/18.19.59?activeTab=dependencies
+ *
+ * Additionally, this is the TypeScript pattern for type sniffing and `import("undici-types")` is pretty common:
+ * - https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/node/globals.d.ts
+ */
+type _BodyInit = typeof globalThis extends {BodyInit: infer T}
+  ? T
+  : import('undici-types').BodyInit;
+type _HeadersInit = typeof globalThis extends {HeadersInit: infer T}
+  ? T
+  : import('undici-types').HeadersInit;
+
+/**
  * Support `instanceof` operator for `GaxiosError`s in different versions of this library.
  *
  * @see {@link GaxiosError[Symbol.hasInstance]}
@@ -79,7 +93,7 @@ export class GaxiosError<T = any> extends Error {
     message: string,
     public config: GaxiosOptionsPrepared,
     public response?: GaxiosResponse<T>,
-    public error?: Error | NodeJS.ErrnoException
+    public error?: Error | NodeJS.ErrnoException,
   ) {
     super(message);
 
@@ -95,7 +109,7 @@ export class GaxiosError<T = any> extends Error {
         this.response.data = translateData(
           this.config.responseType,
           // workaround for `node-fetch`'s `.data` deprecation...
-          this.response?.bodyUsed ? this.response?.data : undefined
+          this.response?.bodyUsed ? this.response?.data : undefined,
         );
       } catch {
         // best effort - don't throw an error within an error
@@ -131,7 +145,7 @@ export interface GaxiosResponse<T = GaxiosResponseData> extends Response {
 }
 
 export interface GaxiosMultipartOptions {
-  headers: HeadersInit;
+  headers: _HeadersInit;
   content: string | Readable;
 }
 
@@ -147,7 +161,7 @@ export interface GaxiosOptions extends RequestInit {
    */
   adapter?: <T = GaxiosResponseData>(
     options: GaxiosOptionsPrepared,
-    defaultAdapter: (options: GaxiosOptionsPrepared) => GaxiosPromise<T>
+    defaultAdapter: (options: GaxiosOptionsPrepared) => GaxiosPromise<T>,
   ) => GaxiosPromise<T>;
   url?: string | URL;
   /**
@@ -173,9 +187,16 @@ export interface GaxiosOptions extends RequestInit {
    *   - headers['Content-Type'] === 'application/x-www-form-urlencoded' (serialized as `URLSearchParams`)
    *
    * In all other cases, if you would like to prevent `application/json` as the
-   * default you must set the `Content-Type` header.
+   * default `Content-Type` header you must provide a string or readable stream
+   * rather than an object, e.g.:
+   *
+   * ```ts
+   * {data: JSON.stringify({some: 'data'})}
+   * {data: fs.readFile('./some-data.jpeg')}
+   * ```
    */
   data?:
+    | _BodyInit
     | ArrayBuffer
     | Blob
     | Buffer
@@ -186,10 +207,8 @@ export interface GaxiosOptions extends RequestInit {
     | Readable
     | string
     | ArrayBufferView
-    | {buffer: ArrayBufferLike}
     | URLSearchParams
-    | {}
-    | BodyInit;
+    | {};
   /**
    * The maximum size of the http response `Content-Length` in bytes allowed.
    */
@@ -392,7 +411,7 @@ export interface RetryConfig {
 
 function translateData(
   responseType: string | undefined,
-  data: GaxiosResponseData
+  data: GaxiosResponseData,
 ) {
   switch (responseType) {
     case 'stream':

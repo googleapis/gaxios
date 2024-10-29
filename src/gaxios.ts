@@ -77,7 +77,7 @@ export class Gaxios {
   }
 
   private async _defaultAdapter<T>(
-    config: GaxiosOptionsPrepared
+    config: GaxiosOptionsPrepared,
   ): Promise<GaxiosResponse<T>> {
     const fetchImpl =
       config.fetchImplementation ||
@@ -92,8 +92,8 @@ export class Gaxios {
     const res = (await fetchImpl(config.url, preparedOpts as {})) as Response;
     const data = await this.getResponseData(config, res);
 
-    // `node-fetch`'s data isn't writable. Native `fetch`'s is.
     if (!Object.getOwnPropertyDescriptor(res, 'data')?.configurable) {
+      // Work-around for `node-fetch` v3 as accessing `data` would otherwise throw
       Object.defineProperties(res, {
         data: {
           configurable: true,
@@ -113,14 +113,14 @@ export class Gaxios {
    * @param opts Set of HTTP options that will be used for this HTTP request.
    */
   protected async _request<T = any>(
-    opts: GaxiosOptionsPrepared
+    opts: GaxiosOptionsPrepared,
   ): GaxiosPromise<T> {
     try {
       let translatedResponse: GaxiosResponse<T>;
       if (opts.adapter) {
         translatedResponse = await opts.adapter<T>(
           opts,
-          this._defaultAdapter.bind(this)
+          this._defaultAdapter.bind(this),
         );
       } else {
         translatedResponse = await this._defaultAdapter(opts);
@@ -139,7 +139,7 @@ export class Gaxios {
         throw new GaxiosError<T>(
           `Request failed with status code ${translatedResponse.status}`,
           opts,
-          translatedResponse
+          translatedResponse,
         );
       }
       return translatedResponse;
@@ -166,7 +166,7 @@ export class Gaxios {
 
   private async getResponseData(
     opts: GaxiosOptionsPrepared,
-    res: Response
+    res: Response,
   ): Promise<any> {
     if (
       opts.maxContentLength &&
@@ -177,7 +177,7 @@ export class Gaxios {
       throw new GaxiosError(
         "Response's `Content-Length` is over the limit.",
         opts,
-        Object.assign(res, {config: opts}) as GaxiosResponse
+        Object.assign(res, {config: opts}) as GaxiosResponse,
       );
     }
 
@@ -199,7 +199,7 @@ export class Gaxios {
 
   #urlMayUseProxy(
     url: string | URL,
-    noProxy: GaxiosOptionsPrepared['noProxy'] = []
+    noProxy: GaxiosOptionsPrepared['noProxy'] = [],
   ): boolean {
     const candidate = new URL(url);
     const noProxyList = [...noProxy];
@@ -252,7 +252,7 @@ export class Gaxios {
    * @returns {Promise<GaxiosOptionsPrepared>} Promise that resolves to the set of options or response after interceptors are applied.
    */
   async #applyRequestInterceptors(
-    options: GaxiosOptionsPrepared
+    options: GaxiosOptionsPrepared,
   ): Promise<GaxiosOptionsPrepared> {
     let promiseChain = Promise.resolve(options);
 
@@ -260,7 +260,7 @@ export class Gaxios {
       if (interceptor) {
         promiseChain = promiseChain.then(
           interceptor.resolved,
-          interceptor.rejected
+          interceptor.rejected,
         ) as Promise<GaxiosOptionsPrepared>;
       }
     }
@@ -277,7 +277,7 @@ export class Gaxios {
    * @returns {Promise<GaxiosOptionsPrepared>} Promise that resolves to the set of options or response after interceptors are applied.
    */
   async #applyResponseInterceptors(
-    response: GaxiosResponse | Promise<GaxiosResponse>
+    response: GaxiosResponse | Promise<GaxiosResponse>,
   ) {
     let promiseChain = Promise.resolve(response);
 
@@ -285,7 +285,7 @@ export class Gaxios {
       if (interceptor) {
         promiseChain = promiseChain.then(
           interceptor.resolved,
-          interceptor.rejected
+          interceptor.rejected,
         ) as Promise<GaxiosResponse>;
       }
     }
@@ -300,7 +300,7 @@ export class Gaxios {
    * @returns Prepared options, ready to make a request
    */
   async #prepareRequest(
-    options: GaxiosOptions
+    options: GaxiosOptions,
   ): Promise<GaxiosOptionsPrepared> {
     const opts = extend(true, {}, this.defaults, options);
     if (!opts.url) {
@@ -353,7 +353,8 @@ export class Gaxios {
       typeof opts.data === 'string' ||
       opts.data instanceof ArrayBuffer ||
       opts.data instanceof Blob ||
-      opts.data instanceof File ||
+      // Node 18 does not have a global `File` object
+      (globalThis.File && opts.data instanceof File) ||
       opts.data instanceof FormData ||
       opts.data instanceof Readable ||
       opts.data instanceof ReadableStream ||
@@ -370,11 +371,11 @@ export class Gaxios {
 
       preparedHeaders.set(
         'content-type',
-        `multipart/related; boundary=${boundary}`
+        `multipart/related; boundary=${boundary}`,
       );
 
       opts.body = Readable.from(
-        this.getMultipartRequest(opts.multipart, boundary)
+        this.getMultipartRequest(opts.multipart, boundary),
       ) as {} as ReadableStream;
     } else if (shouldDirectlyPassData) {
       opts.body = opts.data as BodyInit;
@@ -476,7 +477,7 @@ export class Gaxios {
    * @returns {Promise<any>} a promise that resolves to the response data.
    */
   private async getResponseDataFromContentType(
-    response: Response
+    response: Response,
   ): Promise<any> {
     let contentType = response.headers.get('Content-Type');
     if (contentType === null) {
@@ -510,14 +511,14 @@ export class Gaxios {
    */
   private async *getMultipartRequest(
     multipartOptions: GaxiosMultipartOptions[],
-    boundary: string
+    boundary: string,
   ) {
     const finale = `--${boundary}--`;
     for (const currentPart of multipartOptions) {
       const headers =
         currentPart.headers instanceof Headers
           ? currentPart.headers
-          : new Headers(currentPart.headers);
+          : new Headers(currentPart.headers as HeadersInit);
       const partContentType =
         headers.get('Content-Type') || 'application/octet-stream';
       const preamble = `--${boundary}\r\nContent-Type: ${partContentType}\r\n\r\n`;

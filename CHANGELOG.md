@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.7.1](https://github.com/googleapis/gaxios/compare/v6.7.0...v6.7.1) (2024-08-13)
+
+
+### Bug Fixes
+
+* Release uuid rollback ([#641](https://github.com/googleapis/gaxios/issues/641)) ([2e21115](https://github.com/googleapis/gaxios/commit/2e211158d5351d81de4e84f999ec3b41475ec0cd))
+
 ## [6.7.0](https://github.com/googleapis/gaxios/compare/v6.6.0...v6.7.0) (2024-06-27)
 
 

@@ -15,6 +15,7 @@
 // Use `npm run webpack` to produce Webpack bundle for this library.
 
 const path = require('path');
+const webpack = require('webpack');
 
 module.exports = {
   entry: './src/index.ts',
@@ -24,18 +25,22 @@ module.exports = {
       '../../package.json': path.resolve(__dirname, 'package.json'),
     },
     fallback: {
-      crypto: false,
+      buffer: 'browserify',
       child_process: false,
+      crypto: false,
       fs: false,
+      http: false,
       http2: false,
       https: false,
-      buffer: 'browserify',
-      process: false,
+      net: false,
       os: false,
       path: false,
+      process: false,
       stream: 'stream-browserify',
+      'stream/web': false,
       url: false,
       util: false,
+      worker_threads: false,
       zlib: false,
     },
   },
@@ -57,5 +62,10 @@ module.exports = {
     ],
   },
   mode: 'production',
-  plugins: [],
+  plugins: [
+    // webpack 5 doesn't know what to do with `node:` imports
+    new webpack.NormalModuleReplacementPlugin(/node:/, resource => {
+      resource.request = resource.request.replace(/^node:/, '');
+    }),
+  ],
 };
