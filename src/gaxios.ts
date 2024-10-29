@@ -330,10 +330,8 @@ export class Gaxios {
       throw new Error('URL is required.');
     }
 
-    // baseUrl has been deprecated, remove in 2.0
-    const baseUrl = opts.baseUrl || opts.baseURL;
-    if (baseUrl) {
-      opts.url = baseUrl.toString() + opts.url;
+    if (opts.baseURL) {
+      opts.url = new URL(opts.url, opts.baseURL);
     }
 
     // don't modify the properties of a default or provided URL

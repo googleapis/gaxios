@@ -179,10 +179,6 @@ export interface GaxiosOptions extends RequestInit {
    * ```
    */
   headers?: Headers;
-  /**
-   * @deprecated
-   */
-  baseUrl?: string;
   baseURL?: string | URL;
   /**
    * The data to send in the {@link RequestInit.body} of the request. Objects will be
