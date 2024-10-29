@@ -1,8 +1,7 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "build/esm",
-    "module": "Node16",
-    "moduleResolution": "Node16"
+    "module": "Preserve",
+    "outDir": "build/esm"
   }
 }

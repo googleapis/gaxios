@@ -14,7 +14,7 @@
 import assert from 'assert';
 import nock from 'nock';
 import {describe, it, afterEach} from 'mocha';
-import {Gaxios, GaxiosError, GaxiosOptions, request} from '../src';
+import {Gaxios, GaxiosError, GaxiosOptions, request} from '../src/index.js';
 
 nock.disableNetConnect();
 
