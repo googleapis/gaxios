@@ -1162,20 +1162,18 @@ describe('🍂 defaults & instances', () => {
     assert.deepStrictEqual(res.data, {});
   });
 
-  it('should set content-type to application/json by default, for buffer', async () => {
-    const pkg = fs.readFileSync('./package.json');
-    const pkgJson = JSON.parse(pkg.toString('utf8'));
+  it('should not set a default content-type for buffers', async () => {
+    const jsonLike = '{}';
+    const data = Buffer.from(jsonLike);
     const scope = nock(url)
-      .matchHeader('content-type', 'application/json')
-      .post('/', pkgJson)
-      .reply(200, {});
-    const res = await request({
-      url,
-      method: 'POST',
-      data: pkg,
-    });
+      // no content type should be present
+      .matchHeader('content-type', v => v === undefined)
+      .post('/', jsonLike)
+      .reply(204);
+
+    const res = await request({url, method: 'POST', data});
     scope.done();
-    assert.deepStrictEqual(res.data, {});
+    assert.equal(res.status, 204);
   });
 
   describe('mtls', () => {

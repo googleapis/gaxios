@@ -42,16 +42,22 @@ export const GAXIOS_ERROR_SYMBOL = Symbol.for(`${pkg.name}-gaxios-error`);
 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 export class GaxiosError<T = any> extends Error {
   /**
-   * An Error code.
-   * See {@link https://nodejs.org/api/errors.html#errorcode error.code}
+   * An error code.
+   * Can be a system error code, DOMException error name, or any error's 'code' property where it is a `string`.
+   *
+   * @see {@link https://nodejs.org/api/errors.html#errorcode error.code}
+   * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names DOMException#error_names}
    *
    * @example
    * 'ECONNRESET'
+   *
+   * @example
+   * 'TimeoutError'
    */
   code?: string;
   /**
    * An HTTP Status code.
-   * See {@link https://developer.mozilla.org/en-US/docs/Web/API/Response/status Response: status property}
+   * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/Response/status Response#status}
    *
    * @example
    * 500
