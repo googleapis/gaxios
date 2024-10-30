@@ -1,6 +1,7 @@
 {
   "name": "gaxios-sample-fixture",
-  "description": "An app we're using to test the library. ",
+  "description": "An app we're using to test the library.",
+  "type": "commonjs",
   "scripts": {
     "check": "gts check",
     "clean": "gts clean",

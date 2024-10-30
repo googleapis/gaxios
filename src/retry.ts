@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GaxiosError, RetryConfig} from './common';
+import {GaxiosError, RetryConfig} from './common.js';
 
 export async function getRetryConfig(err: GaxiosError) {
   let config = getConfig(err);

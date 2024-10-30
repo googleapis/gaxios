@@ -24,10 +24,13 @@ import {
   GaxiosOptions,
   GaxiosResponse,
   GaxiosPromise,
-} from '../src';
-import {GAXIOS_ERROR_SYMBOL, GaxiosOptionsPrepared} from '../src/common';
-import {pkg} from '../src/util';
+} from '../src/index.js';
+import {GAXIOS_ERROR_SYMBOL, GaxiosOptionsPrepared} from '../src/common.js';
+import util from '../src/util.cjs';
+
 import fs from 'fs';
+
+const pkg = util.pkg;
 
 nock.disableNetConnect();
 
@@ -738,11 +741,12 @@ describe('🥁 configuration options', () => {
 
 describe('🎏 data handling', () => {
   it('should accpet a ReadableStream as request data', async () => {
-    const body = fs.createReadStream('package.json');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const contents = require('../../package.json');
-    const scope = nock(url).post('/', contents).reply(200, {});
-    const res = await request({url, method: 'POST', data: body});
+    const scope = nock(url).post('/', 'test').reply(200, {});
+    const res = await request({
+      url,
+      method: 'POST',
+      data: Readable.from('test'),
+    });
     scope.done();
     assert.deepStrictEqual(res.data, {});
   });

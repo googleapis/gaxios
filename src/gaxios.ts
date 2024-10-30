@@ -25,10 +25,10 @@ import {
   GaxiosPromise,
   GaxiosResponse,
   defaultErrorRedactor,
-} from './common';
-import {getRetryConfig} from './retry';
+} from './common.js';
+import {getRetryConfig} from './retry.js';
 import {Readable} from 'stream';
-import {GaxiosInterceptorManager} from './interceptor';
+import {GaxiosInterceptorManager} from './interceptor.js';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

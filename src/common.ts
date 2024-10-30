@@ -13,10 +13,13 @@
 
 import {Agent} from 'http';
 import {URL} from 'url';
-
-import {pkg} from './util';
-import extend from 'extend';
 import {Readable} from 'stream';
+
+import extend from 'extend';
+
+import util from './util.cjs';
+
+const pkg = util.pkg;
 
 /**
  * TypeScript does not have this type available globally - however `@types/node` includes `undici-types`, which has it:
