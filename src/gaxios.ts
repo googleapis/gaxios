@@ -395,17 +395,6 @@ export class Gaxios {
       ) as {} as ReadableStream;
     } else if (shouldDirectlyPassData) {
       opts.body = opts.data as BodyInit;
-
-      /**
-       * Used for backwards-compatibility.
-       *
-       * @deprecated we shouldn't infer Buffers as JSON
-       */
-      if ('Buffer' in globalThis && Buffer.isBuffer(opts.data)) {
-        if (!preparedHeaders.has('content-type')) {
-          preparedHeaders.set('content-type', 'application/json');
-        }
-      }
     } else if (typeof opts.data === 'object') {
       if (
         preparedHeaders.get('Content-Type') ===
