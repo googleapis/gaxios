@@ -28,9 +28,6 @@ import {Readable} from 'stream';
 type _BodyInit = typeof globalThis extends {BodyInit: infer T}
   ? T
   : import('undici-types').BodyInit;
-type _HeadersInit = typeof globalThis extends {HeadersInit: infer T}
-  ? T
-  : import('undici-types').HeadersInit;
 
 /**
  * Support `instanceof` operator for `GaxiosError`s in different versions of this library.
@@ -145,7 +142,7 @@ export interface GaxiosResponse<T = GaxiosResponseData> extends Response {
 }
 
 export interface GaxiosMultipartOptions {
-  headers: _HeadersInit;
+  headers: Headers;
   content: string | Readable;
 }
 
@@ -165,9 +162,23 @@ export interface GaxiosOptions extends RequestInit {
   ) => GaxiosPromise<T>;
   url?: string | URL;
   /**
-   * @deprecated
+   * Headers to add to the request.
+   *
+   * @remarks
+   *
+   * Using the proper Headers type has the following benefits:
+   * - creates consistency throughout the libraries; no need to check properties for different casing
+   *   - see {@link https://github.com/googleapis/gaxios/issues/262 #262}
+   * - Alignment with {@link https://developer.mozilla.org/en-US/docs/Web/API/Request/headers `Request#headers`}
+   * - Can easily append an existing header or create it ('upsert') if it does exist, like so:
+   * ```ts
+   * const headers = new Headers();
+   *
+   * // creates, if not exist, or appends to an existing header
+   * headers.append('x-goog-api-client', 'abc');
+   * ```
    */
-  baseUrl?: string;
+  headers?: Headers;
   baseURL?: string | URL;
   /**
    * The data to send in the {@link RequestInit.body} of the request. Objects will be
@@ -326,7 +337,7 @@ export interface GaxiosOptions extends RequestInit {
 }
 
 export interface GaxiosOptionsPrepared extends GaxiosOptions {
-  headers: globalThis.Headers;
+  headers: Headers;
   url: URL;
 }
 
