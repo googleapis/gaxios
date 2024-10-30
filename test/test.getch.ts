@@ -1112,6 +1112,20 @@ describe('🍂 defaults & instances', () => {
     assert.deepStrictEqual(res.data, {});
   });
 
+  it('should not set a default content-type for buffers', async () => {
+    const jsonLike = '{}';
+    const data = Buffer.from(jsonLike);
+    const scope = nock(url)
+      // no content type should be present
+      .matchHeader('content-type', v => v === undefined)
+      .post('/', jsonLike)
+      .reply(204);
+
+    const res = await request({url, method: 'POST', data});
+    scope.done();
+    assert.equal(res.status, 204);
+  });
+
   describe('mtls', () => {
     class GaxiosAssertAgentCache extends Gaxios {
       getAgentCache() {
