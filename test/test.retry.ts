@@ -141,14 +141,12 @@ describe('🛸 retry & exponential backoff', () => {
     scope.done();
   });
 
-  it('should retain the baseUrl on retry', async () => {
+  it('should retain the baseURL on retry', async () => {
     const body = {pumpkin: '🥧'};
     const url = '/path';
-    const baseUrl = 'http://example.com';
-    const scope = nock(baseUrl).get(url).reply(500).get(url).reply(200, body);
-    const gaxios = new Gaxios({
-      baseUrl,
-    });
+    const baseURL = 'http://example.com';
+    const scope = nock(baseURL).get(url).reply(500).get(url).reply(200, body);
+    const gaxios = new Gaxios({baseURL});
     const res = await gaxios.request({
       url,
       retry: true,
@@ -365,6 +363,33 @@ describe('🛸 retry & exponential backoff', () => {
     });
     const delay = Date.now() - start;
     assert.ok(delay > 4000 && delay < 4999);
+    scope.done();
+  });
+
+  it('should retry on `timeout`', async () => {
+    let scope = nock(url).get('/').delay(2000).reply(400);
+
+    const gaxios = new Gaxios();
+    const timeout = 10;
+
+    function onRetryAttempt() {
+      // prepare nock for next request
+      scope = nock(url).get('/').reply(204);
+    }
+
+    const res = await gaxios.request({
+      url,
+      timeout,
+      // NOTE: `node-fetch` does not yet support `TimeoutError` - testing with native `fetch` for now.
+      fetchImplementation: fetch,
+      retryConfig: {
+        onRetryAttempt,
+      },
+    });
+
+    assert.equal(res.status, 204);
+    assert.equal(res.config?.retryConfig?.currentRetryAttempt, 1);
+
     scope.done();
   });
 });

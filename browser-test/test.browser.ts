@@ -41,7 +41,7 @@ describe('💻 browser tests', () => {
   });
 
   it('should support multipart post from the browser', async () => {
-    const headers: {[key: string]: string} = {};
+    const headers = new Headers();
     const multipart = [
       {
         'Content-Type': 'application/json',
@@ -55,7 +55,7 @@ describe('💻 browser tests', () => {
     const boundary =
       globalThis?.crypto.randomUUID() || (await import('crypto')).randomUUID();
     const finale = `--${boundary}--`;
-    headers['Content-Type'] = `multipart/related; boundary=${boundary}`;
+    headers.set('Content-Type', `multipart/related; boundary=${boundary}`);
 
     let content = '';
     for (const part of multipart) {

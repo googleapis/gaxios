@@ -27,9 +27,9 @@ Gaxios supports setting default properties both on the default instance, and on 
 const gaxios = require('gaxios');
 gaxios.instance.defaults = {
   baseURL: 'https://example.com'
-  headers: {
+  headers: new Headers({
     Authorization: 'SOME_TOKEN'
-  }
+  })
 }
 gaxios.request({url: '/data'}).then(...);
 ```
@@ -42,16 +42,17 @@ over other authentication methods, i.e., application default credentials.
 ```ts
 interface GaxiosOptions = {
   // The url to which the request should be sent.  Required.
-  url: string,
+  url: string | URL,
 
   // The HTTP method to use for the request.  Defaults to `GET`.
   method: 'GET',
 
-  // The base Url to use for the request. Prepended to the `url` property above.
-  baseURL: 'https://example.com';
+  // The base Url to use for the request.
+  // Resolved as `new URL(url, baseURL)`
+  baseURL: 'https://example.com/v1/' | URL;
 
   // The HTTP methods to be sent with the request.
-  headers: { 'some': 'header' } || new Headers(),
+  headers: new Headers(),
 
   // The data to send in the body of the request. Objects will be serialized as JSON
   // except for:
@@ -86,8 +87,8 @@ interface GaxiosOptions = {
     querystring: 'parameters'
   },
 
-  // The timeout for the HTTP request in milliseconds. Defaults to 0.
-  timeout: 1000,
+  // The timeout for the HTTP request in milliseconds. No timeout by default.
+  timeout: 60000,
 
   // Optional method to override making the actual HTTP request. Useful
   // for writing tests and instrumentation
