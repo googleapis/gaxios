@@ -484,6 +484,16 @@ export class Gaxios {
       (opts as {duplex: string}).duplex = 'half';
     }
 
+    if (opts.timeout) {
+      const timeoutSignal = AbortSignal.timeout(opts.timeout);
+
+      if (opts.signal) {
+        opts.signal = AbortSignal.any([opts.signal, timeoutSignal]);
+      } else {
+        opts.signal = timeoutSignal;
+      }
+    }
+
     return Object.assign(opts, {
       headers: preparedHeaders,
       url: opts.url instanceof URL ? opts.url : new URL(opts.url),

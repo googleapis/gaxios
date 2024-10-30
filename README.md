@@ -87,8 +87,8 @@ interface GaxiosOptions = {
     querystring: 'parameters'
   },
 
-  // The timeout for the HTTP request in milliseconds. Defaults to 0.
-  timeout: 1000,
+  // The timeout for the HTTP request in milliseconds. No timeout by default.
+  timeout: 60000,
 
   // Optional method to override making the actual HTTP request. Useful
   // for writing tests and instrumentation
