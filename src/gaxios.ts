@@ -294,6 +294,23 @@ export class Gaxios {
   }
 
   /**
+   * Merges headers.
+   *
+   * @param base headers to append/overwrite to
+   * @param append headers to append/overwrite with
+   * @returns the base headers instance with merged `Headers`
+   */
+  #mergeHeaders(base: Headers, append?: Headers) {
+    append?.forEach((value, key) => {
+      // set-cookie is the only header that would repeat.
+      // A bit of background: https://developer.mozilla.org/en-US/docs/Web/API/Headers/getSetCookie
+      key === 'set-cookie' ? base.append(key, value) : base.set(key, value);
+    });
+
+    return base;
+  }
+
+  /**
    * Validates the options, merges them with defaults, and prepare request.
    *
    * @param options The original options passed from the client.
@@ -302,15 +319,19 @@ export class Gaxios {
   async #prepareRequest(
     options: GaxiosOptions,
   ): Promise<GaxiosOptionsPrepared> {
+    // Prepare Headers - copy in order to not mutate the original objects
+    const preparedHeaders = new Headers(this.defaults.headers);
+    this.#mergeHeaders(preparedHeaders, options.headers);
+
+    // Merge options
     const opts = extend(true, {}, this.defaults, options);
+
     if (!opts.url) {
       throw new Error('URL is required.');
     }
 
-    // baseUrl has been deprecated, remove in 2.0
-    const baseUrl = opts.baseUrl || opts.baseURL;
-    if (baseUrl) {
-      opts.url = baseUrl.toString() + opts.url;
+    if (opts.baseURL) {
+      opts.url = new URL(opts.url, opts.baseURL);
     }
 
     // don't modify the properties of a default or provided URL
@@ -343,11 +364,6 @@ export class Gaxios {
     if (typeof options.maxRedirects === 'number') {
       opts.follow = options.maxRedirects;
     }
-
-    const preparedHeaders =
-      opts.headers instanceof Headers
-        ? opts.headers
-        : new Headers(opts.headers);
 
     const shouldDirectlyPassData =
       typeof opts.data === 'string' ||
@@ -468,6 +484,16 @@ export class Gaxios {
       (opts as {duplex: string}).duplex = 'half';
     }
 
+    if (opts.timeout) {
+      const timeoutSignal = AbortSignal.timeout(opts.timeout);
+
+      if (opts.signal) {
+        opts.signal = AbortSignal.any([opts.signal, timeoutSignal]);
+      } else {
+        opts.signal = timeoutSignal;
+      }
+    }
+
     return Object.assign(opts, {
       headers: preparedHeaders,
       url: opts.url instanceof URL ? opts.url : new URL(opts.url),
@@ -526,12 +552,8 @@ export class Gaxios {
   ) {
     const finale = `--${boundary}--`;
     for (const currentPart of multipartOptions) {
-      const headers =
-        currentPart.headers instanceof Headers
-          ? currentPart.headers
-          : new Headers(currentPart.headers as HeadersInit);
       const partContentType =
-        headers.get('Content-Type') || 'application/octet-stream';
+        currentPart.headers.get('Content-Type') || 'application/octet-stream';
       const preamble = `--${boundary}\r\nContent-Type: ${partContentType}\r\n\r\n`;
       yield preamble;
       if (typeof currentPart.content === 'string') {
