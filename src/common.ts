@@ -54,7 +54,7 @@ export class GaxiosError<T = any> extends Error {
   code?: string;
   /**
    * An HTTP Status code.
-   * See {@link https://developer.mozilla.org/en-US/docs/Web/API/Response/status Response: status property}
+   * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/Response/status Response#status}
    *
    * @example
    * 500
