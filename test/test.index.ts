@@ -13,7 +13,7 @@
 
 import assert from 'assert';
 import {describe, it} from 'mocha';
-import * as main from '../src/index';
+import * as main from '../src/index.js';
 
 describe('📝 main exports', () => {
   it('should export all the types', () => {

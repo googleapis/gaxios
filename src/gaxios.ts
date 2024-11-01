@@ -25,10 +25,10 @@ import {
   GaxiosPromise,
   GaxiosResponse,
   defaultErrorRedactor,
-} from './common';
-import {getRetryConfig} from './retry';
+} from './common.js';
+import {getRetryConfig} from './retry.js';
 import {Readable} from 'stream';
-import {GaxiosInterceptorManager} from './interceptor';
+import {GaxiosInterceptorManager} from './interceptor.js';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -400,17 +400,6 @@ export class Gaxios {
       ) as {} as ReadableStream;
     } else if (shouldDirectlyPassData) {
       opts.body = opts.data as BodyInit;
-
-      /**
-       * Used for backwards-compatibility.
-       *
-       * @deprecated we shouldn't infer Buffers as JSON
-       */
-      if ('Buffer' in globalThis && Buffer.isBuffer(opts.data)) {
-        if (!preparedHeaders.has('content-type')) {
-          preparedHeaders.set('content-type', 'application/json');
-        }
-      }
     } else if (typeof opts.data === 'object') {
       if (
         preparedHeaders.get('Content-Type') ===

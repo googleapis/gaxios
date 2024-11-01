@@ -1,12 +1,7 @@
 {
-  "extends": "./node_modules/gts/tsconfig-google.json",
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "lib": ["ES2023", "dom"],
-    "rootDir": ".",
-    "outDir": "build",
-    "esModuleInterop": true,
-    "module": "Node16",
-    "moduleResolution": "Node16"
-  },
-  "include": ["src/*.ts", "test/*.ts", "browser-test/*.ts", "system-test/*.ts"]
+    "module": "Preserve",
+    "outDir": "build/esm"
+  }
 }
