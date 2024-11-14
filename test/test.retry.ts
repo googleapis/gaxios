@@ -367,10 +367,10 @@ describe('🛸 retry & exponential backoff', () => {
   });
 
   it('should retry on `timeout`', async () => {
-    const scope = nock(url).get('/').delay(3000).reply(400).get('/').reply(204);
+    const scope = nock(url).get('/').delay(500).reply(400).get('/').reply(204);
 
     const gaxios = new Gaxios();
-    const timeout = 1000;
+    const timeout = 100;
 
     async function onRetryAttempt({config, message}: GaxiosError) {
       assert(config.signal?.reason instanceof DOMException);
@@ -378,8 +378,8 @@ describe('🛸 retry & exponential backoff', () => {
       assert.match(message, /timeout/i);
 
       // increase timeout to something higher to avoid time-sensitive flaky tests
-      // note: the second `nock` get is not delayed like the first one
-      config.timeout = 60000;
+      // note: the second `nock` GET is not delayed like the first one
+      config.timeout = 10000;
     }
 
     const res = await gaxios.request({
