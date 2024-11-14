@@ -376,6 +376,7 @@ describe('🛸 retry & exponential backoff', () => {
       assert.match(opts.message, /timeout/);
 
       // increase timeout to something higher to avoid time-sensitive flaky tests
+      // note: the second `nock` get is not delayed like the first one
       opts.config.timeout = 1000;
     }
 
