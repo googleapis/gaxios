@@ -370,11 +370,13 @@ describe('🛸 retry & exponential backoff', () => {
     let scope = nock(url).get('/').delay(2000).reply(400);
 
     const gaxios = new Gaxios();
-    const timeout = 10;
+    const timeout = 1;
 
-    function onRetryAttempt() {
+    function onRetryAttempt(opts: GaxiosError) {
       // prepare nock for next request
       scope = nock(url).get('/').reply(204);
+      // increase timeout to something higher to avoid time-sensitive flaky tests
+      opts.config.timeout = 1000;
     }
 
     const res = await gaxios.request({
