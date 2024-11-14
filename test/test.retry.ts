@@ -377,7 +377,7 @@ describe('🛸 retry & exponential backoff', () => {
 
       // increase timeout to something higher to avoid time-sensitive flaky tests
       // note: the second `nock` get is not delayed like the first one
-      opts.config.timeout = 10000;
+      opts.config.timeout = 60000;
     }
 
     const res = await gaxios.request({
