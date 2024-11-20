@@ -36,7 +36,7 @@ if [ -f samples/package.json ]; then
 
     # Install and link samples
     cd samples/
-    npm link ../
+    npm link --force ../
     npm install
     cd ..
     # If tests are running against main branch, configure flakybot
