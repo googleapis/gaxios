@@ -16,12 +16,7 @@
 
 set -eo pipefail
 
-unset NPM_CONFIG_PREFIX
-export NPM_CONFIG_UNSAFE_PERM=TRUE
-
-# ls $NPM_CONFIG_PREFIX || mkdir -p $NPM_CONFIG_PREFIX || echo "potential access error"
-
-# npm i -g npm@`npm --version`
+export NPM_CONFIG_PREFIX=${HOME}/.npm-global
 
 # Setup service account credentials.
 export GOOGLE_APPLICATION_CREDENTIALS=${KOKORO_GFILE_DIR}/secret_manager/long-door-651-kokoro-system-test-service-account
