@@ -18,6 +18,9 @@ set -eo pipefail
 
 export NPM_CONFIG_PREFIX=${HOME}/.npm-global
 
+echo "HOME: $HOME"
+echo "USER: $USER"
+
 # Setup service account credentials.
 export GOOGLE_APPLICATION_CREDENTIALS=${KOKORO_GFILE_DIR}/secret_manager/long-door-651-kokoro-system-test-service-account
 export GCLOUD_PROJECT=long-door-651
