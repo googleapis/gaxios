@@ -16,7 +16,7 @@
 
 set -eo pipefail
 
-export NPM_CONFIG_PREFIX=""
+unset NPM_CONFIG_PREFIX
 # Ensure the npm global directory is writable, otherwise rebuild `npm`
 npm config -g ls || npm i -g npm@`npm --version`
 
