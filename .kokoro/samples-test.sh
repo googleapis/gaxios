@@ -36,7 +36,6 @@ if [ -f samples/package.json ]; then
 
     # Install and link samples
     cd samples/
-    mkdir node_modules/
     npm link ../
     npm install
     cd ..
