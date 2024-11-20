@@ -16,9 +16,7 @@
 
 set -eo pipefail
 
-unset NPM_CONFIG_PREFIX
-# Ensure the npm global directory is writable, otherwise rebuild `npm`
-npm config -g ls || npm i -g npm@`npm --version`
+export NPM_CONFIG_PREFIX=${HOME}/.npm-global
 
 # Setup service account credentials.
 export GOOGLE_APPLICATION_CREDENTIALS=${KOKORO_GFILE_DIR}/secret_manager/long-door-651-kokoro-system-test-service-account
