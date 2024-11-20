@@ -16,7 +16,8 @@
 
 set -eo pipefail
 
-export NPM_CONFIG_PREFIX=${HOME}/.npm-global
+export NPM_CONFIG_PREFIX=""
+npm config -g set update-notifier false
 
 # Setup service account credentials.
 export GOOGLE_APPLICATION_CREDENTIALS=${KOKORO_GFILE_DIR}/secret_manager/long-door-651-kokoro-system-test-service-account
