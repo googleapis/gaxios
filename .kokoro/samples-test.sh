@@ -16,15 +16,9 @@
 
 set -eo pipefail
 
-# testing access to node dir
-mkdir /home/node/.test-dir || echo "::: /home/node/ not writable"
-
-# Import shared global npm config
-npm config -g ls > $HOME/.npm
-export NPM_CONFIG_PREFIX=$HOME/.npm
-
-# Force-rebuild `npm` to solve `npm link` issue
-# npm i -g npm@`npm --version`
+# Ensure the npm global directory is writable, otherwise rebuild `npm`
+mkdir -p $NPM_CONFIG_PREFIX
+npm config -g ls || npm i -g npm@`npm --version`
 
 # Setup service account credentials.
 export GOOGLE_APPLICATION_CREDENTIALS=${KOKORO_GFILE_DIR}/secret_manager/long-door-651-kokoro-system-test-service-account
