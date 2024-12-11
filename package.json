@@ -99,6 +99,6 @@
   "dependencies": {
     "extend": "^3.0.2",
     "https-proxy-agent": "^7.0.1",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^2.7.0"
   }
 }
