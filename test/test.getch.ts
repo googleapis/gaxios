@@ -740,7 +740,7 @@ describe('🥁 configuration options', () => {
 });
 
 describe('🎏 data handling', () => {
-  it('should accpet a ReadableStream as request data', async () => {
+  it('should accept a ReadableStream as request data', async () => {
     const scope = nock(url).post('/', 'test').reply(200, {});
     const res = await request({
       url,
@@ -1452,5 +1452,62 @@ describe('interceptors', () => {
       await instance.request({url});
       scope.done();
     });
+  });
+});
+
+/**
+ * Fetch-compliant API testing.
+ *
+ * Documentation:
+ * - https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
+ * - https://nodejs.org/docs/latest/api/globals.html#fetch
+ */
+describe('fetch-compatible API', () => {
+  it('should accept a `string`', async () => {
+    const scope = nock(url).get('/').reply(200, {});
+
+    const gaxios = new Gaxios();
+    const res = await gaxios.fetch(url);
+
+    scope.done();
+    assert(typeof url === 'string');
+    assert.deepStrictEqual(res.data, {});
+  });
+
+  it('should accept a `URL`', async () => {
+    const scope = nock(url).get('/').reply(200, {});
+
+    const gaxios = new Gaxios();
+    const res = await gaxios.fetch(new URL(url));
+
+    scope.done();
+    assert.deepStrictEqual(res.data, {});
+  });
+
+  it('should accept an input with initialization', async () => {
+    const scope = nock(url).post('/', 'abc').reply(200, {});
+
+    const gaxios = new Gaxios();
+    const res = await gaxios.fetch(url, {
+      body: Buffer.from('abc'),
+      method: 'POST',
+    });
+
+    scope.done();
+    assert.deepStrictEqual(res.data, {});
+  });
+
+  it('should accept `GaxiosOptions`', async () => {
+    const scope = nock(url).post('/', 'abc').reply(200, {});
+
+    const gaxios = new Gaxios();
+    const options: GaxiosOptions = {
+      body: Buffer.from('abc'),
+      method: 'POST',
+    };
+    const res = await gaxios.fetch(url, options);
+
+    scope.done();
+    assert.deepStrictEqual(res.data, {});
   });
 });
