@@ -278,10 +278,6 @@ export interface GaxiosOptions extends RequestInit {
   retryConfig?: RetryConfig;
   retry?: boolean;
   /**
-   * Enables aborting via {@link AbortController}.
-   */
-  signal?: AbortSignal;
-  /**
    * @deprecated non-spec. https://github.com/node-fetch/node-fetch/issues/1438
    */
   size?: number;
