@@ -30,12 +30,22 @@ import {getRetryConfig} from './retry.js';
 import {Readable} from 'stream';
 import {GaxiosInterceptorManager} from './interceptor.js';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 const randomUUID = async () =>
   globalThis.crypto?.randomUUID() || (await import('crypto')).randomUUID();
 
-export class Gaxios {
+/**
+ * An interface for enforcing `fetch`-type compliance.
+ *
+ * @remarks
+ *
+ * This provides type guarantees during build-time, ensuring the `fetch` method is 1:1
+ * compatible with the `fetch` API.
+ */
+interface FetchCompliance {
+  fetch: typeof fetch;
+}
+
+export class Gaxios implements FetchCompliance {
   protected agentCache = new Map<
     string | URL,
     Agent | ((parsedUrl: URL) => Agent)
@@ -64,6 +74,61 @@ export class Gaxios {
       request: new GaxiosInterceptorManager(),
       response: new GaxiosInterceptorManager(),
     };
+  }
+
+  /**
+   * A {@link fetch `fetch`} compliant API for {@link Gaxios}.
+   *
+   * @remarks
+   *
+   * This is useful as a drop-in replacement for `fetch` API usage.
+   *
+   * @example
+   *
+   * ```ts
+   * const gaxios = new Gaxios();
+   * const myFetch: typeof fetch = (...args) => gaxios.fetch(...args);
+   * await myFetch('https://example.com');
+   * ```
+   *
+   * @param args `fetch` API or `Gaxios#request` parameters
+   * @returns the {@link Response} with Gaxios-added properties
+   */
+  fetch<T = unknown>(
+    ...args: Parameters<typeof fetch> | Parameters<Gaxios['request']>
+  ): GaxiosPromise<T> {
+    // Up to 2 parameters in either overload
+    const input = args[0];
+    const init = args[1];
+
+    let url: URL | undefined = undefined;
+    const headers = new Headers();
+
+    // prepare URL
+    if (typeof input === 'string') {
+      url = new URL(input);
+    } else if (input instanceof URL) {
+      url = input;
+    } else if (input && input.url) {
+      url = new URL(input.url);
+    }
+
+    // prepare headers
+    if (input && typeof input === 'object' && 'headers' in input) {
+      this.#mergeHeaders(headers, input.headers);
+    }
+    if (init) {
+      this.#mergeHeaders(headers, new Headers(init.headers));
+    }
+
+    // prepare request
+    if (typeof input === 'object' && !(input instanceof URL)) {
+      // input must have been a non-URL object
+      return this.request({...init, ...input, headers, url});
+    } else {
+      // input must have been a string or URL
+      return this.request({...init, headers, url});
+    }
   }
 
   /**

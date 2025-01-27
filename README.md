@@ -19,6 +19,15 @@ import {request} from 'gaxios';
 const res = await request({url: 'https://google.com/'});
 ```
 
+## `fetch`-Compatible API Example
+
+We offer a drop-in `fetch`-compatible API as well.
+
+```js
+import {instance} from 'gaxios';
+const res = await instance.fetch('https://google.com/');
+```
+
 ## Setting Defaults
 
 Gaxios supports setting default properties both on the default instance, and on additional instances. This is often useful when making many requests to the same domain with the same base settings. For example:
