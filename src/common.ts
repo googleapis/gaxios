@@ -162,8 +162,6 @@ export interface GaxiosOptions extends RequestInit {
   /**
    * Optional method to override making the actual HTTP request. Useful
    * for writing tests.
-   *
-   * @deprecated Use {@link GaxiosOptions.fetchImplementation} instead.
    */
   adapter?: <T = GaxiosResponseData>(
     options: GaxiosOptionsPrepared,
