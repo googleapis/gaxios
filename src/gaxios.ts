@@ -655,16 +655,21 @@ export class Gaxios implements FetchCompliance {
    * @param append headers to append/overwrite with
    * @returns the base headers instance with merged `Headers`
    */
-  static mergeHeaders(base: HeadersInit, append?: HeadersInit): Headers {
+  static mergeHeaders(base: HeadersInit, ...append: HeadersInit[]): Headers {
     base = base instanceof Headers ? base : new Headers(base);
-    append = append instanceof Headers ? append : new Headers(append);
 
-    append.forEach((value, key) => {
-      // set-cookie is the only header that would repeat.
-      // A bit of background: https://developer.mozilla.org/en-US/docs/Web/API/Headers/getSetCookie
-      key === 'set-cookie' ? base.append(key, value) : base.set(key, value);
-    });
+    for (const headers of append) {
+      const add = headers instanceof Headers ? headers : new Headers(headers);
+
+      add.forEach((value, key) => {
+        // set-cookie is the only header that would repeat.
+        // A bit of background: https://developer.mozilla.org/en-US/docs/Web/API/Headers/getSetCookie
+        key === 'set-cookie' ? base.append(key, value) : base.set(key, value);
+      });
+    }
 
     return base;
   }
 }
+
+type HeadersInit = ConstructorParameters<typeof Headers>[0];
