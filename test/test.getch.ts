@@ -1511,3 +1511,41 @@ describe('fetch-compatible API', () => {
     assert.deepStrictEqual(res.data, {});
   });
 });
+
+describe('merge headers', () => {
+  it('should merge headers', () => {
+    const base = {a: 'a'};
+    const append = {b: 'b'};
+    const expected = new Headers({...base, ...append});
+
+    const matrixBase: HeadersInit[] = [
+      {...base},
+      Object.entries(base),
+      new Headers(base),
+    ];
+
+    const matrixAppend: HeadersInit[] = [
+      {...append},
+      Object.entries(append),
+      new Headers(append),
+    ];
+
+    for (const base of matrixBase) {
+      for (const append of matrixAppend) {
+        const headers = Gaxios.mergeHeaders(base, append);
+
+        assert.deepStrictEqual(headers, expected);
+      }
+    }
+  });
+
+  it('should merge set-cookie headers', () => {
+    const base = {'set-cookie': 'a=a'};
+    const append = {'set-cookie': 'b=b'};
+    const expected = new Headers({'set-cookie': 'a=a, b=b'});
+
+    const headers = Gaxios.mergeHeaders(base, append);
+
+    assert.deepStrictEqual(headers, expected);
+  });
+});

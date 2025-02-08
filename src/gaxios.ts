@@ -115,10 +115,10 @@ export class Gaxios implements FetchCompliance {
 
     // prepare headers
     if (input && typeof input === 'object' && 'headers' in input) {
-      this.#mergeHeaders(headers, input.headers);
+      Gaxios.mergeHeaders(headers, input.headers);
     }
     if (init) {
-      this.#mergeHeaders(headers, new Headers(init.headers));
+      Gaxios.mergeHeaders(headers, new Headers(init.headers));
     }
 
     // prepare request
@@ -363,23 +363,6 @@ export class Gaxios implements FetchCompliance {
   }
 
   /**
-   * Merges headers.
-   *
-   * @param base headers to append/overwrite to
-   * @param append headers to append/overwrite with
-   * @returns the base headers instance with merged `Headers`
-   */
-  #mergeHeaders(base: Headers, append?: Headers) {
-    append?.forEach((value, key) => {
-      // set-cookie is the only header that would repeat.
-      // A bit of background: https://developer.mozilla.org/en-US/docs/Web/API/Headers/getSetCookie
-      key === 'set-cookie' ? base.append(key, value) : base.set(key, value);
-    });
-
-    return base;
-  }
-
-  /**
    * Validates the options, merges them with defaults, and prepare request.
    *
    * @param options The original options passed from the client.
@@ -390,7 +373,7 @@ export class Gaxios implements FetchCompliance {
   ): Promise<GaxiosOptionsPrepared> {
     // Prepare Headers - copy in order to not mutate the original objects
     const preparedHeaders = new Headers(this.defaults.headers);
-    this.#mergeHeaders(preparedHeaders, options.headers);
+    Gaxios.mergeHeaders(preparedHeaders, options.headers);
 
     // Merge options
     const opts = extend(true, {}, this.defaults, options);
@@ -663,5 +646,25 @@ export class Gaxios implements FetchCompliance {
       : (await import('node-fetch')).default;
 
     return this.#fetch;
+  }
+
+  /**
+   * Merges headers.
+   *
+   * @param base headers to append/overwrite to
+   * @param append headers to append/overwrite with
+   * @returns the base headers instance with merged `Headers`
+   */
+  static mergeHeaders(base: HeadersInit, append?: HeadersInit): Headers {
+    base = base instanceof Headers ? base : new Headers(base);
+    append = append instanceof Headers ? append : new Headers(append);
+
+    append.forEach((value, key) => {
+      // set-cookie is the only header that would repeat.
+      // A bit of background: https://developer.mozilla.org/en-US/docs/Web/API/Headers/getSetCookie
+      key === 'set-cookie' ? base.append(key, value) : base.set(key, value);
+    });
+
+    return base;
   }
 }
