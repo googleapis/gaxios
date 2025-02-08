@@ -1518,13 +1518,8 @@ describe('merge headers', () => {
     const append = {b: 'b'};
     const expected = new Headers({...base, ...append});
 
-    const matrixBase: HeadersInit[] = [
-      {...base},
-      Object.entries(base),
-      new Headers(base),
-    ];
-
-    const matrixAppend: HeadersInit[] = [
+    const matrixBase = [{...base}, Object.entries(base), new Headers(base)];
+    const matrixAppend = [
       {...append},
       Object.entries(append),
       new Headers(append),
