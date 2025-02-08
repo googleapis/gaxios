@@ -668,3 +668,5 @@ export class Gaxios implements FetchCompliance {
     return base;
   }
 }
+
+type HeadersInit = ConstructorParameters<typeof Headers>[0];
