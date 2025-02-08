@@ -1542,10 +1542,13 @@ describe('merge headers', () => {
   it('should merge set-cookie headers', () => {
     const base = {'set-cookie': 'a=a'};
     const append = {'set-cookie': 'b=b'};
-    const expected = new Headers({'set-cookie': 'a=a, b=b'});
+    const expected = new Headers([
+      ['set-cookie', 'a=a'],
+      ['set-cookie', 'b=b'],
+    ]);
 
     const headers = Gaxios.mergeHeaders(base, append);
 
-    assert.deepStrictEqual(headers, expected);
+    assert.deepStrictEqual(headers.getSetCookie(), expected.getSetCookie());
   });
 });
