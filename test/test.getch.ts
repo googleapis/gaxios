@@ -1539,7 +1539,7 @@ describe('merge headers', () => {
     }
   });
 
-  it.only('should merge set-cookie headers', () => {
+  it('should merge set-cookie headers', () => {
     const base = {'set-cookie': 'a=a'};
     const append = {'set-cookie': 'b=b'};
     const expected = new Headers([
