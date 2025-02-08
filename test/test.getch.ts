@@ -1513,7 +1513,7 @@ describe('fetch-compatible API', () => {
 });
 
 describe('merge headers', () => {
-  it('should merge headers', () => {
+  it('should merge Headers', () => {
     const base = {a: 'a'};
     const append = {b: 'b'};
     const expected = new Headers({...base, ...append});
@@ -1534,7 +1534,18 @@ describe('merge headers', () => {
     }
   });
 
-  it('should merge set-cookie headers', () => {
+  it('should merge multiple Headers', () => {
+    const base = {a: 'a'};
+    const append = {b: 'b'};
+    const appendMore = {c: 'c'};
+    const expected = new Headers({...base, ...append, ...appendMore});
+
+    const headers = Gaxios.mergeHeaders(base, append, appendMore);
+
+    assert.deepStrictEqual(headers, expected);
+  });
+
+  it('should merge Set-Cookie Headers', () => {
     const base = {'set-cookie': 'a=a'};
     const append = {'set-cookie': 'b=b'};
     const expected = new Headers([
