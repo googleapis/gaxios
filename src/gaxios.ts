@@ -650,12 +650,20 @@ export class Gaxios implements FetchCompliance {
 
   /**
    * Merges headers.
+   * If the base headers do not exist a new `Headers` object will be returned.
+   *
+   * @remarks
+   *
+   * Using this utility can be helpful when the headers are not known to exist:
+   * - if they exist as `Headers`, that instance will be used
+   * - if they exist in another form, they will be used as a new Headers object
+   * - if they do not exist
    *
    * @param base headers to append/overwrite to
    * @param append headers to append/overwrite with
    * @returns the base headers instance with merged `Headers`
    */
-  static mergeHeaders(base: HeadersInit, ...append: HeadersInit[]): Headers {
+  static mergeHeaders(base?: HeadersInit, ...append: HeadersInit[]): Headers {
     base = base instanceof Headers ? base : new Headers(base);
 
     for (const headers of append) {
