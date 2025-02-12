@@ -129,13 +129,6 @@ export class GaxiosError<T = any> extends Error {
     if (error && 'code' in error && error.code) {
       this.code = error.code;
     }
-
-    if (config.errorRedactor) {
-      config.errorRedactor({
-        config: this.config,
-        response: this.response,
-      });
-    }
   }
 }
 
@@ -496,7 +489,7 @@ export function defaultErrorRedactor<
   }
 
   function redactObject<T extends O['data'] | R>(obj: T | null) {
-    if (!obj) {
+    if (!obj || typeof obj !== 'object') {
       return;
     } else if (
       obj instanceof FormData ||
