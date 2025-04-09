@@ -170,24 +170,6 @@ export interface GaxiosOptions extends RequestInit {
     defaultAdapter: (options: GaxiosOptionsPrepared) => GaxiosPromise<T>,
   ) => GaxiosPromise<T>;
   url?: string | URL;
-  /**
-   * Headers to add to the request.
-   *
-   * @remarks
-   *
-   * Using the proper Headers type has the following benefits:
-   * - creates consistency throughout the libraries; no need to check properties for different casing
-   *   - see {@link https://github.com/googleapis/gaxios/issues/262 #262}
-   * - Alignment with {@link https://developer.mozilla.org/en-US/docs/Web/API/Request/headers `Request#headers`}
-   * - Can easily append an existing header or create it ('upsert') if it does exist, like so:
-   * ```ts
-   * const headers = new Headers();
-   *
-   * // creates, if not exist, or appends to an existing header
-   * headers.append('x-goog-api-client', 'abc');
-   * ```
-   */
-  headers?: Headers;
   baseURL?: string | URL;
   /**
    * The data to send in the {@link RequestInit.body} of the request. Objects will be
