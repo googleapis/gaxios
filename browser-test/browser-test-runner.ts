@@ -11,13 +11,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import execa from 'execa';
 import express from 'express';
 import http from 'http';
+import {execFile} from 'child_process';
 import * as multiparty from 'multiparty';
 import cors from 'cors';
+import {promisify} from 'util';
 
 const port = 7172;
+
+const exec = promisify(execFile);
 
 async function listen(
   app: express.Express,
@@ -69,14 +72,11 @@ async function main() {
 
   const server = await listen(app, port);
   console.log(`[http server] I'm listening on port ${port}! Starting karma.`);
-  const result = await execa('karma', ['start'], {stdio: 'inherit'});
+  await exec('karma', ['start']);
   server.close();
   console.log(
     `[http server] Karma has finished! I'm no longer listening on port ${port}!`,
   );
-  if (result.failed) {
-    throw new Error('Tests failed.');
-  }
 }
 
 main().catch(err => {

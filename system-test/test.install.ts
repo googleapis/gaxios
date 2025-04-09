@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import assert from 'assert';
-import execa from 'execa';
+import {execFile} from 'child_process';
 import fs from 'fs';
 import mv from 'mv';
 import ncp from 'ncp';
@@ -36,6 +36,8 @@ const mvp = promisify(mv) as {} as (...args: string[]) => Promise<void>;
 const ncpp = promisify(ncp);
 
 const pkg = util.pkg;
+
+const exec = promisify(execFile);
 
 describe('📦 pack and install', () => {
   let stagingDir: tmp.DirResult;
@@ -122,22 +124,16 @@ describe('📦 pack and install', () => {
      * application.
      */
     before('pack and install', async () => {
-      await execa('npm', ['pack']);
+      await exec('npm', ['pack']);
       const tarball = `${pkg.name}-${pkg.version}.tgz`;
       await mvp(tarball, `${stagingPath}/gaxios.tgz`);
       await ncpp('system-test/fixtures/sample', `${stagingPath}/`);
-      await execa('npm', ['install'], {
-        cwd: `${stagingPath}/`,
-        stdio: 'inherit',
-      });
+      await exec('npm', ['install'], {cwd: `${stagingPath}/`});
     });
 
     it('should be able to webpack the library', async () => {
       // we expect npm install is executed in the before hook
-      await execa('npx', ['webpack'], {
-        cwd: `${stagingPath}/`,
-        stdio: 'inherit',
-      });
+      await exec('npx', ['webpack'], {cwd: `${stagingPath}/`});
       const bundle = path.join(stagingPath, 'dist', 'bundle.min.js');
       const stat = fs.statSync(bundle);
       assert(stat.size < 256 * 1024);
