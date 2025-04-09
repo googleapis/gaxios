@@ -1,5 +1,28 @@
 # Changelog
 
+## [7.0.0](https://github.com/googleapis/gaxios/compare/v6.7.1...v7.0.0) (2025-04-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* Dual-Support ESM & CJS ([#662](https://github.com/googleapis/gaxios/issues/662))
+* Do not treat Buffers as JSON by default ([#621](https://github.com/googleapis/gaxios/issues/621))
+* Standardize `baseURL` to `URL`’s spec ([#600](https://github.com/googleapis/gaxios/issues/600))
+* Headers should be `Headers` ([#653](https://github.com/googleapis/gaxios/issues/653))
+* Upgrade to `node-fetch` v3 ([#617](https://github.com/googleapis/gaxios/issues/617))
+* Support Node 18+ ([#650](https://github.com/googleapis/gaxios/issues/650))
+
+### Features
+
+* `fetch`-Compatible API ([#680](https://github.com/googleapis/gaxios/issues/680)) ([d3cb530](https://github.com/googleapis/gaxios/commit/d3cb530430a1896f8292c218246763b53aa78097))
+* Do not treat Buffers as JSON by default ([#621](https://github.com/googleapis/gaxios/issues/621)) ([f3c1e76](https://github.com/googleapis/gaxios/commit/f3c1e769060d507668590a60231cc81fcedaf446))
+* Dual-Support ESM & CJS ([#662](https://github.com/googleapis/gaxios/issues/662)) ([352d61b](https://github.com/googleapis/gaxios/commit/352d61b4b812ab9f1eab65af38fe28a2c62108e0))
+* Headers should be `Headers` ([#653](https://github.com/googleapis/gaxios/issues/653)) ([de28c24](https://github.com/googleapis/gaxios/commit/de28c24771841bf6f7d2373d069a4b1ff43300d3))
+* Standardize `baseURL` to `URL`’s spec ([#600](https://github.com/googleapis/gaxios/issues/600)) ([ffff324](https://github.com/googleapis/gaxios/commit/ffff324c2ea08542769e93441c6f753e9d6abc43))
+* Support `timeout` for `fetch` and `node-fetch` v3 ([#660](https://github.com/googleapis/gaxios/issues/660)) ([56a1337](https://github.com/googleapis/gaxios/commit/56a13370f3fd6c27fac339d4b3c18b1d43676372))
+* Support Node 18+ ([#650](https://github.com/googleapis/gaxios/issues/650)) ([6fa8080](https://github.com/googleapis/gaxios/commit/6fa80809656bafe85ce86602c190e4b2b7546576))
+* Upgrade to `node-fetch` v3 ([#617](https://github.com/googleapis/gaxios/issues/617)) ([33702e6](https://github.com/googleapis/gaxios/commit/33702e6d3d470957bf40097d6235d13a75d14cb1))
+
 ## [6.7.1](https://github.com/googleapis/gaxios/compare/v6.7.0...v6.7.1) (2024-08-13)
 
 
