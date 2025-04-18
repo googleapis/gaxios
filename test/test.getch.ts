@@ -1511,3 +1511,50 @@ describe('fetch-compatible API', () => {
     assert.deepStrictEqual(res.data, {});
   });
 });
+
+describe('merge headers', () => {
+  it('should merge Headers', () => {
+    const base = {a: 'a'};
+    const append = {b: 'b'};
+    const expected = new Headers({...base, ...append});
+
+    const matrixBase = [{...base}, Object.entries(base), new Headers(base)];
+    const matrixAppend = [
+      {...append},
+      Object.entries(append),
+      new Headers(append),
+    ];
+
+    for (const base of matrixBase) {
+      for (const append of matrixAppend) {
+        const headers = Gaxios.mergeHeaders(base, append);
+
+        assert.deepStrictEqual(headers, expected);
+      }
+    }
+  });
+
+  it('should merge multiple Headers', () => {
+    const base = {a: 'a'};
+    const append = {b: 'b'};
+    const appendMore = {c: 'c'};
+    const expected = new Headers({...base, ...append, ...appendMore});
+
+    const headers = Gaxios.mergeHeaders(base, append, appendMore);
+
+    assert.deepStrictEqual(headers, expected);
+  });
+
+  it('should merge Set-Cookie Headers', () => {
+    const base = {'set-cookie': 'a=a'};
+    const append = {'set-cookie': 'b=b'};
+    const expected = new Headers([
+      ['set-cookie', 'a=a'],
+      ['set-cookie', 'b=b'],
+    ]);
+
+    const headers = Gaxios.mergeHeaders(base, append);
+
+    assert.deepStrictEqual(headers.getSetCookie(), expected.getSetCookie());
+  });
+});
