@@ -656,8 +656,9 @@ export class Gaxios implements FetchCompliance {
    *
    * Using this utility can be helpful when the headers are not known to exist:
    * - if they exist as `Headers`, that instance will be used
-   * - if they exist in another form, they will be used as a new Headers object
-   * - if they do not exist
+   *   - it improves performance and allows users to use their existing references to their `Headers`
+   * - if they exist in another form (`HeadersInit`), they will be used to create a new `Headers` object
+   * - if the base headers do not exist a new `Headers` object will be created
    *
    * @param base headers to append/overwrite to
    * @param append headers to append/overwrite with
