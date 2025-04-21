@@ -169,7 +169,7 @@ describe('🥁 configuration options', () => {
     const inst = new Gaxios({headers: new Headers({apple: 'juice'})});
     const res = await inst.request({
       url,
-      headers: new Headers({figgy: 'pudding'}),
+      headers: {figgy: 'pudding'},
     });
     scope.done();
     assert.strictEqual(res.config.headers.get('apple'), 'juice');
