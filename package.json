@@ -20,7 +20,7 @@
     }
   },
   "scripts": {
-    "lint": "gts check",
+    "lint": "gts check -- --no-inline-config",
     "test": "c8 mocha build/esm/test",
     "presystem-test": "npm run compile",
     "system-test": "mocha build/esm/system-test --timeout 80000",
