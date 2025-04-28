@@ -1128,6 +1128,53 @@ describe('🎏 data handling', () => {
       scope.done();
     }
   });
+
+  it('should redact after final retry', async () => {
+    const customURL = new URL(url);
+    customURL.searchParams.append('token', 'sensitive');
+    customURL.searchParams.append('client_secret', 'data');
+    customURL.searchParams.append('random', 'non-sensitive');
+
+    const data = {
+      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      assertion: 'somesensitivedata',
+      unrelated: 'data',
+      client_secret: 'data',
+    };
+
+    let retryAttempted = false;
+    const config: GaxiosOptions = {
+      url: customURL,
+      method: 'POST',
+      data: new URLSearchParams(data),
+      retry: true,
+      retryConfig: {
+        httpMethodsToRetry: ['POST'],
+        onRetryAttempt: err => {
+          assert.deepStrictEqual(err.config.data, new URLSearchParams(data));
+          retryAttempted = true;
+        },
+      },
+    };
+
+    const scope = nock(url)
+      .post('/', data)
+      .query(() => true)
+      .reply(500)
+      .post('/', data)
+      .query(() => true)
+      .reply(204);
+
+    const gaxios = new Gaxios();
+
+    try {
+      await gaxios.request(config);
+
+      assert(retryAttempted);
+    } finally {
+      scope.done();
+    }
+  });
 });
 
 describe('🍂 defaults & instances', () => {

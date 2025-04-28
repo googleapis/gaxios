@@ -231,6 +231,10 @@ export class Gaxios implements FetchCompliance {
         return this._request<T>(opts);
       }
 
+      if (opts.errorRedactor) {
+        opts.errorRedactor(err);
+      }
+
       throw err;
     }
   }
