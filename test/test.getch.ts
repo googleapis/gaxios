@@ -169,7 +169,7 @@ describe('🥁 configuration options', () => {
     const inst = new Gaxios({headers: new Headers({apple: 'juice'})});
     const res = await inst.request({
       url,
-      headers: new Headers({figgy: 'pudding'}),
+      headers: {figgy: 'pudding'},
     });
     scope.done();
     assert.strictEqual(res.config.headers.get('apple'), 'juice');
@@ -1128,6 +1128,53 @@ describe('🎏 data handling', () => {
       scope.done();
     }
   });
+
+  it('should redact after final retry', async () => {
+    const customURL = new URL(url);
+    customURL.searchParams.append('token', 'sensitive');
+    customURL.searchParams.append('client_secret', 'data');
+    customURL.searchParams.append('random', 'non-sensitive');
+
+    const data = {
+      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      assertion: 'somesensitivedata',
+      unrelated: 'data',
+      client_secret: 'data',
+    };
+
+    let retryAttempted = false;
+    const config: GaxiosOptions = {
+      url: customURL,
+      method: 'POST',
+      data: new URLSearchParams(data),
+      retry: true,
+      retryConfig: {
+        httpMethodsToRetry: ['POST'],
+        onRetryAttempt: err => {
+          assert.deepStrictEqual(err.config.data, new URLSearchParams(data));
+          retryAttempted = true;
+        },
+      },
+    };
+
+    const scope = nock(url)
+      .post('/', data)
+      .query(() => true)
+      .reply(500)
+      .post('/', data)
+      .query(() => true)
+      .reply(204);
+
+    const gaxios = new Gaxios();
+
+    try {
+      await gaxios.request(config);
+
+      assert(retryAttempted);
+    } finally {
+      scope.done();
+    }
+  });
 });
 
 describe('🍂 defaults & instances', () => {
@@ -1509,5 +1556,52 @@ describe('fetch-compatible API', () => {
 
     scope.done();
     assert.deepStrictEqual(res.data, {});
+  });
+});
+
+describe('merge headers', () => {
+  it('should merge Headers', () => {
+    const base = {a: 'a'};
+    const append = {b: 'b'};
+    const expected = new Headers({...base, ...append});
+
+    const matrixBase = [{...base}, Object.entries(base), new Headers(base)];
+    const matrixAppend = [
+      {...append},
+      Object.entries(append),
+      new Headers(append),
+    ];
+
+    for (const base of matrixBase) {
+      for (const append of matrixAppend) {
+        const headers = Gaxios.mergeHeaders(base, append);
+
+        assert.deepStrictEqual(headers, expected);
+      }
+    }
+  });
+
+  it('should merge multiple Headers', () => {
+    const base = {a: 'a'};
+    const append = {b: 'b'};
+    const appendMore = {c: 'c'};
+    const expected = new Headers({...base, ...append, ...appendMore});
+
+    const headers = Gaxios.mergeHeaders(base, append, appendMore);
+
+    assert.deepStrictEqual(headers, expected);
+  });
+
+  it('should merge Set-Cookie Headers', () => {
+    const base = {'set-cookie': 'a=a'};
+    const append = {'set-cookie': 'b=b'};
+    const expected = new Headers([
+      ['set-cookie', 'a=a'],
+      ['set-cookie', 'b=b'],
+    ]);
+
+    const headers = Gaxios.mergeHeaders(base, append);
+
+    assert.deepStrictEqual(headers.getSetCookie(), expected.getSetCookie());
   });
 });

@@ -129,13 +129,6 @@ export class GaxiosError<T = any> extends Error {
     if (error && 'code' in error && error.code) {
       this.code = error.code;
     }
-
-    if (config.errorRedactor) {
-      config.errorRedactor({
-        config: this.config,
-        response: this.response,
-      });
-    }
   }
 }
 
@@ -162,32 +155,12 @@ export interface GaxiosOptions extends RequestInit {
   /**
    * Optional method to override making the actual HTTP request. Useful
    * for writing tests.
-   *
-   * @deprecated Use {@link GaxiosOptions.fetchImplementation} instead.
    */
   adapter?: <T = GaxiosResponseData>(
     options: GaxiosOptionsPrepared,
     defaultAdapter: (options: GaxiosOptionsPrepared) => GaxiosPromise<T>,
   ) => GaxiosPromise<T>;
   url?: string | URL;
-  /**
-   * Headers to add to the request.
-   *
-   * @remarks
-   *
-   * Using the proper Headers type has the following benefits:
-   * - creates consistency throughout the libraries; no need to check properties for different casing
-   *   - see {@link https://github.com/googleapis/gaxios/issues/262 #262}
-   * - Alignment with {@link https://developer.mozilla.org/en-US/docs/Web/API/Request/headers `Request#headers`}
-   * - Can easily append an existing header or create it ('upsert') if it does exist, like so:
-   * ```ts
-   * const headers = new Headers();
-   *
-   * // creates, if not exist, or appends to an existing header
-   * headers.append('x-goog-api-client', 'abc');
-   * ```
-   */
-  headers?: Headers;
   baseURL?: string | URL;
   /**
    * The data to send in the {@link RequestInit.body} of the request. Objects will be
@@ -496,7 +469,7 @@ export function defaultErrorRedactor<
   }
 
   function redactObject<T extends O['data'] | R>(obj: T | null) {
-    if (!obj) {
+    if (!obj || typeof obj !== 'object') {
       return;
     } else if (
       obj instanceof FormData ||
