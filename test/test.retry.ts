@@ -104,10 +104,10 @@ describe('🛸 retry & exponential backoff', () => {
     try {
       await req;
       throw Error('unreachable');
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
+    } catch (err) {
+      assert(err instanceof GaxiosError);
       assert(err.config);
-      assert.strictEqual(err.config.retryConfig.currentRetryAttempt, 0);
+      assert.strictEqual(err.config.retryConfig?.currentRetryAttempt, 0);
     }
   });
 
