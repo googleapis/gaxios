@@ -196,9 +196,12 @@ export class GaxiosError<T = any> extends Error {
     defaultErrorMessage = 'The request failed',
   ): AIPErrorInterface['error'] {
     let message = defaultErrorMessage;
-if (typeof res.data === 'string') {
-    message = res.data;
-}
+
+    // Use res.data as the error message
+    if (typeof res.data === 'string') {
+      message = res.data;
+    }
+
     if (
       res.data &&
       typeof res.data === 'object' &&
