@@ -33,6 +33,23 @@ type _BodyInit = typeof globalThis extends {BodyInit: infer T}
   : import('undici-types').BodyInit;
 
 /**
+ * An AIP-193 conforming error interface.
+ *
+ * @see {@link https://google.aip.dev/193#http11json-representation AIP-193}
+ *
+ * @param res the response object
+ * @returns the extracted error information
+ */
+export interface AIPErrorInterface {
+  error: {
+    code: number;
+    message: string;
+    status: string;
+    details?: {}[];
+  };
+}
+
+/**
  * Support `instanceof` operator for `GaxiosError`s in different versions of this library.
  *
  * @see {@link GaxiosError[Symbol.hasInstance]}
@@ -63,6 +80,20 @@ export class GaxiosError<T = any> extends Error {
    * 500
    */
   status?: number;
+
+  /**
+   * @deprecated use {@link GaxiosError.cause} instead.
+   *
+   * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/cause Error#cause}
+   *
+   * @privateRemarks
+   *
+   * We will want to remove this property later as the modern `cause` property is better suited
+   * for displaying and relaying nested errors. Keeping this here makes the resulting
+   * error log larger than it needs to be.
+   *
+   */
+  error?: Error | NodeJS.ErrnoException;
 
   /**
    * Support `instanceof` operator for `GaxiosError` across builds/duplicated files.
@@ -99,9 +130,11 @@ export class GaxiosError<T = any> extends Error {
     message: string,
     public config: GaxiosOptionsPrepared,
     public response?: GaxiosResponse<T>,
-    public error?: Error | NodeJS.ErrnoException,
+    cause?: unknown,
   ) {
-    super(message);
+    super(message, {cause});
+
+    this.error = cause instanceof Error ? cause : undefined;
 
     // deep-copy config as we do not want to mutate
     // the existing config for future retries/use
@@ -126,9 +159,116 @@ export class GaxiosError<T = any> extends Error {
       this.status = this.response.status;
     }
 
-    if (error && 'code' in error && error.code) {
-      this.code = error.code;
+    if (cause instanceof DOMException) {
+      // The DOMException's equivalent to code is its name
+      // E.g.: name = `TimeoutError`, code = number
+      // https://developer.mozilla.org/en-US/docs/Web/API/DOMException/name
+      this.code = cause.name;
+    } else if (
+      cause &&
+      typeof cause === 'object' &&
+      'code' in cause &&
+      typeof cause.code === 'string'
+    ) {
+      this.code = cause.code;
     }
+  }
+
+  /**
+   * An AIP-193 conforming error extractor.
+   *
+   * @see {@link https://google.aip.dev/193#http11json-representation AIP-193}
+   *
+   * @internal
+   * @expiremental
+   *
+   * @param res the response object
+   * @returns the extracted error information
+   */
+  static extractAPIErrorFromResponse(
+    res: GaxiosResponse<unknown>,
+    defaultErrorMessage = 'The request failed',
+  ): AIPErrorInterface['error'] {
+    let message = defaultErrorMessage;
+
+    if (
+      res.data &&
+      typeof res.data === 'object' &&
+      'error' in res.data &&
+      res.data.error &&
+      !res.ok
+    ) {
+      if (typeof res.data.error === 'string') {
+        return {
+          message: res.data.error,
+          code: res.status,
+          status: res.statusText,
+        };
+      }
+
+      if (typeof res.data.error === 'object') {
+        // extract status from data.message
+        message =
+          'message' in res.data.error &&
+          typeof res.data.error.message === 'string'
+            ? res.data.error.message
+            : message;
+
+        // extract status from data.error
+        const status: string =
+          'status' in res.data.error &&
+          typeof res.data.error.status === 'string'
+            ? res.data.error.status
+            : res.statusText;
+
+        // extract code from data.error
+        const code: number =
+          'code' in res.data.error && typeof res.data.error.code === 'number'
+            ? res.data.error.code
+            : res.status;
+
+        if (
+          'errors' in res.data.error &&
+          Array.isArray(res.data.error.errors)
+        ) {
+          const errorMessages: string[] = [];
+
+          for (const e of res.data.error.errors) {
+            if (
+              typeof e === 'object' &&
+              'message' in e &&
+              typeof e.message === 'string'
+            ) {
+              errorMessages.push(e.message);
+            }
+          }
+
+          return Object.assign(
+            {
+              message: errorMessages.join('\n') || message,
+              code,
+              status,
+            },
+            res.data.error,
+          );
+        }
+
+        return Object.assign(
+          {
+            message,
+            code,
+            status,
+          },
+          res.data.error,
+        );
+      }
+    }
+
+    return {
+      message,
+      code: res.status,
+      status: res.statusText,
+    };
   }
 }
 
