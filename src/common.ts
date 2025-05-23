@@ -62,16 +62,22 @@ export class GaxiosError<T = any> extends Error {
    * An error code.
    * Can be a system error code, DOMException error name, or any error's 'code' property where it is a `string`.
    *
+   * It is only a `number` when the cause is sourced from an API-level error (AIP-193).
+   *
    * @see {@link https://nodejs.org/api/errors.html#errorcode error.code}
    * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names DOMException#error_names}
+   * @see {@link https://google.aip.dev/193#http11json-representation AIP-193}
    *
    * @example
    * 'ECONNRESET'
    *
    * @example
    * 'TimeoutError'
+   *
+   * @example
+   * 500
    */
-  code?: string;
+  code?: string | number;
   /**
    * An HTTP Status code.
    * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/Response/status Response#status}
@@ -168,7 +174,7 @@ export class GaxiosError<T = any> extends Error {
       cause &&
       typeof cause === 'object' &&
       'code' in cause &&
-      typeof cause.code === 'string'
+      (typeof cause.code === 'string' || typeof cause.code === 'number')
     ) {
       this.code = cause.code;
     }
