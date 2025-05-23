@@ -237,4 +237,4 @@ interface GaxiosOptions = {
 
 ## License
 
-[Apache-2.0](https://github.com/googleapis/gaxios/blob/master/LICENSE)
+[Apache-2.0](https://github.com/googleapis/gaxios/blob/main/LICENSE)

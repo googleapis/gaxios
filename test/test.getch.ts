@@ -25,7 +25,11 @@ import {
   GaxiosResponse,
   GaxiosPromise,
 } from '../src/index.js';
-import {GAXIOS_ERROR_SYMBOL, GaxiosOptionsPrepared} from '../src/common.js';
+import {
+  AIPErrorInterface,
+  GAXIOS_ERROR_SYMBOL,
+  GaxiosOptionsPrepared,
+} from '../src/common.js';
 import util from '../src/util.cjs';
 
 import fs from 'fs';
@@ -62,10 +66,16 @@ describe('🚙 error handling', () => {
   });
 
   it('should throw the error as a GaxiosError object, regardless of Content-Type header', async () => {
-    const body = {
+    const body: AIPErrorInterface = {
       error: {
-        status: 404,
         message: 'File not found',
+        code: 404,
+        status: 'NOT FOUND',
+        details: [
+          {
+            some: 'details',
+          },
+        ],
       },
     };
     const scope = nock(url).get('/').reply(404, body);
@@ -73,16 +83,15 @@ describe('🚙 error handling', () => {
       request<JSON>({url, responseType: 'json'}),
       (err: GaxiosError) => {
         scope.done();
-        return (
-          err.status === 404 &&
-          err.message === 'Request failed with status code 404' &&
-          err.response?.data.error.message === 'File not found'
-        );
+
+        assert.deepStrictEqual(err.cause, body.error);
+
+        return err.status === 404 && err.message === 'File not found';
       },
     );
   });
 
-  it('should throw the error as a GaxiosError object (with the message as a string), even if the request type is requested as an arraybuffer', async () => {
+  it('should throw the error as a `GaxiosError` object (with the message as a string), even if the request type is requested as an arraybuffer', async () => {
     const body = {
       error: {
         status: 404,
@@ -169,7 +178,7 @@ describe('🥁 configuration options', () => {
     const inst = new Gaxios({headers: new Headers({apple: 'juice'})});
     const res = await inst.request({
       url,
-      headers: new Headers({figgy: 'pudding'}),
+      headers: {figgy: 'pudding'},
     });
     scope.done();
     assert.strictEqual(res.config.headers.get('apple'), 'juice');
@@ -1124,6 +1133,53 @@ describe('🎏 data handling', () => {
         client_secret: REDACT,
         grant_type: REDACT,
       });
+    } finally {
+      scope.done();
+    }
+  });
+
+  it('should redact after final retry', async () => {
+    const customURL = new URL(url);
+    customURL.searchParams.append('token', 'sensitive');
+    customURL.searchParams.append('client_secret', 'data');
+    customURL.searchParams.append('random', 'non-sensitive');
+
+    const data = {
+      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      assertion: 'somesensitivedata',
+      unrelated: 'data',
+      client_secret: 'data',
+    };
+
+    let retryAttempted = false;
+    const config: GaxiosOptions = {
+      url: customURL,
+      method: 'POST',
+      data: new URLSearchParams(data),
+      retry: true,
+      retryConfig: {
+        httpMethodsToRetry: ['POST'],
+        onRetryAttempt: err => {
+          assert.deepStrictEqual(err.config.data, new URLSearchParams(data));
+          retryAttempted = true;
+        },
+      },
+    };
+
+    const scope = nock(url)
+      .post('/', data)
+      .query(() => true)
+      .reply(500)
+      .post('/', data)
+      .query(() => true)
+      .reply(204);
+
+    const gaxios = new Gaxios();
+
+    try {
+      await gaxios.request(config);
+
+      assert(retryAttempted);
     } finally {
       scope.done();
     }
