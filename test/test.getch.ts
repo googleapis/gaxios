@@ -1237,8 +1237,7 @@ describe('🍂 defaults & instances', () => {
       getAgentCache() {
         return this.agentCache;
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      protected async _request<T = any>(
+      protected async _request<T = ReturnType<JSON['parse']>>(
         opts: GaxiosOptionsPrepared,
       ): GaxiosPromise<T> {
         assert(opts.agent);
