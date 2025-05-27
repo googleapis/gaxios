@@ -28,25 +28,36 @@ import {instance} from 'gaxios';
 const res = await instance.fetch('https://google.com/');
 ```
 
+To disable the auto-processing of the request body in `res.data`, set `{responseType: 'stream'}` or `.adapter` on a Gaxios instance's defaults or per-request.
+
 ## Setting Defaults
 
 Gaxios supports setting default properties both on the default instance, and on additional instances. This is often useful when making many requests to the same domain with the same base settings. For example:
 
 ```js
-import {request, instance} from 'gaxios';
+import {Gaxios} from 'gaxios';
 
-instance.defaults = {
+const gaxios = new Gaxios();
+
+gaxios.defaults = {
   baseURL: 'https://example.com'
   headers: new Headers({
     Authorization: 'SOME_TOKEN'
   })
 }
 
-await request({url: '/data'});
+await gaxios.request({url: '/data'});
 ```
 
 Note that setting default values will take precedence
 over other authentication methods, i.e., application default credentials.
+
+## `GaxiosResponse`
+
+The `GaxiosResponse` object extends the `fetch` API's [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) object, with the addition of:
+
+- `config`: the configuration used for the request.
+- `data`: the transformed `.body`, such as JSON, text, arrayBuffer, or more.
 
 ## Request Options
 
@@ -113,10 +124,16 @@ interface GaxiosOptions = {
   };
 
   // The expected return type of the request.  Options are:
-  // json | stream | blob | arraybuffer | text | unknown
+  // 'json' | 'stream' | 'blob' | 'arraybuffer' | 'text' | 'unknown'
   // Defaults to `unknown`.
+  //
   // If the `fetchImplementation` is native `fetch`, the
-  // stream is a `ReadableStream`, otherwise `readable.Stream`
+  // stream is a `ReadableStream`, otherwise `readable.Stream`.
+  //
+  // Note: Setting 'stream' does not consume the `Response#body` - this can
+  // be useful for passthrough requests, where a consumer would like to
+  // transform the `Response#body`, or for using Gaxios as a drop-in `fetch`
+  // replacement.
   responseType: 'unknown',
 
   // The node.js http agent to use for the request.
@@ -127,7 +144,8 @@ interface GaxiosOptions = {
   validateStatus: (status: number) => true,
 
   /**
-   * Implementation of `fetch` to use when making the API call. Will use `fetch` by default.
+   * Implementation of `fetch` to use when making the API call. Will use
+   * `node-fetch` by default.
    */
   fetchImplementation?: typeof fetch;
 
@@ -180,6 +198,7 @@ interface GaxiosOptions = {
    * @see {@link GaxiosOptions.agent}
    */
   proxy?: string | URL;
+
   /**
    * A list for excluding traffic for proxies.
    * Available via `process.env.NO_PROXY` as well as a common-separated list of strings - merged with any local `noProxy` rules.
@@ -218,4 +237,4 @@ interface GaxiosOptions = {
 
 ## License
 
-[Apache-2.0](https://github.com/googleapis/gaxios/blob/master/LICENSE)
+[Apache-2.0](https://github.com/googleapis/gaxios/blob/main/LICENSE)
