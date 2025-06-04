@@ -103,9 +103,8 @@ function shouldRetryRequest(err: GaxiosError) {
   const config = getConfig(err);
 
   if (
-    (err.config.signal?.aborted && err.error?.name !== 'TimeoutError') ||
-    err.name === 'AbortError' ||
-    err.error?.name === 'AbortError'
+    (err.config.signal?.aborted && err.code !== 'TimeoutError') ||
+    err.code === 'AbortError'
   ) {
     return false;
   }

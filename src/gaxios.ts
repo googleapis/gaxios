@@ -203,18 +203,30 @@ export class Gaxios implements FetchCompliance {
 
           translatedResponse.data = response as T;
         }
-        throw new GaxiosError<T>(
+
+        const errorInfo = GaxiosError.extractAPIErrorFromResponse(
+          translatedResponse,
           `Request failed with status code ${translatedResponse.status}`,
+        );
+
+        throw new GaxiosError<T>(
+          errorInfo?.message,
           opts,
           translatedResponse,
+          errorInfo,
         );
       }
       return translatedResponse;
     } catch (e) {
-      const err =
-        e instanceof GaxiosError
-          ? e
-          : new GaxiosError((e as Error).message, opts, undefined, e as Error);
+      let err: GaxiosError;
+
+      if (e instanceof GaxiosError) {
+        err = e;
+      } else if (e instanceof Error) {
+        err = new GaxiosError(e.message, opts, undefined, e);
+      } else {
+        err = new GaxiosError('Unexpected Gaxios Error', opts, undefined, e);
+      }
 
       const {shouldRetry, config} = await getRetryConfig(err);
       if (shouldRetry && config) {
