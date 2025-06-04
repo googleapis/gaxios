@@ -134,7 +134,9 @@ export class Gaxios implements FetchCompliance {
    * Perform an HTTP request with the given options.
    * @param opts Set of HTTP options that will be used for this HTTP request.
    */
-  async request<T = any>(opts: GaxiosOptions = {}): GaxiosPromise<T> {
+  async request<T = ReturnType<JSON['parse']>>(
+    opts: GaxiosOptions = {},
+  ): GaxiosPromise<T> {
     let prepared = await this.#prepareRequest(opts);
     prepared = await this.#applyRequestInterceptors(prepared);
     return this.#applyResponseInterceptors(this._request(prepared));
@@ -176,7 +178,7 @@ export class Gaxios implements FetchCompliance {
    * Internal, retryable version of the `request` method.
    * @param opts Set of HTTP options that will be used for this HTTP request.
    */
-  protected async _request<T = any>(
+  protected async _request<T = ReturnType<JSON['parse']>>(
     opts: GaxiosOptionsPrepared,
   ): GaxiosPromise<T> {
     try {
@@ -251,7 +253,7 @@ export class Gaxios implements FetchCompliance {
   private async getResponseData(
     opts: GaxiosOptionsPrepared,
     res: Response,
-  ): Promise<any> {
+  ): Promise<ReturnType<JSON['parse']>> {
     if (
       opts.maxContentLength &&
       res.headers.has('content-length') &&
@@ -571,11 +573,11 @@ export class Gaxios implements FetchCompliance {
   /**
    * Attempts to parse a response by looking at the Content-Type header.
    * @param {Response} response the HTTP response.
-   * @returns {Promise<any>} a promise that resolves to the response data.
+   * @returns a promise that resolves to the response data.
    */
   private async getResponseDataFromContentType(
     response: Response,
-  ): Promise<any> {
+  ): Promise<ReturnType<JSON['parse']>> {
     let contentType = response.headers.get('Content-Type');
     if (contentType === null) {
       // Maintain existing functionality by calling text()

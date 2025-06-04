@@ -55,8 +55,7 @@ export interface AIPErrorInterface {
  */
 export const GAXIOS_ERROR_SYMBOL = Symbol.for(`${pkg.name}-gaxios-error`);
 
-/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-export class GaxiosError<T = any> extends Error {
+export class GaxiosError<T = ReturnType<JSON['parse']>> extends Error {
   /**
    * An error code.
    * Can be a system error code, DOMException error name, or any error's 'code' property where it is a `string`.
