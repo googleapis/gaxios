@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.1.0](https://github.com/googleapis/gaxios/compare/v7.0.0...v7.1.0) (2025-06-12)
+
+
+### Features
+
+* Use global `URL` ([#703](https://github.com/googleapis/gaxios/issues/703)) ([4087224](https://github.com/googleapis/gaxios/commit/408722455fad5220b0d1f6c7461de6f36b9f9827))
+
 ## [7.0.0](https://github.com/googleapis/gaxios/compare/v6.7.1...v7.0.0) (2025-06-05)
 
 
