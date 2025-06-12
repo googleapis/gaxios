@@ -12,7 +12,6 @@
 // limitations under the License.
 
 import {Agent} from 'http';
-import {URL} from 'url';
 import {Readable} from 'stream';
 
 import extend from 'extend';

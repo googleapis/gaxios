@@ -14,7 +14,6 @@
 import extend from 'extend';
 import {Agent} from 'http';
 import {Agent as HTTPSAgent} from 'https';
-import {URL} from 'url';
 import type nodeFetch from 'node-fetch' with {'resolution-mode': 'import'};
 
 import {
