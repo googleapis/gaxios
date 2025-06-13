@@ -86,7 +86,7 @@
     "null-loader": "^4.0.0",
     "pack-n-play": "^3.0.0",
     "puppeteer": "^24.0.0",
-    "sinon": "^20.0.0",
+    "sinon": "^21.0.0",
     "stream-browserify": "^3.0.0",
     "tmp": "0.2.3",
     "ts-loader": "^9.5.2",
