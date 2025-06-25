@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.1.1](https://github.com/googleapis/gaxios/compare/v7.1.0...v7.1.1) (2025-06-21)
+
+
+### Bug Fixes
+
+* Don't iterate over undefined opts.data. ([#711](https://github.com/googleapis/gaxios/issues/711)) ([c05def6](https://github.com/googleapis/gaxios/commit/c05def6ffa76806a3c0dcd782584d6250b6c0914))
+
 ## [7.1.0](https://github.com/googleapis/gaxios/compare/v7.0.0...v7.1.0) (2025-06-12)
 
 
