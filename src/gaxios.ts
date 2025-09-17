@@ -196,11 +196,11 @@ export class Gaxios implements FetchCompliance {
         if (opts.responseType === 'stream') {
           const response = [];
 
-          for await (const chunk of (opts.data ?? []) as Readable) {
+          for await (const chunk of (translatedResponse.data) as Readable) {
             response.push(chunk);
           }
 
-          translatedResponse.data = response as T;
+          translatedResponse.data = response.toString() as T;
         }
 
         const errorInfo = GaxiosError.extractAPIErrorFromResponse(
