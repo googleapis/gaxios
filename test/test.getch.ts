@@ -113,6 +113,36 @@ describe('🚙 error handling', () => {
     );
   });
 
+  it('should handle AIP-193 error bodies: passes API error in message', async () => {
+    const body = {
+      error: {
+        code: 429,
+        message:
+          "The zone 'us-east1-a' does not have enough resources available to fulfill the request. Try a different zone, or try again later.",
+        status: 'RESOURCE_EXHAUSTED',
+        details: [],
+      },
+    };
+    const readableStream = Readable.from(JSON.stringify(body));
+    const scope = nock(url).get('/').reply(429, readableStream);
+
+    await assert.rejects(
+      request<ArrayBuffer>({url, responseType: 'stream'}),
+      (err: GaxiosError) => {
+        scope.done();
+        const apiError = JSON.parse(err.message);
+        return (
+          apiError.error.code === 429 &&
+          apiError.error.message ===
+            "The zone 'us-east1-a' does not have enough resources available to fulfill the request. Try a different zone, or try again later." &&
+          apiError.error.status === 'RESOURCE_EXHAUSTED' &&
+          Array.isArray(apiError.error.details) &&
+          apiError.error.details.length === 0
+        );
+      },
+    );
+  });
+
   it('should not throw an error during a translation error', () => {
     const notJSON = '.';
     const response = {
