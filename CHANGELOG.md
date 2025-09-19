@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.1.2](https://github.com/googleapis/gaxios/compare/v7.1.1...v7.1.2) (2025-09-19)
+
+
+### Bug Fixes
+
+* Fix error handling to extract error information from the response body ([#738](https://github.com/googleapis/gaxios/issues/738)) ([e10e248](https://github.com/googleapis/gaxios/commit/e10e248a4ccff8b2df5e26e930adebe855113e72))
+
 ## [7.1.1](https://github.com/googleapis/gaxios/compare/v7.1.0...v7.1.1) (2025-06-21)
 
 
