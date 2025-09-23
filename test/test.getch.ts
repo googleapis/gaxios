@@ -1214,6 +1214,25 @@ describe('🎏 data handling', () => {
       scope.done();
     }
   });
+
+  it('should handle "204 No Content" responses when response type is "json"', async () => {
+    const scope = nock(url)
+      .matchHeader('content-type', 'application/json')
+      .put('/')
+      .reply(204, '', {'Content-Type': 'application/json'});
+    const res = await request({
+      url,
+      method: 'PUT',
+      data: {},
+      headers: new Headers({
+        'content-type': 'application/json',
+        accept: 'application/json',
+      }),
+      responseType: 'json',
+    });
+    scope.done();
+    assert.deepStrictEqual(res.data, '');
+  });
 });
 
 describe('🍂 defaults & instances', () => {
