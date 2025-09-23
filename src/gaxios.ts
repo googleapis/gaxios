@@ -44,6 +44,8 @@ interface FetchCompliance {
   fetch: typeof fetch;
 }
 
+const HTTP_STATUS_NO_CONTENT = 204;
+
 export class Gaxios implements FetchCompliance {
   protected agentCache = new Map<
     string | URL,
@@ -254,6 +256,10 @@ export class Gaxios implements FetchCompliance {
     opts: GaxiosOptionsPrepared,
     res: Response,
   ): Promise<ReturnType<JSON['parse']>> {
+    if (res.status === HTTP_STATUS_NO_CONTENT) {
+      return '';
+    }
+
     if (
       opts.maxContentLength &&
       res.headers.has('content-length') &&
@@ -271,7 +277,12 @@ export class Gaxios implements FetchCompliance {
       case 'stream':
         return res.body;
       case 'json':
-        return res.json();
+        const data = await res.text();
+        try {
+          return JSON.parse(data);
+        } catch {
+          return data;
+        }
       case 'arraybuffer':
         return res.arrayBuffer();
       case 'blob':
@@ -605,7 +616,7 @@ export class Gaxios implements FetchCompliance {
    * This implementation follows the spec: https://www.ietf.org/rfc/rfc2387.txt. However, recursive
    * multipart/related requests are not currently supported.
    *
-   * @param {GaxioMultipartOptions[]} multipartOptions the pieces to turn into a multipart/related body.
+   * @param {GaxiosMultipartOptions[]} multipartOptions the pieces to turn into a multipart/related body.
    * @param {string} boundary the boundary string to be placed between each part.
    */
   private async *getMultipartRequest(
