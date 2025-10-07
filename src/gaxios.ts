@@ -276,13 +276,14 @@ export class Gaxios implements FetchCompliance {
     switch (opts.responseType) {
       case 'stream':
         return res.body;
-      case 'json':
+      case 'json': {
         const data = await res.text();
         try {
           return JSON.parse(data);
         } catch {
           return data;
         }
+      }
       case 'arraybuffer':
         return res.arrayBuffer();
       case 'blob':
