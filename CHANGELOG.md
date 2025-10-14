@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.1.3](https://github.com/googleapis/gaxios/compare/v7.1.2...v7.1.3) (2025-10-14)
+
+
+### Bug Fixes
+
+* `no content` response handling when the `response type` is `json` ([#740](https://github.com/googleapis/gaxios/issues/740)) ([ee144e3](https://github.com/googleapis/gaxios/commit/ee144e3a1d5fc9d63ea929739e1f636fe99ab916))
+
 ## [7.1.2](https://github.com/googleapis/gaxios/compare/v7.1.1...v7.1.2) (2025-09-19)
 
 
